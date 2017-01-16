@@ -1,0 +1,51 @@
+--@?/RDBMS/Admin/scott.sql
+Create Table EMP as select * from scott.emp;
+SELECT job
+,      deptno
+,      SUM(sal) AS sum_sal
+FROM   emp
+GROUP  BY
+       job
+,      deptno
+ORDER  BY
+       job
+,      deptno;
+
+WITH pivot_data AS (
+        SELECT deptno, job, sal
+        FROM   emp
+        )
+SELECT *
+FROM   pivot_data
+PIVOT (
+           SUM(sal)        --<-- pivot_clause
+       FOR deptno          --<-- pivot_for_clause
+       IN  (10,20,30,40)   --<-- pivot_in_clause
+      );
+
+SELECT *
+FROM   emp
+PIVOT (SUM(sal)
+FOR    deptno IN (10,20,30,40));
+
+WITH pivot_data AS (
+        SELECT deptno, job, sal
+        FROM   emp
+        )
+SELECT *
+FROM   pivot_data
+PIVOT (
+           SUM(sal)        --<-- pivot_clause
+       FOR deptno          --<-- pivot_for_clause
+       IN  (10,20,30,40)   --<-- pivot_in_clause
+      )
+WHERE  job IN ('ANALYST','CLERK','SALESMAN');
+
+SELECT *
+FROM  (
+       SELECT deptno, job, sal
+       FROM   emp
+      )
+PIVOT (SUM(sal) 
+FOR    deptno IN (10,20,30,40));
+
