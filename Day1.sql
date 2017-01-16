@@ -97,3 +97,28 @@ select first_name,Salary, versions_operation,rawtohex(versions_xid) xid, version
 -- if the query is broken down to multiple query, how do we ensure 
 -- data consistency?
 
+Create Table TimeDemo
+(
+ColA Date,
+ColB TimeStamp,
+ColC TimeStamp With Time Zone,
+ColD TimeStamp With Local Time Zone,
+ColE Interval Year to Month,
+ColF Interval Day to Second);
+Insert into TimeDemo
+Values(SysDate,Current_Timestamp,Current_Timestamp,
+Current_Timestamp,'12-6','+45 6:30:30.00');
+Commit;
+select Cold + ColE from TimeDemo;
+
+Select Current_Timestamp 
++ interval '-40' Year from dual;
+
+Select Current_Timestamp 
++ interval '60' Day from dual;
+
+
+
+
+
+
