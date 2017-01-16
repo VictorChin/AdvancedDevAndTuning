@@ -37,4 +37,36 @@ Total - Lag(Total,12) Over (Order By Year,MonthNum) YoYSameMonth from ThreeMVAnd
 --Select * from ThreeMVAndRank Where RankWithInYear <=3 Order By 1,5;
 
 
+Select 
+1
+from dual where RegExp_Like('My name is victor Chin contact me via email @ victor@objectmage.com or call 555-1212',
+'\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}');
 
+Select 
+Regexp_Instr(
+'My name is victor Chin contact me via email @ victor@objectmage.com or call 555-1212',
+'\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}')
+from dual;
+
+Select 
+Regexp_Replace(
+'My name is victor Chin contact me via email @ victor@objectmage.com or call 555-1212',
+'\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}','[removed]')
+from dual;
+
+Select 
+Regexp_SubStr(
+'My name is victor Chin contact me via email @ victor@objectmage.com or call 555-1212',
+'\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}')
+from dual;
+
+-- Create Filtered Word List using Regexp_Like and Regexp_Replace
+Create Table WordList
+(wordID number(3),
+ word  varchar(20));
+ insert into WordList Values(1,'\d{2,3}MB');
+ commit;
+ select RegExp_Replace(Prod_desc,W.Word,'[removed]'),
+ RegExp_Substr(Prod_desc,W.Word)
+ from SH.Products P
+ LEFT JOIN SH.WordList W on RegExp_Like(P.Prod_Desc,W.Word); 
