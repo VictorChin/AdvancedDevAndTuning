@@ -70,3 +70,30 @@ Create Table WordList
  RegExp_Substr(Prod_desc,W.Word)
  from SH.Products P
  LEFT JOIN SH.WordList W on RegExp_Like(P.Prod_Desc,W.Word); 
+ 
+ -- Flashback Oracle --
+ select sum (Salary) from employees;
+select min(Salary) from employees as of
+Timestamp (systimestamp - interval '5' minute);
+Grant Execute on DBMS_Flashback to HR;
+
+-- bring the session back in time so all queries become flashback query
+select To_TimeStamp('16-Jan-2017 4:00:00.00 PM') from dual;
+exec dbms_flashback.enable_at_time(To_TimeStamp('16-Jan-2017 4:00:00.00 PM'));
+select sum (Salary) from employees;
+select department_name from departments;
+exec dbms_flashback.disable();
+-- See the data change over time, attention to
+-- the pseudo columns
+select first_name,Salary, versions_operation,rawtohex(versions_xid) xid, versions_starttime
+  from employees
+   versions between scn minvalue and maxvalue
+  where employee_id = 100;
+-- server does not need to request a lock of any sort on the table
+
+-- Generating a report across large number of tables that is consistent
+-- of a specific time, Stock closing, Month Ends 12:00:00AM, 
+-- in a single SQL with JOIN, the entire query is consistent.
+-- if the query is broken down to multiple query, how do we ensure 
+-- data consistency?
+
