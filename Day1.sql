@@ -25,7 +25,9 @@ Sum(Amount_Sold) as Total
 From SH.Sales S Join SH.Times T ON S.Time_ID = T.Time_ID
 Group By T.Calendar_Year, T.CALENDAR_MONTH_NAME,T.CALENDAR_MONTH_NUMBER
 Order By T.Calendar_Year,T.CALENDAR_MONTH_NUMBER)
-Select Year,Month, Total, Avg(Total) over (order by Year,Month) from MonthlySales;
+Select Year,Month, Total, Round( Avg(Total) over (order by Year,MonthNum)) As RunningAvg
+from MonthlySales 
+Order By Year,MonthNum;
 
 
 
