@@ -49,3 +49,11 @@ FROM  (
 PIVOT (SUM(sal) 
 FOR    deptno IN (10,20,30,40));
 
+CREATE TABLE saleshist (product VARCHAR2(30), q1 NUMBER, q2 NUMBER, q3 NUMBER, q4 NUMBER);
+INSERT INTO saleshist VALUES ('Oracle EE', 100, 123, 130, 128);
+INSERT INTO saleshist VALUES ('Partitioning', 100, 123, 130, 128);
+
+select * from saleshist
+UNPIVOT (Qty For QUARTER IN (q1,q2,q3,q4));
+
+
