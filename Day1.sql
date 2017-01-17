@@ -117,6 +117,16 @@ Select Current_Timestamp
 Select Current_Timestamp 
 + interval '60' Day from dual;
 
+With A as
+(SELECT EMPLOYEES.FIRST_NAME,
+  EMPLOYEES.LAST_NAME,
+  DEPARTMENTS.DEPARTMENT_NAME,SALARY
+FROM EMPLOYEES
+INNER JOIN DEPARTMENTS
+ON DEPARTMENTS.DEPARTMENT_ID = EMPLOYEES.DEPARTMENT_ID )
+Select Department_Name,First_Name from A;
+
+
 
 
 
