@@ -1,0 +1,60 @@
+CREATE OR REPLACE LIBRARY nt_kernel
+ 	AS 'C:\app\train\product\12.1.0\dbhome_1\BIN\kernel32.dll';
+  
+CREATE OR REPLACE PACKAGE disk_util
+ 	AS
+FUNCTION get_disk_free_space
+ 		(root_path IN VARCHAR2,
+ 		sectors_per_cluster OUT PLS_INTEGER,
+ 		bytes_per_sector OUT PLS_INTEGER,
+ 		number_of_free_clusters OUT PLS_INTEGER,
+ 		total_number_of_clusters OUT PLS_INTEGER)
+ 	     RETURN PLS_INTEGER;
+ 	     PRAGMA RESTRICT_REFERENCES (get_disk_free_space,
+ 		WNPS, RNPS, WNDS, RNDS);
+END disk_util;
+/
+CREATE OR REPLACE PACKAGE BODY disk_util
+ 	AS
+  FUNCTION get_disk_free_space
+ 		(root_path IN VARCHAR2,
+ 		sectors_per_cluster OUT PLS_INTEGER,
+ 		bytes_per_sector OUT PLS_INTEGER,
+ 		number_of_free_clusters OUT PLS_INTEGER,
+ 		total_number_of_clusters OUT PLS_INTEGER)
+ 	     RETURN PLS_INTEGER
+ 	     IS EXTERNAL
+ 		LIBRARY nt_kernel	-- our library (defined previously)
+ 		NAME "GetDiskFreeSpaceA"-- name of function in kernel32.dll
+ 		LANGUAGE C		-- external routine is written in C
+ 		CALLING STANDARD PASCAL  -- uses Pascal parameter convention
+ 		PARAMETERS	      -- map PL/SQL to C parameters by position
+ 			(root_path STRING,
+ 			sectors_per_cluster BY REFERENCE LONG,
+ 			bytes_per_sector BY REFERENCE LONG,
+ 			number_of_free_clusters BY REFERENCE LONG,
+ 			total_number_of_clusters BY REFERENCE LONG,
+ 			RETURN LONG);-- "return code" indicating success or failure
+END disk_util;
+/
+--Testing External Procs
+SET SERVEROUTPUT ON SIZE 100000
+        	DECLARE
+        	     lroot_path VARCHAR2(3) := 'C: ';	-- look at C drive
+        	     lsectors_per_cluster PLS_INTEGER;
+        	     lbytes_per_sector PLS_INTEGER;
+        	     lnumber_of_free_clusters PLS_INTEGER;
+        	     ltotal_number_of_clusters PLS_INTEGER;
+        	     return_code PLS_INTEGER;
+        	     free_meg REAL;
+        	BEGIN
+        	     /* Call the external procedure.  We ignore the return code in this simple example.*/
+        	     return_code := disk_util.get_disk_free_space (lroot_path, lsectors_per_cluster,
+                              lbytes_per_sector,lnumber_of_free_clusters, ltotal_number_of_clusters);
+         	     /* Using the drive statistics that are returned from the external procedure, 
+||compute the amount of free disk space.  Remember Megabytes = (Bytes / 1024 / 1024)
+        	    */
+        	    free_meg := ((lsectors_per_cluster * lnumber_of_free_clusters) / 1024 / 1024 /1024) * lbytes_per_sector ;
+       
+         	    DBMS_OUTPUT.PUT_LINE('free disk space: '|| round(free_meg,2) || '(GB)');
+END;
