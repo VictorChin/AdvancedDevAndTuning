@@ -42,3 +42,27 @@ BEGIN
          employee_rec.last_name);
    END LOOP;
 END;
+
+grant debug connect session to hr;
+grant debug any procedure to hr;
+
+	
+CREATE OR REPLACE PROCEDURE ENABLE_DEBUGGING(ByUserName varchar)
+IS 
+   ip_address VARCHAR2(40);
+BEGIN
+  ip_address := SYS_CONTEXT( 'userenv', 'ip_address' );
+  DBMS_NETWORK_ACL_ADMIN.APPEND_HOST_ACE
+       (HOST=>ip_address,
+        ace=> SYS.XS$ACE_TYPE(privilege_list=>sys.XS$NAME_LIST('JDWP') ,
+                           principal_name=>ByUserName ,
+                           principal_type=>sys.XS_ACL.PTYPE_DB) );
+     DBMS_OUTPUT.PUT_LINE( 'Added Java debugging privilege for user: ' || ByUserName );
+     DBMS_OUTPUT.PUT_LINE( 'At IP address: ' || ip_address );
+EXCEPTION
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE( 'ENABLE_DEBUGGING: An unknown exception has occurred.' );
+      RAISE;
+END;  
+
+EXECUTE ENABLE_DEBUGGING('HR');
