@@ -42,10 +42,9 @@ BEGIN
          employee_rec.last_name);
    END LOOP;
 END;
-
+-- run below as sys-noncdb
 grant debug connect session to hr;
 grant debug any procedure to hr;
-
 	
 CREATE OR REPLACE PROCEDURE ENABLE_DEBUGGING(ByUserName varchar)
 IS 
@@ -66,3 +65,6 @@ EXCEPTION
 END;  
 
 EXECUTE ENABLE_DEBUGGING('HR');
+
+alter user OE identified by oracle account unlock;
+grant dba to OE;
