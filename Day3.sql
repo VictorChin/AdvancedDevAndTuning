@@ -30,3 +30,15 @@ BEGIN
     SET credit_limit = credit_limit + 200 WHERE CURRENT OF cur_update; 
   END LOOP;
 END; /
+
+
+BEGIN
+   FOR employee_rec IN (
+        SELECT *
+          FROM HR.employees
+         WHERE department_id = 20)
+   LOOP
+      DBMS_OUTPUT.put_line (
+         employee_rec.last_name);
+   END LOOP;
+END;
