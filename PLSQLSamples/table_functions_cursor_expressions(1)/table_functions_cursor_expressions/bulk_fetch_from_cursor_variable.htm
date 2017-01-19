@@ -1,0 +1,67 @@
+<html>
+
+<head>
+
+  <title>Oracle9i enhancement for bulk fetch from cursor variable assigned by Native Dynamic SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" >
+  <h1>Oracle9<i>i</i> enhancement for bulk fetch from cursor variable assigned
+    by Native Dynamic SQL</h1>
+
+
+  <p>Consider modifying the <span class="Code_Emphasize">Fetch_From_Cursor</span> 
+    procedure to use bulk fetch, thus&#133;</p>
+  <pre>create or replace procedure Bulk_Fetch_From_Cursor
+  ( p_cursor in <span class="Code_Emphasize">sys_refcursor</span> )
+
+is
+  type names_t is table of varchar2(4000)
+    index by binary_integer;
+  the_names names_t;
+begin
+  fetch p_cursor <span class="Code_Emphasize">bulk collect</span> into the_names;
+
+
+  for j in the_names.first..the_names.last
+  loop
+    Dbms_Output.Put_Line ( the_names(j) );
+  end loop;
+end Bulk_Fetch_From_Cursor;
+/</pre>
+
+  <p>It can be invoked with a cursor variable which has been assigned using native
+    dynamic SQL, thus&#133;<br>
+  </p>
+  <pre>declare
+  the_cursor <span class="Code_Emphasize">sys_refcursor</span>;
+begin
+  open the_cursor for
+    'select last_name from employees order by last_name';
+
+  Bulk_Fetch_From_Cursor ( the_cursor );
+  close the_cursor;
+
+  open the_cursor for
+    'select department_name from departments order by department_name';
+  Bulk_Fetch_From_Cursor ( the_cursor );
+  close the_cursor;
+end;
+/</pre>
+
+  <p>If this is attempted in a pre-Oracle9i environment (making appropriate substitution 
+    for <span class="Code_Emphasize">sys_refcursor</span>), then: <i>either</i> 
+    bulk fetch can be used when the cursor variable is assigned using static SQL; 
+    <i>or</i> explicit row by row fetch can be used when the cursor variable is 
+    assigned using native dynamic SQL. But the attempt to do bulk fetch when the 
+    cursor variable is assigned using native dynamic SQL causes <i>&#147;ORA-01001: 
+    invalid cursor&#148;</i>. </p>
+  <p>&nbsp; </p>
+</div>
+</body></html>
+

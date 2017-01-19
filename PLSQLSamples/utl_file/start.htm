@@ -1,0 +1,177 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" > 
+  <h1>Utl_File</h1>
+
+
+  <h2>Overview of enhancements introduced in<br>
+    &nbsp;&nbsp;Oracle9<i>i</i> Database Version 9.2.0</h2>
+
+  <p>Pre 9.2.0, the way to denote the director(ies) for files was via the <tt>UTL_FILE_DIR</tt> 
+
+    initialization parameter. This suffered from the disadvantages that the instance 
+    had to be bounced to make changes to the list of directories and that there 
+    was no secutity scheme (all users could access files on all diretories). Version 
+    9.2.0 allows the same mechanism (the <tt>DIRECTORY</tt> schema object) to 
+    be used with <tt>Utl_File</tt> as is used for <tt>BFILE</tt>s. You should 
+    consider the <tt>UTL_FILE_DIR</tt> initialization parameter as slated for 
+
+    deprecation.</p>
+  <p>The line length limit for <tt>Utl_File.Get_Line</tt> and <tt>Utl_File.Put_Line</tt> 
+    has been increased from 1K to 32K.</p>
+  <p>The following new API primitives have been introduced...</p>
+
+<i>For operating system file management</i>
+  <ul class="Ul_1">
+
+    <li><tt>procedure Fgetattr</tt></li>
+    <li><tt>procedure Fcopy</tt></li>
+    <li><tt>procedure Fremove</tt></li>
+    <li><tt>procedure Frename</tt></li>
+  </ul>
+
+  <i>For handling</i> <tt>RAW</tt> <i>data</i> 
+  <ul class="Ul_1">
+
+    <li><tt>procedure Fseek</tt></li>
+    <li><tt>function &nbsp;Fgetpos</tt></li>
+    <tt><li>procedure Get_Raw</li>
+    <li>procedure Put_Raw</li>
+    </tt>
+  </ul>
+
+  <p>In additon, <tt>Get_Line</tt> and <tt>Get_Line_Nchar</tt> have acquired a 
+    new defaulted binary_integer parameter <tt>len</tt>. And <tt>Put_Line</tt> 
+
+    has acquired a new defaulted boolean parameter <tt>autoflush</tt>. </p>
+  <p> <tt>Utl_File</tt> performance is improved via transparent internal reimplementation.</p>
+  <p> 
+  To explore some of the possible exceptions in the following tests, you'll need 
+  to log on to the datatbase machine as the Oracle user and create and delete 
+  files. 
+  <h2>Create the <tt>UTL_FILE_TEST DIRECTORY</tt> <br>
+  and the <tt>PROGRAMMER</tt> test user</h2>
+These samples uniformly use the new-in-9.2.0 approach for the <tt>location</tt> 
+  formal parameter by providing the name of a <tt>directory</tt> as the actual 
+
+  parameter. We'll use the same filesystem directory that's designated for user 
+  dump files. And for convenience, we'll let the test user query the <tt>v$parameter</tt> 
+  view and execute <tt>Dbms_Pipe</tt>. <a href="Cr_User_And_Directory.htm">Create 
+  the user</a>. 
+  <h2>API</h2>
+
+The package exposes the following prcedures and functions. None is overloaded.
+
+<h3>Opening, writing and closing</h3>
+<ul class="Ul_1"><tt>
+  <li>function &nbsp;Fopen</li>
+
+  <li>function &nbsp;Is_Open</li>
+  <li>procedure Put_Line</li>
+  <li>procedure Fclose</li>
+  <li>procedure Fclose_All</li>
+</tt></ul>
+
+<a href="Open_Put_Line_Close.htm">This sample</a> illustrates all of the above APIs.
+This illustrates the new 9.2.0 functionality to open using a <tt>directory</tt>
+schema object.
+
+<h3>Mimicing Unix &nbsp;<tt>ls</tt>, <tt>cp</tt>, <tt>mv</tt>, <tt>rm</tt></h3>
+<ul class="Ul_1"><tt>
+
+  <li>procedure Fgetattr</li>
+  <li>procedure Fcopy</li>
+  <li>procedure Frename</li>
+  <li>procedure Fremove</li>
+</tt></ul>
+
+<a href="Unix_Commands.htm">This sample</a> illustrates all of the above APIs,
+all of which are new in 9.2.0.
+
+<h3>Handling line-oriented character data</h3>
+
+This sample demonstrates autoflush by writing a line to file and waiting on a 
+  message via <tt>Dbms_Pipe</tt> from another session to give you time to observe 
+
+  with <tt>tail -f</tt> &nbsp;(on Unix, or the equivalent on other operating systems). 
+  <a href="Cr_Wait.htm">Create the Wait package</a>. Otherwise, this sample shows 
+  only pre-9.2.0 functionality. 
+  <ul class="Ul_1"><tt>
+  <li>procedure Get_Line</li>
+  <li>procedure Put</li>
+  <li>procedure Putf</li>
+  <li>procedure Put_Line</li>
+  <li>procedure New_Line</li>
+  <li>procedure Fflush</li>
+</tt></ul>
+
+<a href="Line_Character_Data.htm">This sample</a> illustrates all of the above APIs.
+and illustrates the new <tt>len</tt> parameter to <tt>Get_Line</tt>
+
+and the new <tt>autoflush</tt> parameterto <tt>Put_Line</tt>.
+
+
+<h3>Handling line-oriented <tt>NCHAR</tt> data</h3>
+
+Each procedure (or function) for <tt>NCHAR</tt> is <i>identical</i> in shape and 
+  meaning to its counterpart for <tt>VARCHAR2</tt> with the exception that <tt>Put_Line_Nchar</tt> 
+  doesn't have an <tt>autoflush</tt> parameter. Thus no code samples are provided. 
+  <ul class="Ul_1"><tt>
+  <li>function &nbsp;Fopen_Nchar</li>
+  <li>procedure Get_Line_Nchar</li>
+  <li>procedure Put_Nchar</li>
+  <li>procedure Putf_Nchar</li>
+  <li>procedure Put_Line_Nchar</li>
+</tt></ul>
+
+
+  <h3>Handling <tt>RAW</tt> data</h3>
+<ul class="Ul_1"><tt>
+  <li>procedure Put_Raw</li>
+  <li>procedure Get_Raw</li>
+  <li>function &nbsp;Fgetpos</li>
+  <li>procedure Fseek</li>
+</tt></ul>
+
+  <p><a href="Get_Raw.htm">This sample</a> illustrates <tt>Get_Raw</tt>. <a href="Put_Raw.htm">This 
+    sample</a> illustrates <tt>Put_Raw</tt>. <a href="Fseek.htm">This sample</a> 
+    illustrates <tt>Fseek</tt>. </p>
+  <p><i>Note:</i> Port-specific Bug #2546782, raised against 9.2.0 on Windows 
+    2000, reports wrong output from <tt>Utl_File.Put_Raw</tt>.</p>
+  <h3>Exceptions</h3>
+<ul class="Ul_1"><tt>
+
+  <li>file_open</li>
+  <li>charsetmismatch</li>
+  <li>invalid_path</li>
+  <li>invalid_mode</li>
+  <li>invalid_filehandle</li>
+  <li>invalid_operation</li>
+  <li>read_error</li>
+  <li>write_error</li>
+  <li>internal_error</li>
+  <li>invalid_maxlinesize</li>
+  <li>invalid_filename</li>
+  <li>access_denied</li>
+  <li>invalid_offset</li>
+  <li>delete_failed</li>
+  <li>rename_failed</li>
+</tt></ul>
+
+
+  <p><span class="Author">Bryn Llewellyn, PL/SQL Product Manager, Oracle Corp</span><br>
+    <span class="Updated">last updated 10-June-2002</span><br>&nbsp;
+
+</div></body></html>
+

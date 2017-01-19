@@ -1,0 +1,117 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function Execution - Algorithm Independent Of Ordering of Source Rows</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px"> 
+  <h3>-- PARALLELIZING TABLE FUNCTION EXECUTION</h3>
+
+  <p class="Updated">-- ALGORITHM REQUIRES ONLY THAT THE SOURCE ROWS ARE CLUSTERED</p>
+  <p><i>-- Note:</i> in order to avoid having to make the algorithm distractingly 
+    complex, this DELETE <br>
+    --should be issued...</p>
+  <p class="Updated">-- This scenario requires hr schema that comes along with 
+
+    Oracle9i database installation </p>
+  <pre>-- Connect hr/hr@9i
+
+
+drop <span class="Code_Emphasize">package My_Types</span>;
+
+
+delete from employees where department_id is null;</pre>
+  <p>--    &#133;before continuing thus&#133;</p>
+  <pre>set serveroutput on
+</pre>
+  <pre>create or replace <span class="Code_Emphasize">package My_Types</span> is
+  type dept_sal_row is record ( sal number(8,2), dept number(4) );
+  type cur_t is ref cursor return dept_sal_row;
+
+  type dept_sals_tab is table of dept_sal_row;
+end My_Types;
+/
+Show Errors
+
+create or replace <span class="Code_Emphasize">function Aggregate_Xform</span> ( p_input_rows in My_Types.cur_t )
+  return My_Types.dept_sals_tab
+  pipelined
+
+  <span class="Updated">--parallel_enable
+  -- ( partition p_input_rows by [ hash / range] (dept) )
+  --[ cluster / order ] p_input_rows by (dept)</span>
+is
+  g_in_row My_Types.dept_sal_row;
+  g_out_row My_Types.dept_sal_row;
+  g_first_time boolean := true;
+  g_last_dept number := null;
+  g_got_a_row boolean;
+
+  g_new_dept boolean;
+  g_current_dept employees.department_id%type;
+  g_prev_dept employees.department_id%type;
+  v_total_sal number;
+
+  <span class="Code_Emphasize">procedure Get_Next_Row</span> is
+  begin
+    fetch p_input_rows into g_in_row;
+    g_got_a_row := not p_input_rows%notfound;
+    if g_got_a_row
+
+    then
+      case g_first_time
+        when true then
+          g_first_time := false;
+          g_new_dept := false;
+        else
+          g_new_dept := g_prev_dept &lt;&gt; g_in_row.dept;
+      end case;
+      g_prev_dept := g_in_row.dept;
+    end if;
+    return;
+
+  end Get_Next_Row;
+
+  <span class="Code_Emphasize">function Got_Next_Dept</span> return boolean is
+  begin
+    g_current_dept := g_in_row.dept;
+    g_new_dept := false;
+    return g_got_a_row;
+  end Got_Next_Dept;
+
+  <span class="Code_Emphasize">function Got_Next_Row_In_Dept</span> return boolean is
+  begin
+    return ( not g_new_dept ) and g_got_a_row;
+
+  end Got_Next_Row_In_Dept;
+
+begin
+  Get_Next_Row();
+  while Got_Next_Dept()
+  loop
+    v_total_sal := 0;
+    while Got_Next_Row_In_Dept()
+    loop
+      v_total_sal := v_total_sal + g_in_row.sal;
+      Get_Next_Row();
+    end loop;
+    g_out_row.sal := v_total_sal; g_out_row.dept := g_current_dept;
+
+    pipe row ( g_out_row );
+  end loop;
+  close p_input_rows;
+  return;
+end Aggregate_Xform;
+/
+Show Errors</pre>
+  <p>&nbsp;</p>
+</div>
+</body></html>
+

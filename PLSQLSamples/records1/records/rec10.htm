@@ -1,0 +1,98 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- INSERT one row
+
+  -- dynamic SQL
+  -- fails at 9.2.0 with PLS-00457:
+  -- expressions have to be of SQL types
+  --
+  -- <b>NO FLAVOR OF EXECUTE IMMEDIATE IS SUPPORTED WITH A RECORD BIND YET</b>
+
+  --</span>
+  v_emprec employees%rowtype := Emp_Util.Get_One_Row;
+begin
+  execute immediate '
+    insert into employees_2 values :emprec'
+    using v_emprec;
+
+end;
+/
+-- ERROR at line N:
+rollback /* prepare for repeat or for next sample */;
+-- Rollback complete.
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- <b>WORKAROUND</b>
+  -- Doesn't use RECORD bind so works pre 9.2.0</span>
+  v_emprec employees%rowtype := Emp_Util.Get_One_Row;
+begin
+
+  Emp_Util.Initialize_Count ( 'employees_2' );
+  execute immediate '
+    insert into employees_2 (
+      employee_id,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      hire_date,
+
+      job_id,
+      salary,
+      commission_pct,
+      manager_id,
+      department_id )
+    values (
+      :employee_id,
+      :first_name,
+      :last_name,
+      :email,
+
+      :phone_number,
+      :hire_date,
+      :job_id,
+      :salary,
+      :commission_pct,
+      :manager_id,
+      :department_id )'
+    using
+      v_emprec.employee_id,
+      v_emprec.first_name,
+      v_emprec.last_name,
+
+      v_emprec.email,
+      v_emprec.phone_number,
+      v_emprec.hire_date,
+      v_emprec.job_id,
+      v_emprec.salary,
+      v_emprec.commission_pct,
+      v_emprec.manager_id,
+      v_emprec.department_id;
+  Emp_Util.Show_Count_Change;
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

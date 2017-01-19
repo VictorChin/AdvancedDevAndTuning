@@ -1,0 +1,418 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML><HEAD><TITLE>&quot;Runner's Training Logs&quot; Example Scenario </TITLE>
+
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="Bryn Llewellyn" name=Author><LINK href="../Content.css" 
+
+rel=stylesheet type=text/css>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY>
+
+<DIV class=Content_Div>
+  <H3>-- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<BR>
+    -- THE "RUNNER'S TRAINING LOGS" EXAMPLE SCENARIO</H3>
+  <SPAN class=Updated></SPAN> 
+
+  <pre>-- Connect programmer/p@9i
+set serveroutput on
+</pre>
+  <pre>drop function Nested_Training_Logs_Fn;
+drop procedure Populate_Nested_Training_Logs;
+
+drop function Reln_Training_Logs_Fn;
+drop package My_Types;
+drop table nested_training_logs;
+drop table nested_training_logs_2;
+drop table reln_training_logs;
+drop table reln_training_logs_2;
+
+drop type training_log_t;
+drop type weeks_running_t;
+drop type run_t;
+
+
+<font color="#FF0000">-- DEFINE THE DATASTRUCTURES</font>
+
+
+create type run_t as object ( distance number, pace number );
+/
+create type weeks_running_t is varray(20) of run_t not null;
+/
+create type training_log_t is varray(255) of weeks_running_t not null;
+/
+create or replace package My_Types is
+  type reln_training_log_row_t is record (
+
+  first_name varchar2(20),
+  week number,
+  run number,
+  distance number,
+  pace number );
+  type cur_t is ref cursor
+    /* strong cursor type for table function partitioning */
+    return reln_training_log_row_t;
+  type reln_training_logs_tab_t is table of reln_training_log_row_t;
+
+  type nested_training_log_row_t is record (
+    first_name varchar2(20),
+    training_log training_log_t );
+    type nested_training_logs_tab_t is table of nested_training_log_row_t;
+end My_Types;
+/
+Show Errors
+
+create table nested_training_logs (
+  first_name varchar2(20) primary key,
+
+  training_log training_log_t );
+
+create table nested_training_logs_2 (
+  first_name varchar2(20) primary key,
+  training_log training_log_t );
+
+create table reln_training_logs (
+  first_name varchar2(20) not null,
+  week number not null,
+  run number not null,
+  distance number not null,
+
+  pace number not null );
+
+alter table reln_training_logs
+  add constraint reln_training_logs_pk primary key (first_name,week,run)
+  using index;
+
+create table reln_training_logs_2 (
+  first_name varchar2(20) not null,
+  week number not null,
+  run number not null,
+  distance number not null,
+  pace number not null );
+
+
+alter table reln_training_logs_2
+  add constraint reln_training_logs_2_pk primary key (first_name,week,run)
+  using index;
+<font color="#FF0000">
+-- PROCEDURE TO POPULATE THE NESTED TABLE</font>
+
+create or replace procedure Populate_Nested_Training_Logs is
+  v_training_log   training_log_t;
+begin
+  v_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );
+  v_training_log(1) :=
+    weeks_running_t
+
+      ( 
+        run_t ( 1, 6 ), 
+        run_t ( 7, 7 ),
+        run_t ( 3, 6 ),
+        run_t ( 9, 9 ),
+        run_t ( 3, 6 ),
+        run_t ( 18, 10 )
+      );
+  v_training_log.extend;
+  v_training_log(2) :=
+    weeks_running_t
+      ( 
+        run_t ( 5, 7 ), 
+        run_t ( 9, 8 ),
+
+        run_t ( 3, 7 ),
+        run_t ( 9, 9 ),
+        run_t ( 3, 7 )
+      );
+  v_training_log.extend;
+  v_training_log(3) :=
+    weeks_running_t
+      ( 
+        run_t ( 5, 7 ), 
+        run_t ( 9, 8 ),
+        run_t ( 3, 7 ),
+        run_t ( 9, 9 ),
+        run_t ( 3, 7 )
+       ) ;
+  insert into nested_training_logs ( first_name, training_log ) values
+
+    ( 'fred', v_training_log );
+  v_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );
+  v_training_log(1) :=
+    weeks_running_t
+      ( 
+        run_t ( 2, 10 ), 
+        run_t ( 3, 11 ),
+        run_t ( 3, 11 ),
+        run_t ( 4, 12 )
+      );
+  v_training_log.extend;
+  v_training_log(2) :=
+    weeks_running_t
+      ( 
+        run_t ( 1, 10 ), 
+        run_t ( 2, 11 ),
+
+        run_t ( 3, 12 ),
+        run_t ( 2, 10 ),
+        run_t ( 1, 9 ),
+        run_t ( 4, 12 )
+      );
+  insert into nested_training_logs ( first_name, training_log ) values
+    ( 'sid', v_training_log );
+end Populate_Nested_Training_Logs;
+/
+
+Execute Populate_Nested_Training_Logs()
+<font color="#FF0000">
+-- REPORT ON THE CONTENTS OF THE NESTED TABLE </font>
+begin
+  for v_row in
+    ( select first_name, training_log from nested_training_logs )
+  loop
+
+    Dbms_Output.Put_Line ( v_row.first_name );
+    for week in v_row.training_log.first..
+                v_row.training_log.last
+    loop
+      Dbms_Output.Put_Line ( '. week #' || To_Char(week) );
+      for run in v_row.training_log(week).first..
+                 v_row.training_log(week).last
+      loop
+        Dbms_Output.Put_Line
+          (
+            '. run #' || To_Char(run) || ': '
+|| Lpad ( v_row.training_log(week)(run).distance, 3, ' ' )
+|| ' /'
+|| Lpad ( v_row.training_log(week)(run).pace, 3, ' ' )
+          );
+      end loop;
+    end loop;
+  end loop;
+
+end;
+/
+<font color="#FF0000">
+-- TABLE FUNCTION TO "VIEW" THE CONTENTS OF THE NESTED TABLE
+-- AS A RELATIONAL TABLE </font>
+
+create or replace function Reln_Training_Logs_Fn
+  ( p_nested_training_logs in sys_refcursor )
+  return My_Types.reln_training_logs_tab_t 
+  /* The algorithm handles each row in isolation and thus
+     is amenable to the simplest form of parallelism  */
+  parallel_enable ( partition p_nested_training_logs by any )  pipelined
+is
+  v_in_row  My_Types.nested_training_log_row_t;
+  v_out_row My_Types.reln_training_log_row_t;
+begin
+  loop
+    fetch p_nested_training_logs into v_in_row;
+    exit when p_nested_training_logs%notfound;
+
+    for week in v_in_row.training_log.first..
+                v_in_row.training_log.last
+    loop
+      for run in v_in_row.training_log(week).first..
+                 v_in_row.training_log(week).last
+      loop
+        v_out_row.first_name := v_in_row.first_name;
+        v_out_row.week := week;
+        v_out_row.run := run;
+        v_out_row.distance := v_in_row.training_log(week)(run).distance;
+        v_out_row.pace := v_in_row.training_log(week)(run).pace;
+        pipe row ( v_out_row );
+      end loop;
+    end loop;
+  end loop;
+  close p_nested_training_logs;
+  return;
+end Reln_Training_Logs_Fn;
+/
+
+
+<font color="#FF0000">-- TABLE FUNCTION TO "VIEW" THE CONTENTS OF THE RELATIONAL TABLE<br>-- AS A NESTED TABLE </font>
+<span class="Code_Emphasize">create or replace function Nested_Training_Logs_Fn</span>
+  ( p_reln_training_logs My_Types.cur_t )
+  return My_Types.nested_training_logs_tab_t
+  /* 
+    The algorithm depends on assuming that it receives rows ordered by
+    first_name, week, then run, and that all the rows for
+    a particular runner go consecutively to the same slave.
+    These declarations ensure this and remove the need for an
+    ORDER BY clause in the SELECT that's used to invoke this fucntion.
+  */
+  order p_reln_training_logs by ( first_name, week, run )
+  parallel_enable ( partition p_reln_training_logs by range ( first_name ) )
+  pipelined
+is
+  g_in_row My_Types.reln_training_log_row_t;
+  g_out_row My_Types.nested_training_log_row_t;
+  g_weeks_running weeks_running_t;
+  g_training_log training_log_t;
+  g_first_time boolean := true;
+  g_got_a_row boolean;
+
+  g_new_week boolean;
+  g_new_runner boolean;
+  g_current_first_name reln_training_logs.first_name%type;
+  g_prev_first_name reln_training_logs.first_name%type;
+  g_current_week reln_training_logs.week%type;
+  g_prev_week reln_training_logs.week%type;
+
+  <span class="Code_Emphasize">procedure Get_Next_Row </span>is begin
+    fetch p_reln_training_logs into g_in_row;
+    g_got_a_row := not p_reln_training_logs%notfound;
+    if g_got_a_row
+    then
+      case g_first_time
+        when true then
+          g_first_time := false;
+          g_new_runner := false;
+          g_new_week := false;
+        else
+          g_new_runner := g_prev_first_name <> g_in_row.first_name;
+          g_new_week := case g_new_runner
+          when true then true
+          else g_prev_week <> g_in_row.week
+
+          end;
+      end case;
+      g_prev_first_name := g_in_row.first_name;
+      g_prev_week := g_in_row.week;
+    end if;
+    return;
+  end Get_Next_Row;
+
+  <span class="Code_Emphasize">function Got_Next_Runner</span> return boolean is begin
+    g_current_first_name := g_in_row.first_name;
+    g_new_runner := false;
+    return g_got_a_row;
+  end Got_Next_Runner;
+
+  <span class="Code_Emphasize">function Got_Next_Week</span> return boolean is begin
+    g_current_week := g_in_row.week;
+    g_new_week := false;
+    return ( not g_new_runner ) and g_got_a_row;
+  end Got_Next_Week;
+
+  <span class="Code_Emphasize">function Got_Next_Run</span> return boolean is begin
+    return ( not g_new_week ) and g_got_a_row;
+  end Got_Next_Run;
+
+
+  <span class="Code_Emphasize">procedure New_Training_Log</span> is begin
+    g_training_log := null;
+  end New_Training_Log;
+
+  <span class="Code_Emphasize">procedure New_Weeks_Running</span> is begin
+    g_weeks_running := null;
+  end New_Weeks_Running;
+
+  <span class="Code_Emphasize">procedure Store_This_Run</span> is begin
+    if g_weeks_running is null
+    then
+      g_weeks_running := weeks_running_t ( run_t ( 0, 0 ) );
+    else
+      g_weeks_running.extend;
+    end if;
+    g_weeks_running ( g_in_row.run ):=
+    run_t ( g_in_row.distance, g_in_row.pace );
+  end Store_This_Run;
+
+  <span class="Code_Emphasize">procedure Store_This_Weeks_Running</span> is begin
+    if g_training_log is null
+    then
+      g_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );
+
+    else
+      g_training_log.extend;
+    end if;
+    g_training_log ( g_current_week ):= g_weeks_running;
+  end Store_This_Weeks_Running;
+
+  <span class="Code_Emphasize">procedure OutPut_This_Runner</span> is begin
+    g_out_row.first_name := g_current_first_name;
+    g_out_row.training_log := g_training_log;
+  end OutPut_This_Runner;
+
+begin
+  Get_Next_Row();
+  while Got_Next_Runner()
+  loop
+    New_Training_Log;
+    while Got_Next_Week()
+    loop
+      New_Weeks_Running;
+      while Got_Next_Run()
+      loop
+        Store_This_Run;
+        Get_Next_Row();
+      end loop;
+      Store_This_Weeks_Running;
+
+    end loop;
+    OutPut_This_Runner; pipe row ( g_out_row ); 
+  end loop;
+  close p_reln_training_logs;
+  return;
+end Nested_Training_Logs_Fn;
+
+/
+Show Errors
+
+<font color="#FF0000">--END-TO-END TEST </font>
+
+truncate table nested_training_logs;
+execute Populate_Nested_Training_Logs;
+truncate table reln_training_logs;
+insert into reln_training_logs
+  (
+    select *
+      from table
+       (
+         Reln_Training_Logs_Fn 
+          (
+            cursor
+              (
+                select first_name, training_log from nested_training_logs
+              )
+
+          )
+       )
+  );
+truncate table nested_training_logs_2;
+insert into nested_training_logs_2
+  (
+    select *
+      from table
+        (
+          Nested_Training_Logs_Fn
+            (
+               cursor ( select * from reln_training_logs )
+            )
+        )
+  );
+truncate table reln_training_logs_2;
+insert into reln_training_logs_2
+  (
+    select *
+      from table
+        (
+          Reln_Training_Logs_Fn 
+            (
+              cursor
+                (
+                  select first_name, training_log from nested_training_logs_2
+                )
+
+            )
+        )
+  );
+
+select * from reln_training_logs_2 minus select * from reln_training_logs;
+select * from reln_training_logs minus select * from reln_training_logs_2;
+</pre>
+  <P></P>
+<P>&nbsp;</P></DIV>
+<P>&nbsp;</P></BODY></HTML>
+

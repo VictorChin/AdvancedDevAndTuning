@@ -1,0 +1,76 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function  - Order by Versus Cluster by</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Order by Versus Cluster by</h1>
+
+
+  <p>This alternative syntax is also allowed&#133;</p>
+<pre>create or replace function My_Fn ( p_input_rows in My_Types.cur_t )
+  return My_Types.items_tab
+  pipelined
+  <span class="Code_Emphasize">order p_input_rows by (c1)
+
+  parallel_enable
+    ( partition p_input_rows by range (c1) )</span>
+is...</pre>
+  <p>This means that those rows that are delivered to a particular slave as directed 
+    by <span class="Code_Emphasize">partition... by</span> will be locally sorted 
+    by that slave, thus parallelizing the sort. Therefore there should be no ORDER 
+
+    BY in the SELECT used to invoke the table function. (To have one would subvert 
+    the attempt to parallelize the sort.) Thus it&#146;s natural to use the <span class="Code_Emphasize">range</span> 
+    option together with the <span class="Code_Emphasize">order by</span> option. 
+    This will be slower than <span class="Code_Emphasize">cluster by</span>, and 
+    so should be used only when the algorithm depends on it.</p>
+  <p><i>Note</i>: the<b> </b><span class="Code_Emphasize">cluster... by</span> 
+    construct cannot be used together with the<b> </b><span class="Code_Emphasize">order... 
+
+    by</span> in the declaration of a table function. This means that an algorithm 
+    which depends on clustering on one key, <span class="Code_Emphasize">c1</span>, 
+    and then on ordering within the set row for a given value of <span class="Code_Emphasize">c1</span> 
+    by, say, <span class="Code_Emphasize">c2</span> would have to be parallelized 
+    by using the <span class="Code_Emphasize">order... by</span> in the declaration 
+    in the table function. (The algorithm shown
+    <a href="../Multilevel_Collections/Cr_Writing_A_Table_Function_To_View_Contents_As_Nested_Table.htm">here</a>
+    from the
+
+    <a href="../Multilevel_Collections/Runner_Training_Logs_Example_Scenario.htm">Runner's Training Logs</a>
+    example scenario presented in the code samples for
+    <a href="../Multilevel_Collections/start.htm">Multilevel Collections</a>
+    has this character.) Here we would use&#133;</p>
+  <pre>create or replace function Median ( p_input_rows in My_Types.cur_t )
+  return My_Types.items_tab
+  pipelined
+  <span class="Code_Emphasize">order p_input_rows by (c1,c2)
+  parallel_enable
+
+    ( partition p_input_rows by range (c1) )</span>
+is...</pre>
+  <p>The current restriction preventing using <span class="Code_Emphasize">cluster... 
+    by</span> together with <span class="Code_Emphasize">order... by</span> implies 
+    no loss of functionality, but only a missed opportunity to leverage the <i>order 
+    N</i> sort.</p>
+  <p><i>Caution</i>: It is possible to design an algorithm for a table function 
+    which would deliver a different number of rows according to the degree of 
+    parallelism. The simplest example is a function which returns a table of NUMBER 
+    representing the count of the rows its input cursor delivered. A <i>non-parallelized</i> 
+
+    version would deliver just one row giving count(*) for the input table. A 
+    <i>parallelized</i> version would deliver N rows (where N is the degree of 
+    parallelism), the <i>sum</i> of whose values would give count(*) for the input 
+    table. However, this breaks the parallel query abstraction. Oracle recommends 
+    against programming this way. </p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

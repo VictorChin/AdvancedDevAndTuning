@@ -1,0 +1,73 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <h2>Observing v$open_cursor</h2>
+
+
+<i>Note:</i> The query used in the following tests joins back to
+<tt>v$sqlarea</tt>.
+That's simply because
+<tt>v$open_cursor</tt>.
+shows only the first 60 characters of the text while
+
+<tt>v$sqlarea</tt>
+shows the first 1000.
+As a convenience, create the view
+<a href="Cr_Cursor_Sql_Text.htm">
+<tt>open_cursor_sql_text</tt></a>
+for this.
+
+If you prefer, you can use the
+simpler...<pre class="Code_Emphasize">select sql_text from v$open_cursor
+  where user_name = 'PROGRAMMER'
+  order by sql_text</pre>
+Create the procedure
+<a href="Cr_Show_Rows_For_Dept_Dbms_Sql.htm">
+<tt>Show_Rows_For_Dept_Dbms_Sql</tt></a>.
+
+Now use two concurrent sessions connected as
+<tt>programmer</tt> and
+<tt>observer</tt>
+and step through this
+<a href="Test_Employees_Cur_Dbms_Sql.htm">test</a>.
+<p>
+<i>Note:</i> You'll see some extra
+<tt>sql_text</tt>
+
+rows besides what we're trying to observe
+which reflects how
+<tt>Set ServerOutput On</tt>
+works - quite interesting in its own right if
+you've never thought about how this works.
+<p>
+The results of the work done by
+<tt>Set_Up_Statement</tt>
+(opening the cursor,
+
+parsing and setting up the define-binds)
+is held in appropriate session structures
+represented by the persisting row in
+<tt>v$open_cursor</tt>.
+
+<p>
+For completeness, the package
+<a href="Cr_Employees_Cur_Bulk_Dbms_Sql.htm">
+<tt>Employees_Cur_Bulk_Dbms_Sql</tt></a>,
+which exposes the same API, illustrates bulk syntax (<i>aka</i> array fetch) for
+
+<tt>Dbms_Sql</tt>.
+Test it with the procedure
+<a href="Cr_Show_Rows_For_Dept_Bulk_Dbms_Sql.htm">
+<tt>Sh_Rws_For_Dept_Bulk_Dbms_Sql</tt></a>.
+</div></body></html>
+

@@ -1,0 +1,75 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function Execution - Algorithm Independent Of Ordering of Source Rows</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3>-- PARALLELIZING TABLE FUNCTION EXECUTION</h3>
+
+  <p class="Updated">-- ALGORITHM IS INDEPENDENT OF THE ORDERING OF THE SOURCE 
+    ROWS</p>
+  <pre>-- Connect programmer/p@9i
+set serveroutput on</pre>
+  <pre>drop <span class="Code_Emphasize">table t;</span>
+
+drop <span class="Code_Emphasize">package My_Types</span>;
+drop <span class="Code_Emphasize">function</span> <span class="Code_Emphasize">Rowwise_Xform_Fn</span>;
+
+create or replace <span class="Code_Emphasize">package My_Types</span> is
+  type input_row is record ( n number );
+  type cur_t is ref cursor return input_row;
+
+
+  type xform_row is record ( n number, typ char(1) );
+  type xforms_tab is table of xform_row;
+end My_Types;
+/
+Show Errors
+
+
+create <span class="Code_Emphasize">table t </span>( n number );
+begin
+  for j in 1..1000
+    loop insert into t ( n ) values ( j ); end loop;
+  commit;
+end;
+/
+
+
+create or replace <span class="Code_Emphasize">function</span> <span class="Code_Emphasize">Rowwise_Xform_Fn</span> ( p_input_rows in sys_refcursor      )
+  return My_Types.xforms_tab
+  pipelined
+  parallel_enable ( partition p_input_rows by any )
+is
+  v_in_row My_Types.input_row;
+  v_out_row My_Types.xform_row;
+begin
+  loop
+
+    fetch p_input_rows into v_in_row;
+    exit when p_input_rows%notfound;
+    v_out_row.n := v_in_row.n * 2; v_out_row.typ := 'a';
+    pipe row ( v_out_row );
+    v_out_row.n := v_in_row.n * 3; v_out_row.typ := 'b';
+    pipe row ( v_out_row );
+  end loop;
+  close p_input_rows;
+  return;
+end Rowwise_Xform_Fn;
+
+/
+Show Errors<br>
+select * from table ( Rowwise_Xform_Fn ( cursor ( select n from t ) ) )
+  where rownum &lt; 11;</pre>
+  <p>&nbsp; </p>
+</div>
+<p>&nbsp;</p></body></html>
+

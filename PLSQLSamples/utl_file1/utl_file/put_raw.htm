@@ -1,0 +1,109 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<pre>Set ServerOutput On
+drop table pix;
+
+create table pix ( id varchar2(5) primary key, pic bfile );
+
+<span class="Code_Comment">-- The following block associates a source o/s binary file with a BFILE column in a table
+-- and then uses Dbms_Lob.Read to read it peicewise into a local pl/sql RAW variable.
+-- Each piece is written to a new dstination file with Utl_File.Put_Raw.
+
+-- The destination file is then associated with a BFILE column in a table
+-- and Dbms_Lob.Compare is used to compare the source and destination files.</span>
+&nbsp;
+declare
+  v_src_pic   bfile;
+  v_buf       raw(32767);
+
+  v_buf_size  constant binary_integer := 32767;
+  v_amount    binary_integer;
+  v_offset    number(38);
+
+  v_handle    <span class="Code_Emphasize">Utl_File.File_Type</span>;
+  c_location  constant varchar2(80) := 'UTL_FILE_TEST';
+  c_filename   constant varchar2(80) := 'dest.jpg';
+
+
+  v_dest_pic  bfile;
+begin
+  insert into pix (id) values ('src');
+  update pix
+    set pic = bfilename ( 'UTL_FILE_TEST', 'src.jpg' )
+    where id = 'src';
+  select pic into v_src_pic from pix where id = 'src';
+
+  Dbms_Lob.Fileopen ( 
+    file_loc   => v_src_pic,
+    open_mode  => Dbms_Lob.File_Readonly );
+
+  v_handle := <span class="Code_Emphasize">Utl_File.Fopen (
+    location    => c_location,
+    filename    => c_filename,
+    open_mode   => 'w',
+    max_linesize => v_buf_size )</span>;
+
+
+  v_amount := v_buf_size;
+  v_offset := 1;
+  while v_amount >= v_buf_size
+  loop
+    Dbms_Lob.Read (
+      file_loc   => v_src_pic,
+      amount     => v_amount,
+      offset     => v_offset,
+      buffer     => v_buf );
+
+    v_offset := v_offset + v_amount;
+
+    <span class="Code_Emphasize">Utl_File.Put_Raw (
+      file      => v_handle,
+      buffer    => v_buf,
+      autoflush => false )</span>;
+  end loop;
+
+  <span class="Code_Emphasize">Utl_File.Fclose ( file => v_handle )</span>;
+
+  insert into pix (id) values ('dest');
+
+  update pix
+    set pic = bfilename ( 'UTL_FILE_TEST', 'dest.jpg' )
+    where id = 'dest';
+  select pic into v_dest_pic from pix where id = 'dest';
+  Dbms_Lob.Fileopen ( 
+    file_loc   => v_dest_pic,
+    open_mode  => Dbms_Lob.File_Readonly );
+
+  Dbms_Output.Put_Line ( 'Difference: ' || To_Char (
+    Dbms_Lob.Compare (
+      file_1    => v_src_pic,
+      file_2    => v_dest_pic,
+
+      amount    => v_buf_size,
+      offset_1  => 1,
+      offset_2  => 1 ) ) );
+
+  Dbms_Lob.Close ( file_loc => v_src_pic );
+  Dbms_Lob.Close ( file_loc => v_dest_pic );
+end;
+/
+
+select id, Dbms_Lob.GetLength ( pic ) len from pix /* confirm as expected */;
+<span class="Code_Comment">-- The destination file is one byte longer than the source file, but this
+-- is the NULL terminator and does no harm.</span>
+</pre>
+
+</body>
+</html>
+

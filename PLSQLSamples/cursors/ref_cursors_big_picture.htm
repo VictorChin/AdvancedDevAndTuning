@@ -1,0 +1,88 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <h2>REF CURSORs: the bigger picture</h2>
+
+
+One of the driving requirements for the introduction of
+<tt>ref cursor</tt>s
+was the ability to declare a PL/SQL procedure for function with a
+<tt>ref cursor</tt>
+formal parameter or return type.
+
+This feature, together with the ability to make
+the appropriate binds from the client programming environment
+(<i>eg</i> OCI or client-PL/SQL) allows client
+code to be written to handle results from a cursor
+returning a specified record type (<i>ie</i> a <i>strong</i>
+<tt>ref cursor</tt>)
+
+while delegating the opening of the cursor (and hence the specifics
+of the select list) to server-sdie code.
+<p>
+We can demonstate this using SQL*Plus.
+(SQL*Plus is an OCI client application which exposes
+a conveient command-oriented UI for the sophisticated
+SQL-literate end user.)
+
+Run this...
+  <pre class="Code_Emphasize">create or replace function F return sys_refcursor is
+  v_cur sys_refcursor;
+begin
+  open v_cur for select last_name from employees where rownum < 11;
+  return v_cur;
+end F;
+/
+
+Variable host_cur refcursor
+Call F() into :host_cur;
+Print host_cur</pre>
+  <p>This
+shows that it's possible to write even more elaborate client-side code
+to process the results of a <i>weak</i>
+<tt>ref cursor</tt>)
+whose record type is not known until run-time.
+<p>Of course in such a situation it would be wrong for the PL/SQL system to close 
+
+  the <tt>ref cursor</tt> when <tt>F</tt> 
+  exits. Thus if you observe <tt>open_cursor_sql_text</tt> 
+  from another session you'll see there's an open cursor for <tt>select 
+  last_name from employees where rownum &lt; 11</tt>. The cursor will 
+  be closed <i>either</i> by explicit client-side code <i>or</i> when the client 
+  calls a server-side PL/SQL procedure to do this having bound the appropriate 
+  actual parameter. If the application is badly written and does not implement 
+  closing the cursor, then it will be closed by ORACLE when the session ends.
+<p><i>Note:</i> You cannot currently (up to Oracle9<i>i</i>) declare a <tt>ref 
+  cursor</tt> as a package global as the following sample shows...
+
+  <pre><span class="Code_Emphasize">package P is
+  procedure Do_Open;</span>
+  <span class="Code_Comment">-- ...</span>
+<span class="Code_Emphasize">end P;
+
+package body P is
+  g_cur sys_refcursor</span>
+     <span class="Code_Comment">/* 
+     PLS-00994:
+     Cursor Variables cannot be declared as part of a package
+     */</span><span class="Code_Emphasize">;
+
+
+  procedure Do_Open is begin
+    open g_cur for 'select * from emp';
+  end Do_Open;
+</span>
+  <span class="Code_Comment">-- ...</span>
+<span class="Code_Emphasize">end P;</span></pre>
+</div></body></html>
+

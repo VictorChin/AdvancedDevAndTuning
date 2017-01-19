@@ -1,0 +1,124 @@
+<html>
+
+<head>
+
+  <title>Manipulating Cursor Expressions in PL/SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Manipulating Cursor Expressions in PL/SQL</h1>
+
+
+  <p>Consider the task: list the department names, and for each department list 
+    the names of the employees in that
+    department. It can be simply implemented by a classical sequential programming 
+    approach thus&#133;</p>
+  <pre>declare
+
+  begin
+  for department in (
+                      select department_id, department_name
+                        from departments
+                        order by department_name
+                    )
+
+  loop
+    Dbms_Output.Put_Line ( department.department_name );
+    for employee in (
+                      select last_name
+                        from employees
+                        where department_id = department.department_id
+                        order by last_name
+
+                     )
+    loop
+      Dbms_Output.Put_Line ( employee.last_name );
+    end loop;
+  end loop;
+end;
+/</pre>
+  <p>The following SELECT expresses the query requirement in a single SQL statement 
+
+    &#133;</p>
+  <pre>select
+  department_name,
+  <span class="Code_Emphasize">cursor</span> (
+           select last_name
+             from employees e
+             where e.department_id = d.department_id
+             order by last_name
+          ) the_employees
+
+  from departments d
+  order by department_name;</pre>
+  <p>&#133;and runs at SQL*Plus pre-Oracle9<i>i</i>. (This implies of course that 
+    a corresponding cursor can be manipulated in the programming language used 
+    to implement SQL*Plus.) However, an attempt to associate such a SELECT statement 
+    with a PL/SQL cursor pre-Oracle9<i>i</i> fails to compile (with<i> PLS-00103</i>). 
+    Oracle9<i>i</i> introduces support for this thus&#133;</p>
+  <pre>declare
+  cursor the_departments is
+    select
+
+      department_name,
+      <span class="Code_Emphasize">cursor (
+               select last_name
+                 from employees e
+                 where e.department_id = d.department_id
+                 order by last_name
+              )</span>
+      from departments d
+      where department_name in ( 'Executive', 'Marketing' )
+      order by department_name;
+
+
+  v_department_name departments.department_name%type;
+  the_employees <span class="Code_Emphasize">sys_refcursor</span>;
+
+  type employee_last_names_t is table of employees.last_name%type
+                               index by binary_integer;
+  v_employee_last_names employee_last_names_t;
+begin
+  open the_departments;
+  loop
+    <span class="Code_Emphasize">fetch the_departments into v_department_name, the_employees</span><b>;</b>
+    exit when the_departments%notfound;
+    Dbms_Output.Put_Line ( v_department_name );
+
+    fetch the_employees bulk collect into v_employee_last_names;
+    for j in v_employee_last_names.first..v_employee_last_names.last
+    loop
+      Dbms_Output.Put_Line ( v_employee_last_names(j) );
+    end loop;
+  end loop;
+  close the_departments;
+end;
+/</pre>
+  <p>Though this is more lines of code, and arguably less easy to proof read, 
+    than the sequentially programmed implementation it has this advantage: there 
+    is only one SQL statement, and so it can be optimized more effectively than 
+    (what the SQL engine sees as) two unconnected SQL statements.</p>
+
+  <p><i>Note</i>: Bulk fetch is used for <span class="Code_Emphasize">the_employees</span> 
+    cursor. This is not currently available for<b> </b><span class="Code_Emphasize">the_departments</span> 
+    cursor because the appropriate collection type cannot be declared&#133;</p>
+  <pre>declare
+  type department_r is record
+    ( department_name departments.department_name%type,
+      the_employees sys_refcursor );
+begin 
+  null;
+end;
+/</pre>
+  <p>&#133;causes &#147;<i>PLS-00989: Cursor Variable in record, object, or collection 
+    is not supported by this release</i>&#148;. </p>
+  <p>&nbsp;</p>
+
+  </div>
+</body></html>
+

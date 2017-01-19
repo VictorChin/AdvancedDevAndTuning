@@ -1,0 +1,202 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function Execution - The Lookups_Fn And Mappings_Fn Example Re-Written To Return Schema-Level Types</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3> PARALLELIZING TABLE FUNCTION EXECUTION</h3>
+
+  <p class="Updated"> THE LOOKUPS_FN AND MAPPINGS_FN EXAMPLE RE-WRITTEN TO RETURN 
+    SCHEMA-LEVEL -- TYPES</p>
+  <p> Since the query syntax for an object table is rather verbose, we recap it 
+    here using a table.</p>
+  <pre>create type lookup_row as object ( idx number, text varchar2(20) );
+
+/
+
+create table t of lookup_row;
+
+insert into t values ( lookup_row ( 1, 'one' ) );
+insert into t values ( lookup_row ( 2, 'TWO' ) );
+
+insert into t values ( lookup_row ( 3, 'three' ) );
+insert into t values ( lookup_row ( 4, 'FOUR' ) );
+insert into t values ( lookup_row ( 5, 'five' ) );
+insert into t values ( lookup_row ( 6, 'SIX' ) );
+insert into t values ( lookup_row ( 7, 'seven' ) );
+insert into t values ( lookup_row ( 8, 'other' ) );
+insert into t values ( lookup_row ( 9, 'other' ) );
+
+insert into t values ( lookup_row ( 10, 'other' ) );
+commit;</pre>
+  <pre><font color="#FF0000">/* this is how an object query should be written */</font>
+select VALUE(a) rec from t a;</pre>
+  <pre><font color="#FF0000">/* because it&#146;s verbose, it&#146;s convenient to define a view */</font>
+create or replace view v as
+   select value(a) rec from t a;</pre>
+  <pre><font color="#FF0000">/* test the view */</font>
+
+select * from v;</pre>
+  <p> Now the example proper...</p>
+  <pre>create type lookups_tab as table of lookup_row;
+
+create or replace function Lookups_Fn
+  return lookups_tab
+  pipelined
+is
+  v_row lookup_row;
+
+begin
+  for j in 1..10
+  loop
+    v_row :=
+      case j
+        when 1 then lookup_row ( 1, 'one' )
+        when 2 then lookup_row ( 2, 'TWO' )
+        when 3 then lookup_row ( 3, 'three' )
+        when 4 then lookup_row ( 4, 'FOUR' )
+        when 5 then lookup_row ( 5, 'five' )
+
+        when 6 then lookup_row ( 6, 'SIX' )
+        when 7 then lookup_row ( 7, 'seven' )
+        else        lookup_row ( j, 'other' )
+      end;
+    pipe row ( v_row );
+  end loop;
+  return;
+end Lookups_Fn;</pre>
+  <p> Note the syntax of the query. Since the table function returns an object, 
+    it follows from the <br>
+    syntax against an object table above. Again, it&#146;s convenient to encapsulate 
+
+    it in a view.</p>
+  <pre>select value(a) rec
+  from table
+    (
+     cast ( Lookups_Fn() as lookups_tab )
+    ) a;</pre>
+  <pre>create or replace view lookups as
+  select value(a) rec
+    from table
+      (
+       cast ( Lookups_Fn() as lookups_tab )
+      ) a;</pre>
+
+  <pre>select * from lookups;</pre>
+  <pre>create or replace function Mappings_Fn ( p_input_rows in sys_refcursor )
+  return lookups_tab
+  pipelined
+is
+  v_in_row lookup_row;
+  <font color="#FF0000">/* always initialize an object type using a type constructor
+     or user defined constructor */</font>
+  v_out_row lookup_row := lookup_row( 1, 'x' );
+begin
+  loop
+    fetch p_input_rows into v_in_row;
+    exit when p_input_rows%notfound;
+
+    case v_in_row.idx
+      when 1 then v_out_row.idx := 1*2; v_out_row.text := 'was one';
+      when 2 then v_out_row.idx := 2*3; v_out_row.text := 'was TWO';
+      when 3 then v_out_row.idx := 3*4; v_out_row.text := 'was three';
+      when 4 then v_out_row.idx := 4*5; v_out_row.text := 'was FOUR';
+      when 5 then v_out_row.idx := 5*6; v_out_row.text := 'was five';
+      when 6 then v_out_row.idx := 6*7; v_out_row.text := 'was SIX';
+      when 7 then v_out_row.idx := 7*8; v_out_row.text := 'was seven';
+      else        v_out_row.idx :=
+                    v_in_row.idx*10;    v_out_row.text := 'was other';
+    end case;
+    pipe row ( v_out_row );
+  end loop;
+  close p_input_rows;
+
+  return;
+end Mappings_Fn;</pre>
+  <p> Note the syntax of the query. It&#146;s most compactly expressed using the 
+    views v or lookups<br>
+    defined above.</p>
+  <pre>select value(b)
+  from table
+    (
+      cast
+       (
+         Mappings_Fn
+           (
+             cursor ( select * from lookups )
+           )
+         as lookups_tab
+
+       )
+    ) b;</pre>
+  <p> For completeness, here&#146;s how it looks without the view&#133;</p>
+  <pre>select value(b) from table
+  (
+    cast
+      (
+        Mappings_Fn
+          (
+            cursor
+             ( select value(a) from table
+               (
+                 cast ( Lookups_Fn() as lookups_tab )
+               ) a
+             )
+          )
+
+        as lookups_tab
+      )
+  ) b;</pre>
+  <p> For convenience, we can now establish the whole thing as a view&#133;</p>
+  <pre>create or replace view mapped_lookups as
+  select value(b) rec from table
+    (
+      cast
+        (
+          Mappings_Fn
+            (
+              cursor
+                ( select value(a) from table
+                  (
+                    cast ( Lookups_Fn() as lookups_tab )
+                  ) a
+                )
+
+             )
+          as lookups_tab
+        )
+    ) b;</pre>
+  <p> We can now access the from PL/SQL without restriction, for example&#133;</p>
+  <pre>declare
+  cursor table_fn_cur is
+    select * from mapped_lookups;
+  rec lookup_row;
+begin
+  open table_fn_cur;
+  loop
+    fetch table_fn_cur into rec;
+    exit when table_fn_cur%notfound;
+    Dbms_Output.Put_Line ( rec.idx || ' / '  || rec.text );
+  end loop;
+  close table_fn_cur;
+end;</pre>
+
+  <p> Note the syntax for the <i>implicit cursor for loop</i>&#133;</p>
+  <pre>declare
+begin
+  for j in ( select * from mapped_lookups )
+  loop    
+    Dbms_Output.Put_Line ( j.rec.idx || ' / '  || j.rec.text );
+  end loop;
+end;</pre>
+</div>
+</body></html>
+

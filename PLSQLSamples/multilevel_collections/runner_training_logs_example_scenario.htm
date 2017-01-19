@@ -1,0 +1,82 @@
+<html>
+
+<head>
+
+  <title>&quot;Runner's Training Logs&quot; Example Scenario</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1> &quot;Runner's Training Logs&quot; Example Scenario</h1>
+
+
+  <p>Consider implementing a system to allow a running coach to maintain training 
+    logs for each of the runners under his guidance. Each runner is identified 
+    by first name and runs several times per week. A run is characterized by the 
+    distance and the average pace. The coach will want to monitor week by week 
+    variations and progress. Of course many designs for the logical data model 
+
+    will work, but we consider just two here&#133;</p>
+  <p><i><b>Single flat relational table&#133;</b></i></p>
+  <pre>create table reln_training_logs (
+  first_name varchar2(20) not null,
+  week number not null,
+  run number not null,
+
+  distance number not null,
+  pace number not null );
+alter table reln_training_logs
+  add constraint reln_training_logs_pk primary key (first_name,week,run)
+  using index;</pre>
+  <p><i><b>Relational table with multilevel collection column&#133;</b></i></p>
+  <pre>create type run_t as object ( distance number, pace number );
+
+/
+create type weeks_running_t is varray(20) of run_t not null;
+/
+create type training_log_t is varray(255) of weeks_running_t not null;
+/
+create table nested_training_logs (
+  first_name varchar2(20) primary key,
+  training_log training_log_t );</pre>
+
+  <p>The<b> </b><span class="Code_Emphasize">reln_training_logs</span> approach 
+    would be suitable if the typical access was for ad hoc queries across runners, 
+    and the <span class="Code_Emphasize">nested_training_logs</span> approach 
+    would be suitable if the typical access was to report all the information 
+    for each of a number of selected runners.<br>
+    We'll look at code to populate and to report on the<b> </b><span class="Code_Emphasize">nested_training_logs</span> 
+    table. And then we'll see how table functions can be written to &quot;view&quot; 
+    <span class="Code_Emphasize">nested_training_logs</span> as <span class="Code_Emphasize">reln_training_logs</span> 
+    and to &quot;view&quot; <span class="Code_Emphasize">reln_training_logs</span> 
+
+    as<b> </b><span class="Code_Emphasize">nested_training_logs</span>. By writing 
+    each with a<b> </b><span class="Code_Emphasize">ref cursor</span> input parameter 
+    we can conveniently test that the result of two successive transformations 
+    is identical to the starting data. See <a href="Cr_Runner_Training_Logs_Example_Scenario.htm">sample 
+    code script</a> for the complete working code.</p>
+  <p>Following are the important steps involved in the working <a href="Cr_Runner_Training_Logs_Example_Scenario.htm">sample 
+    code script</a> in little more detail.</p>
+  <ul>
+    <li><a href="Cr_Define_Datastructures.htm">Defining the Data Structures</a></li>
+    <li><a href="Populating_The_Nested_Table.htm">Populating The Nested Table</a></li>
+
+    <li><a href="Reporting_On_The_Nested_Table.htm">Reporting On The Nested Table 
+      </a></li>
+    <li><a href="Deriving_A_Table_Function.htm">Deriving A Table Function From 
+      The Reporting Logic To Output A Relational &quot;View&quot;</a></li>
+    <li><a href="Writing_A_Table_Function.htm">Writing A Table Function To Output 
+      A Nested &quot;View&quot; From The Relational Representation</a></li>
+    <li><a href="End_To_End_Test.htm">End-To-End Test</a></li>
+  </ul>
+  <p></p>
+  <p><br>
+  </p>
+
+  </div>
+</body></html>
+

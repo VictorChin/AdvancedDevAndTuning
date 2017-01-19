@@ -1,0 +1,28 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" >
+  <pre>Connect observer/p@9i
+
+
+create or replace view <span class="Code_Emphasize">open_cursor_sql_text</span> as
+  select ar.sql_text <span class="Code_Comment">/* shows more text than v$open_cursor */</span>
+    from v$sqlarea ar inner join v$open_cursor cur
+    using ( hash_value, address )
+
+    where cur.user_name = 'PROGRAMMER'
+    order by ar.sql_text
+/
+</pre>
+</div></body></html>
+

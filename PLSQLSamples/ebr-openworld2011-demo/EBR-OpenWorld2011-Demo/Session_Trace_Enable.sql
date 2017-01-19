@@ -1,0 +1,1 @@
+--EXECUTE Sys.DBMS_Monitor.Session_Trace_Enable()

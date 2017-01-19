@@ -1,0 +1,72 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+<h2>How to diagnose and avoid subverting the benefit<br>
+  of the PL/SQL cursor cache</h2>
+
+
+Let your application run and observe
+<tt>open_cursor_sql_text</tt>
+as above. (In the real world you may need to restrict on
+<tt>v$open_cursor.sid</tt>
+
+to focus on a single session.) A
+<tt>SELECT COUNT()...GROUP BY</tt>
+query thus...
+  <pre class="Code_Emphasize">select count(sql_text) c, sql_text
+  from open_cursor_sql_text
+  group by sql_text
+
+  order by c desc, sql_text
+</pre>
+  ...helps, since we're looking for multiple occurrences of the same SQL statement.
+<p>
+<b><font color=red>If ever you find a SQL statement with two ore more occurences, then investigate!</font></b>
+<p>
+The likely explanation is that you missed an opportunity to write some re-usable code.
+
+The solution will usually be to encapsulate a cursor for the offending SQL statement
+within a procedure or function, and then to replace your
+previous constructs that used this SQL statement with an invocation
+of the new procedure or function,
+for example...
+  <pre><span class="Code_Emphasize">procedure P is
+  g_last_name employees.last_name%type;
+  procedure Get_Last_Name is
+
+  begin
+    select last_name into g_last_name from employees where employee_id = 100;
+  end Get_Last_Name;
+begin
+  Get_Last_Name;</span>
+  <span class="Code_Comment">--
+  -- time elapses, last_name may have changed for this employee
+  --</span>
+<span class="Code_Emphasize">  Get_Last_Name;
+
+end P;</span>
+</pre>
+  This re-write not only yields code with
+better readablility and maintaiability, but also better performance!
+<p>
+There may be some special cases where you have to decide that multiple cursors
+for the same statement are unavoidable
+(for example if the SQL statement invokes a function
+which in turn executes the same SQL statement),
+but in the majority of cases finding mutilple
+
+occurrences of the same SQL statement in
+<tt>v$open_cursor</tt>
+means you have an opportunity to improve your performance.
+</div></body></html>
+

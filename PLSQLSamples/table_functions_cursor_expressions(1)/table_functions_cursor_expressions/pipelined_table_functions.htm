@@ -1,0 +1,97 @@
+<html>
+
+<head>
+
+  <title>Pipelined Table Functions - New in Oracle9i</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Pipelined Table Functions - New in Oracle9<i>i</i></h1>
+
+
+  <p>The above functionality is available pre-Oracle9<i>i</i>. However, it has 
+    the limitation that the function must run to completion, storing <i>all</i> 
+    the rows it computes in the PL/SQL table before even the first row can be 
+    delivered. (There are other limitations, see below.) Oracle9<i>i</i> introduces 
+    the <span class="Code_Emphasize">pipelined</span> construct which allows the 
+
+    procedure to be rewritten thus&#133;</p>
+  <pre>create or replace function Lookups_Fn return lookups_tab
+  <span class="Code_Emphasize">pipelined</span>
+is
+  v_row lookup_row;
+begin
+
+  for j in 1..10
+  loop
+    v_row :=
+      case j
+        when 1 then lookup_row ( 1, 'one' )
+        <span class="Code_Comment">--...</span>
+        when 7 then lookup_row ( 7, 'seven' )
+
+        else        lookup_row ( j, 'other' )
+      end;
+    <span class="Code_Emphasize">pipe row ( v_row )</span><b>;</b>
+  end loop;
+  return;
+end Lookups_Fn;
+/</pre>
+  <p>Thus each row is delivered as soon as it is ready, so that the response time 
+
+    characteristics of a table function are symmetrical with those of a rowsource 
+    based on a table scan or an index scan. (For performance, the PL/SQL runtime 
+    system delivers the rows from a pipelined table function in batches.)</p>
+  <p><i>Note</i>: the procedure body now mentions only rows (i.e. not the table), 
+    and the table is just implied by the return type. (For elegance, the IF construct 
+    has been replaced with the new CASE formulation.) The same syntax as above 
+    can be used to select from the table function, but it can now be simplified 
+    thus&#133;</p>
+  <pre>select * from table ( Lookups_Fn );</pre>
+
+  <p>(The invocation will be written <span class="Code_Emphasize">Lookups_Fn()</span> 
+    in the following to emphasize its status as a function.)</p>
+  <p>Oracle9<i>i</i> also introduces the possibility to create a table function 
+    which returns a PL/SQL type thus&#133;</p>
+  <pre>create or replace package My_Types is
+  type lookup_row is record ( idx number, text varchar2(20) );
+  type lookups_tab is table of lookup_row;
+end My_Types;</pre>
+  <pre>create or replace function Lookups_Fn return My_Types.lookups_tab
+  <span class="Code_Emphasize">pipelined</span>
+
+is
+  v_row My_Types.lookup_row;
+begin
+  for j in 1..10
+  loop
+    case j
+      when 1 then v_row.idx := 1; v_row.text := 'one';
+      <span class="Code_Comment">--...</span>
+      when 7 then v_row.idx := 7; v_row.text := 'seven';
+      else        v_row.idx := j; v_row.text := 'other';
+    end case;
+
+    <span class="Code_Emphasize">pipe row ( v_row )</span><b>;</b>
+  end loop;
+  return;
+end Lookups_Fn;
+/</pre>
+  <p>In the limit, a PL/SQL type may be defined in the <span class="Code_Emphasize">declare</span> 
+    section of an anonymous block and hence have no persistence. However, to be 
+    useful in connection with table functions, the PL/SQL types must be declared 
+    in a package, and so when discussing table functions they are usually referred 
+    to as package-level types (in contrast to schema-level types).</p>
+  <p><i>Note:</i> A table function which returns a package-level type <i>must</i> 
+    be pipelined. Moreover, the simpler SELECT syntax (without the CAST) must 
+
+    be used.</p>
+  <p>&nbsp;</p>
+</div>
+</body></html>
+

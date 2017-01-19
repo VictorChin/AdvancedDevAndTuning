@@ -1,0 +1,53 @@
+<html>
+
+<head>
+
+  <title>Utl-Http Package - General Enhancements</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1>General Enhancements </h1>
+  <p>The <b>Utl_Http</b> package pre-Oracle9<i>i</i> allowed a basic implementation 
+
+    of the sending site. It allowed an arbitrarily large response to be handled 
+    piecewise in a PL/SQL VARCHAR2. But it supported just the &quot;GET&quot; 
+    method, i.e. did not support sending arbitrarily large messages in the body 
+    of the request. And it did not support authentication, setting the header 
+    of the request, inspecting the status code and header of the response, or 
+
+    dealing with cookies. Oracle9i adds support for all these (including optionally 
+    fetching the response &quot;as is&quot; into a PL/SQL RAW), and beyond that 
+    provides full support for the semantics that can be expressed via HTTP. For 
+    example, persistent HTTP connections are now supported. Use of these gives 
+    dramatic speed and scalabilty improvement for applications that repeatedly 
+    and frequently make HTTP requests to the same site. And users now have full 
+
+    control over the <a href="Encoding_Character_Data_Enhancements.htm">encoding 
+    of character data</a>.<br>
+    <br>
+    HTTP relies on an underlying transport layer. Thus the <b>Utl_Http</b> package 
+    (written in PL/SQL) is implemented on top of the <b>Utl_Tcp</b> package. (The 
+    <b>Utl_Smtp</b> package for sending email from the database is the same.) 
+    Pre-Oracle9<i>i</i>, <b>Utl_Tcp</b> was implemented in Java. At Oracle9<i>i</i> 
+
+    it has been reimplemented natively,<i> i.e</i>. in C directly on top of the 
+    socket layer to improve its performance.<br>
+    <br>
+    The <a href="Cr_Using_Utl_Http.htm">code sample</a> shows how to model the 
+    message sender at SQL*Plus, and can be used to inspect the return status and 
+    content of an arbitrary password protected URL.<br>
+    <br>
+    A code sample implementing both the sending site and the receiving site in 
+
+    a complete self-contained B2B simulation presented <a href="../Utl_Http_B2B_Scenario/start.htm">here</a><br>
+  </p>
+  <p><br>
+  </p>
+  </div>
+</body></html>
+

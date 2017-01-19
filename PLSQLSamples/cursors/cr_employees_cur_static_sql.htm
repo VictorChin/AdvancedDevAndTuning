@@ -1,0 +1,82 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+
+create or replace package Employees_Cur_Static_Sql is
+  <span class="Code_Emphasize">type Last_Names_Tab_t</span> is table of employees.last_name%type
+    index by binary_integer;
+
+  function Fetch_All_Rows ( p_department_id in employees.department_id%type )
+
+    return Last_Names_Tab_t;
+end Employees_Cur_Static_Sql;
+/
+Show Errors
+
+create or replace <span class="Code_Emphasize">package body Employees_Cur_Static_Sql</span> is
+
+
+  <span class="Code_Emphasize">function Fetch_All_Rows</span> ( p_department_id in employees.department_id%type )
+     return Last_Names_Tab_t
+  is
+    v_last_names_tab Last_Names_Tab_t;
+    cursor c_employees is
+      select last_name from employees where department_id = p_department_id;
+
+  begin
+    <span class="Code_Comment">-- the PL/SQL open statement implicitly subsumes the steps implemented in calls to...
+    --    Dbms_Sql.Open_Cursor
+    --    Dbms_Sql.Parse
+    --    Dbms_Sql.Define_Column
+    --    Dbms_Sql.Bind_Variable
+    --    Dbms_Sql.Execute
+    -- Moreover, if the cursor is already open (in the behind-the scenes world of the
+
+    -- PL/SQL run-time system) - ie it was actually just soft-closed -
+    -- then Open_Cursor, Parse and Define_Column are omitted just as in the
+    -- explict Dbms_Sql implementation shown in the Employees_Cur_Dbms_Sql package</span>
+    <span class="Code_Emphasize">open</span> c_employees;
+
+    <span class="Code_Comment">-- the PL/SQL fetch statement implicitly subsumes the steps implemented in calls to...
+    --    Dbms_Sql.Fetch_Rows
+    --    Dbms_Sql.Column_Value
+    -- As a bonus, we use the BULK syntax to do the whole job in one statement</span>
+
+    <span class="Code_Emphasize">fetch</span> c_employees bulk collect into v_last_names_tab;
+
+    <span class="Code_Comment">-- the PL/SQL close statement actually does very little!
+    -- The PL/SQL run-time system maintains a behind-the-scenes LRU cache
+    -- of open cursors, the so-called PL/SQL cursor cache.
+    -- This cache holds sufficient information to enable a given cursor to be
+    -- matched when program execution comes around to open the same cursor again.
+    -- (Roughly speaking this is the cursor's name-within-scope.) The only immediate
+    -- effect of the PL/SQL close statement is to mark it as available for re-use
+    -- in the LRU cache.
+
+    -- The steps implemented in Dbms_Sql.Close_Cursor are executed only
+    -- when the program needs to open a new cursor and the cache is full.
+    -- The size of the PL/SQL cursor cache is exactly equal to the
+    -- system parameter "open_cursors"</span>
+    <span class="Code_Emphasize">close</span> c_employees;
+    return v_last_names_tab;
+  end Fetch_All_Rows;
+
+end Employees_Cur_Static_Sql;
+/
+Show Errors
+
+</pre>
+</div></body></html>
+

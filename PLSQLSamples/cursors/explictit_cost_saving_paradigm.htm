@@ -1,0 +1,151 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+<h2>The explicitly programmed cost-saving paradigm</h2>
+
+
+It is assumed that readers have a general familiarity with the semantics of the
+<tt>Dbms_Sql</tt> API.
+<p>
+Suppose an application has to execute this
+statement...<pre class="Code_Emphasize">
+
+select last_name from employees where department_id = :department_id</pre>
+...on behalf of the user, repeatedly for different values of <tt>:department_id</tt>. 
+    The recommended program design looks like this... 
+  <p>
+<table border=1 cellpadding=5>
+<tr bgcolor="cccccc">
+
+<td valign=top class="Table_Hdr">task</td>
+<td valign=top class="Table_Hdr"><tt>Dbms_Sql</tt>
+calls</td>
+</tr>
+
+<tr>
+<td valign=top>set up for the statement and
+
+do the the define-binding</td>
+<td valign=top><tt>Open_Cursor<br>
+Parse<br>
+Define_Column*</tt></td>
+</tr>
+
+<tr>
+<td valign=top>for each :department_id<br>
+
+&nbsp;&nbsp;&nbsp;do the in-binding and<br>
+&nbsp;&nbsp;&nbsp;establish the read-consistent snapshot
+for the query</td>
+<td valign=top><tt>Bind_Variable*<br>
+Execute</tt></td>
+</tr>
+
+<tr>
+<td valign=top>&nbsp;&nbsp;&nbsp;loop until no more data<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fetch the next row<br>
+&nbsp;&nbsp;&nbsp;end loop</td>
+<td valign=top><tt>Fetch_Rows<br>
+Column_Value*</tt></td>
+</tr>
+
+<tr>
+<td valign=top>when no more :department_id values<br>
+free the resources used by the cursor</td>
+<td valign=top><tt>Close_Cursor</tt></td>
+
+</tr>
+</table>
+<p>
+The
+<tt>*</tt>
+means that this call may be made several times
+to process one SQL statement.
+<p>
+To test this,
+<a href="Cr_Users.htm">create two schemas</a>
+<tt>programmer</tt> and
+
+<tt>observer</tt>.
+<p>
+Now create the package
+<a href="Cr_Employees_Cur_Dbms_Sql.htm">
+<tt>Employees_Cur_Dbms_Sql</tt></a>
+which exposes this API:
+<tt>Set_Up_Statement</tt>,
+<tt>Fetch_All_Rows</tt> and
+<tt>Free_Resources</tt>.
+<p>
+The costs associated with the
+<tt>Dbms_Sql</tt>
+
+calls are thus...
+<ul class="Ul_1">
+<li><tt>Open_Cursor</tt> -
+memory allocation and initialization</li>
+
+<li><tt>Parse</tt>
+searching in the
+<tt>v$sqlarea</tt>
+cache to match the current SQL statement;
+if not found, parsing the statement, calculating the execution
+plan and storing this in the cache;
+marking the slot in the cache as in use;
+storing a reference to the slot in the
+
+<tt>v$sqlarea</tt>
+cache in the cursor. </li>
+
+<li><tt>Define_Column</tt> -
+for each column in the select list. Relatively trivial</li>
+
+<li><tt>Bind_Variable</tt> -
+for each bind variable in the where clause. Relatively trivial</li>
+
+<li><tt>Execute</tt> -
+establishing the read-consistent snapshot for the query.
+Possibly materializing the whole result set and sorting it</li>
+
+<li><tt>Fetch_Rows</tt> and
+
+<tt>Column_Value</tt> -
+Possibly memory-to-memory copy from materialized and sorted results.
+Possibly periodic disk reads</li>
+
+<li><tt>Close_Cursor</tt> -
+Doing whatever it takes to make the memory this cursor used
+available for new use. Marking the SQL statement in
+<tt>v$sqlarea</tt>
+cache as no longer in use by this cursor</li>
+</ul>
+<p>
+The rationale for the cost-saving paradigm is that there is no need to
+incur the costs of
+<tt>Open_Cursor</tt>,
+<tt>Parse</tt>,
+
+<tt>Define_Column</tt> and
+<tt>Close_Cursor</tt>
+more than once when the only difference between successive
+SQL statements is the values of the in-bind variables.
+Saving these costs can deliver a significant performance benefit.
+(Of course the costs of
+<tt>Bind_Variable</tt>,
+<tt>Execute</tt>,
+<tt>Fetch_Rows</tt> and
+<tt>Column_Value</tt>
+must be re-incurred for each new value of
+<tt>:department_id</tt>.)
+</div></body></html>
+

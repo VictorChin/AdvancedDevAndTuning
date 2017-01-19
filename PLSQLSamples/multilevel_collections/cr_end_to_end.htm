@@ -1,0 +1,79 @@
+<html>
+
+<head>
+
+  <title>End-To-End Test</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h3>-- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<br>
+    -- THE &quot;RUNNER'S TRAINING LOGS&quot; EXAMPLE SCENARIO</h3>
+
+  <h4><i>-- END-TO-END TEST </i></h4>
+
+  <pre>-- Connect programmer/p@9i
+set serveroutput on
+
+
+
+truncate table nested_training_logs;
+execute Populate_Nested_Training_Logs</pre>
+  <pre>truncate table reln_training_logs;
+insert into reln_training_logs
+  (
+
+    select *
+      from table
+       (
+         Reln_Training_Logs_Fn 
+          (
+            cursor
+              (
+
+                select first_name, training_log from nested_training_logs
+              )
+          )
+       )
+  );</pre>
+  <pre>truncate table nested_training_logs_2;
+insert into nested_training_logs_2
+  (
+
+    select *
+      from table
+        (
+          Nested_Training_Logs_Fn
+            (
+               cursor ( select * from reln_training_logs )
+            )
+        )
+  );</pre>
+
+  <pre>truncate table reln_training_logs_2;
+insert into reln_training_logs_2
+  (
+    select *
+      from table
+        (
+          Reln_Training_Logs_Fn 
+            (
+              cursor
+                (
+
+                  select first_name, training_log from nested_training_logs_2
+                )
+            )
+        )
+  );</pre>
+  <pre>select * from reln_training_logs_2 minus select * from reln_training_logs;</pre>
+  <pre>select * from reln_training_logs minus select * from reln_training_logs_2;
+   </pre>
+  <pre>&nbsp;</pre>
+  </div>
+</body></html>
+

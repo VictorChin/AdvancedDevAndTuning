@@ -1,0 +1,98 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+<p>
+  <h2>PL/SQL native dynamic SQL does not<br>
+
+    implement the cost-saving paradigm</h2>
+
+Finally compile the package
+<a href="Cr_Employees_Cur_Dynamic_Sql.htm">
+<tt>Employees_Cur_Dynamic_Sql</tt></a>
+
+which again exposes just
+<tt>Fetch_All_Rows</tt>
+but now the formal parameter is the whole SQL statement,
+assumed not known until run time.
+The implementation is very similar to
+<a href="Cr_Employees_Cur_Ref_Cursor.htm">
+
+<tt>Employees_Cur_Ref_Cursor</tt></a>.
+The only difference is that the
+<tt>ref cursor</tt>
+is opened with a VARCHAR2 whose content is not known at compile-time.
+<p>
+<i>Note:</i> In the requirements scenario that this example supports,
+the SELECT list is assumed fixed, but everything else about the SQL
+
+statement is unknown until run-time.
+This would suggest the use of a  <i>strong</i>
+<tt>ref cursor</tt>,
+but this is not yet supported with native dynamic SQL (up to Oracle9<i>i</i>).
+The attempt to code this fails to compile with
+<i>PLS-00455: cursor 'MY_STRONG_CURSOR' cannot be used in dynamic SQL</i>.
+<p>
+
+
+Create the procedure
+<a href="Cr_Show_Rows_For_Dept_Dynamic_Sql.htm">
+<tt>Show_Rows_For_Dept_Dynamic_Sql</tt></a>.
+And as above, use two concurrent sessions connected as
+<tt>programmer</tt> and
+<tt>observer</tt>
+and step through this
+<a href="Test_Employees_Cur_Dynamic_Sql.htm">test</a>.
+This shows that the PL/SQL
+
+<tt>close</tt>
+statement for a native dynamic SQL cursor does the
+actions corresponding to
+<tt>Dbms_Sql.Close_Cursor</tt>.
+You can see this in &quot;slow motion&quot; as above
+by activating the line
+<tt>Wait.Go</tt>
+in
+<a href="Cr_Employees_Cur_Dynamic_Sql.htm">
+<tt>Employees_Cur_Dynamic_Sql</tt></a>
+
+and running the test again.
+<p>
+Similarly, implicit native dynamic SQL cursors thus...<pre class="Code_Emphasize">procedure P is
+  v_last_name employees.last_name%type;
+begin
+  execute immediate
+    'select last_name from employees where employee_id = 100'
+    into v_last_name;
+  Dbms_Output.Put_Line ( v_last_name );
+end P;</pre>...(both for
+<tt>SELECT</tt>
+
+and for DML) are not cached for re-use.
+<p>
+<i>Note:</i> Consider the requirements scenario where the
+<tt>SELECT</tt>
+statement is not known until run time, but
+where it will be repeated many times
+with different in-bind variables. (This would occur
+if all but the table name were known at compile-time.)
+There is currently (up to Oracle9<i>i</i>) no way to
+use native dynamic SQL to implement the cost-saving paradigm - it
+does not have the constructs to separate one-time parsing from
+repeated binding and execution. Nevertheless, Oracle recommends
+
+using native dynamic SQL rather than
+<tt>Dbms_Sql</tt>.
+Other factors in the implementations of the two approaches
+make native dynamic SQL the more performant choice in the majority of cases.
+</div></body></html>
+

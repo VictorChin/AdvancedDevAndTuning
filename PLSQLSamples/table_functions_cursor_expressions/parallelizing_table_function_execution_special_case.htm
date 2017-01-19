@@ -1,0 +1,64 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function - Special Case: Function behavior is independent of the partitioning of the input data</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Special Case: Function behavior is independent of the partitioning of the 
+    input data</h1>
+
+
+  <p>Consider a function which processes each row from its input cursor individually. 
+    (Such a transformation which generates two or more output rows from each input 
+    row &#150; generically referred to as <i>piviotting</i> - benefits particularly 
+    from a table function implementation.) The syntax to parallelize this is straightforward 
+
+    thus&#133;</p>
+  <pre>create or replace function Rowwise_Xform_Fn ( p_input_rows in sys_refcursor )
+  return My_Types.xforms_tab
+  pipelined
+  <span class="Code_Emphasize">parallel_enable</span> ( <span class="Code_Emphasize">partition</span> p_input_rows <span class="Code_Emphasize">by any</span> )
+is
+
+  v_in_row My_Types.input_row;
+  v_out_row My_Types.xform_row;
+begin
+  loop
+    fetch p_input_rows into v_in_row;
+    exit when p_input_rows%notfound;
+    v_out_row.n := v_in_row.n*2; v_out_row.typ := 'a';
+
+    pipe row ( v_out_row );
+    v_out_row.n := v_in_row.n*3; v_out_row.typ := 'b';
+    pipe row ( v_out_row );
+  end loop;
+  close p_input_rows;
+  return;
+end Rowwise_Xform_Fn;
+/</pre>
+
+  <p>See code <a href="Cr_Parallelizing_Table_Function_Execution_Independent_Of_Ordering.htm">sample</a> 
+    for the complete working example. They keyword <span class="Code_Emphasize">any</span> 
+    expresses the programmer&#146;s assertion that the results are independent 
+    of the order in which the function gets the input rows. When this keyword 
+    is used, the runtime system randomly partitions the data among the query slaves. 
+    This keyword is appropriate for use with functions that take in one row, manipulate 
+    its columns, and generate output row(s) based on the columns of this row only. 
+    (Of course if this assertion doesn&#146;t hold, then the output will not be 
+    predictable.) This is the small exception referred to above: the input<b> 
+
+    </b><span class="Code_Emphasize">ref cursor</span> need not be strongly typed 
+    to be partitioned <span class="Code_Emphasize">by any</span>.) The ability 
+    to exploit the parallel potential of a table function depends on whether the 
+    source can be parallelized.</p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

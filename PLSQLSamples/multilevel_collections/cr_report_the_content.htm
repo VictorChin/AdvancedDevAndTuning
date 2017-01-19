@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML><HEAD><TITLE>Report on the contents of the Nested Table</TITLE>
+
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="Bryn Llewellyn" name=Author><LINK 
+
+href="../Content.css" rel=stylesheet 
+type=text/css>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+
+<BODY>
+<DIV class=Content_Div> 
+  <H3>-- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<br>
+    -- THE &quot;RUNNER'S TRAINING LOGS&quot; EXAMPLE SCENARIO</H3>
+
+  <H3><SPAN class=Updated><I>-- REPORT ON THE CONTENTS OF THE NESTED TABLE<br>
+    </I></SPAN></H3>
+  <pre>-- Connect programmer/p@9i
+set serveroutput on</pre>
+  <pre>
+
+declare
+begin
+  for v_row in
+    ( select first_name, training_log from nested_training_logs )
+  loop
+    Dbms_Output.Put_Line ( v_row.first_name );
+
+    for week in v_row.training_log.first..
+                v_row.training_log.last
+    loop
+      Dbms_Output.Put_Line ( '. week #' || To_Char(week) );
+      for run in v_row.training_log(week).first..
+                 v_row.training_log(week).last
+      loop
+
+        Dbms_Output.Put_Line
+          (
+            '. run #' || To_Char(run) || ': '
+|| Lpad ( v_row.training_log(week)(run).distance, 3, ' ' )
+|| ' /'
+|| Lpad ( v_row.training_log(week)(run).pace, 3, ' ' )
+          );
+      end loop;
+
+    end loop;
+  end loop;
+end;
+/</pre>
+  </DIV>
+<P>&nbsp;</P></BODY></HTML>
+

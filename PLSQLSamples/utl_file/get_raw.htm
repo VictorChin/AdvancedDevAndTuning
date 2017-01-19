@@ -1,0 +1,149 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<pre>Set serveroutput on Size 1000000
+drop table pix;
+
+create table pix ( id varchar2(5) primary key, pic bfile );
+&nbsp;
+<span class="Code_Comment">-- The following block populates a temporary BLOB from an o/s file in
+-- two different ways.
+--
+
+-- v_blob_1 is populated using LoadBlobFromFile (having first associated the
+-- file with a BFILE column in a table).
+--
+-- v_blob_2 is populated using Utl_File.Get_Raw.
+--
+-- Dbms_Lob.Compare is then used to compare v_blob_1 and v_blob_2.</span>
+
+&nbsp;
+declare
+  v_blob_1        blob;
+  v_blob_2        blob;
+  v_pic           bfile;
+  v_len_pic       number(38);
+  v_dest_offset   number(38) := 1;
+
+  v_src_offset    number(38) := 1;
+
+  v_buf           raw(32767);
+  v_buf_size      constant binary_integer := 32767;
+  v_handle        <span class="Code_Emphasize">Utl_File.File_Type</span>;
+  c_location      constant varchar2(80) := 'UTL_FILE_TEST';
+  c_filename      constant varchar2(80) := 'src.jpg';
+  v_write_amount  binary_integer;
+
+  v_total_amount  binary_integer := 0;
+
+  Get_Raw_Read_Null_Bytes exception;
+begin
+  delete from pix;
+  insert into pix (id) values ('src');
+  update pix
+    set pic = bfilename ( 'UTL_FILE_TEST', 'src.jpg' )
+    where id = 'src';
+
+  select pic into v_pic from pix where id = 'src';
+  v_len_pic := Dbms_Lob.GetLength(v_pic);
+  Dbms_Lob.Fileopen ( 
+    file_loc   => v_pic,
+    open_mode  => Dbms_Lob.File_Readonly );
+
+  Dbms_Lob.CreateTemporary (
+    lob_loc    => v_blob_1,
+    cache      => true,
+    dur        => Dbms_Lob.Session );
+
+
+  Dbms_Lob.LoadBlobFromFile (
+    dest_lob     => v_blob_1,
+    src_bfile    => v_pic,
+    amount       => v_len_pic,
+    dest_offset  => v_dest_offset,
+    src_offset   => v_src_offset );
+
+  Dbms_Lob.Close ( file_loc => v_pic );
+
+  if not ( v_dest_offset = v_len_pic+1 and v_src_offset = v_len_pic+1 )
+
+  then
+    Raise_Application_Error ( -20000, 'Logic error from LoadBlobFromFile' );
+  end if;
+
+<span class="Code_Comment">  -- Populate v_blob_2 with Utl_File.Get_raw.</span>
+  Dbms_Lob.CreateTemporary (
+    lob_loc    => v_blob_2,
+    cache      => true,
+    dur        => Dbms_Lob.Session );
+
+  v_handle := <span class="Code_Emphasize">Utl_File.Fopen (
+    location    => c_location,
+
+    filename    => c_filename,
+    open_mode   => 'r',
+    max_linesize => v_buf_size )</span>;
+
+  begin
+    v_dest_offset := 1;
+    loop
+      <span class="Code_Emphasize">Utl_File.Get_Raw (
+        file   => v_handle,
+        buffer => v_buf,
+        len    => v_buf_size )</span>;
+
+      if v_buf is not null then <span class="Code_Comment">/* sanity check */</span>
+
+        v_write_amount := Length(v_buf)/2;
+        v_total_amount := v_total_amount + v_write_amount;
+      else
+        raise Get_Raw_Read_Null_Bytes;
+      end if;
+
+      Dbms_Lob.Write (
+        lob_loc => v_blob_2,
+        amount  => v_write_amount,
+        offset  => v_dest_offset,
+        buffer  => v_buf );
+      v_dest_offset := v_dest_offset + v_write_amount;
+
+    end loop;
+
+  exception
+    when no_data_found then null;
+  end;
+  <span class="Code_Emphasize">Utl_File.Fclose ( file => v_handle )</span>;
+
+  Dbms_Output.Put_Line ( 'v_total_amount: ' || To_Char (v_total_amount) );
+
+  Dbms_Output.Put_Line ( 'Difference: ' || To_Char (
+    Dbms_Lob.Compare (
+      lob_1     => v_blob_1,
+      lob_2     => v_blob_2,
+      amount    => 48,
+      offset_1  => 1,
+      offset_2  => 1 ) ) );
+
+
+  Dbms_Lob.FreeTemporary ( lob_loc => v_blob_1 );
+  Dbms_Lob.FreeTemporary ( lob_loc => v_blob_2 );
+
+exception
+  when Get_Raw_Read_Null_Bytes then
+    Raise_Application_Error  ( -20000, 'Get_Raw_Read_Null_Bytes trapped' );
+end;
+/
+</pre>
+</body>
+</html>
+

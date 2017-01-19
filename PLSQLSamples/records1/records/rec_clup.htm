@@ -1,0 +1,37 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  table_or_view_doesnt_exist exception;
+
+  pragma exception_init ( table_or_view_doesnt_exist, -942 );
+  object_doesnt_exist exception;
+  pragma exception_init ( object_doesnt_exist, -4043 );
+begin
+  begin
+
+    execute immediate 'drop table employees_0';
+  exception when table_or_view_doesnt_exist then null; end;
+  begin
+    execute immediate 'drop table employees_2';
+  exception when table_or_view_doesnt_exist then null; end;
+  begin
+
+    execute immediate 'drop package Emp_Util';
+  exception when object_doesnt_exist then null; end;
+end;
+/
+</pre>
+</div>
+</body></html>
+

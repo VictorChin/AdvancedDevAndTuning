@@ -1,0 +1,40 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- SELECT returns many rows, single row syntax
+
+  -- dynamic SQL
+  -- OK at 9.0.1</span>
+  v_avg_hire_date employees.hire_date%type := '25-JUN-97';
+  cur sys_refcursor;
+  v_emprec employees%rowtype;
+
+  v_limit natural := 10;
+begin
+  open cur for '
+    select * from employees where hire_date >= :avg_hire_date'
+      using v_avg_hire_date;
+  loop
+
+    fetch cur into v_emprec; exit when cur%notfound or cur%rowcount > v_limit;
+    Emp_Util.Show_One ( v_emprec );
+  end loop;
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+</pre>
+
+</div>
+</body></html>
+

@@ -1,0 +1,131 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- DELETE RETURNs one row
+
+  -- dynamic SQL
+  -- fails at 9.2.0 with PLS-00429:
+  -- unsupported feature with RETURNING clause
+  --
+  -- <b>NO FLAVOR OF EXECUTE IMMEDIATE IS SUPPORTED WITH A RECORD BIND YET</b>
+
+  --
+  -- Ideally the SQL syntax should allow not listing the columns explicitly</span>
+  v_employee_id employees_0.employee_id%type := 100;
+  v_emprec employees_0%rowtype;
+begin
+  execute immediate '
+
+    delete from employees_0 where employee_id = :in_employee_id
+      returning
+        employee_id,
+        first_name,
+        last_name,
+        email,
+        phone_number,
+
+        hire_date,
+        job_id,
+        salary,
+        commission_pct,
+        manager_id,
+        department_id
+      into
+        :employee_id,
+
+        :first_name,
+        :last_name,
+        :email,
+        :phone_number,
+        :hire_date,
+        :job_id,
+        :salary,
+        :commission_pct,
+        :manager_id,
+
+        :department_id'
+    using v_employee_id
+    returning into v_emprec;
+end;
+/
+<span class="Code_Comment">-- ERROR at line N:</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- <b>WORKAROUND</b>
+  -- List all the columns for RETURNING both in the SQL
+  -- and in the target out-bind
+  -- Doesn't use RECORD bind so works pre 9.2.0</span>
+  v_employee_id     employees_0.employee_id    %type := 100;
+  v_emprec          employees_0                %rowtype;
+begin
+
+  execute immediate '
+    delete from employees_0 where employee_id = :in_employee_id
+      returning
+        employee_id,
+        first_name,
+        last_name,
+        email,
+        phone_number,
+        hire_date,
+        job_id,
+        salary,
+        commission_pct,
+
+        manager_id,
+        department_id
+      into
+        :employee_id,
+        :first_name,
+        :last_name,
+        :email,
+        :phone_number,
+        :hire_date,
+        :job_id,
+        :salary,
+        :commission_pct,
+        :manager_id,
+
+        :department_id'
+    using v_employee_id
+    returning into
+      v_emprec.employee_id,
+      v_emprec.first_name,
+      v_emprec.last_name,
+      v_emprec.email,
+      v_emprec.phone_number,
+      v_emprec.hire_date,
+      v_emprec.job_id,
+      v_emprec.salary,
+      v_emprec.commission_pct,
+      v_emprec.manager_id,
+      v_emprec.department_id;
+
+  Emp_Util.Show_One ( v_emprec );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

@@ -1,0 +1,1 @@
+Use at least SQLDeveloper 1.1. Within the reports tab, right click on the user defined reports node and select import, find the OWBReports.xml file and select this file. You should see the OWB node under the user defined reports node.

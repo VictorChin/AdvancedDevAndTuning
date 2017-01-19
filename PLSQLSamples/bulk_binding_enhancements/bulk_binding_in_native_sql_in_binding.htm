@@ -1,0 +1,51 @@
+<html>
+
+<head>
+
+  <title>Bulk Binding in Native Dynamic SQL - In-Binding</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" >
+  <h1>In-Binding</h1>
+
+
+  <p>The same progression (explicit row by row processing, bulk binding, bulk
+    binding in native dynamic SQL) is supported for DML (<b>insert, update</b>
+    and <b>delete</b>) thus&#133;</p>
+<pre>declare
+  type employee_ids_t is table of employees.employee_id%type
+
+    index by binary_integer;
+  employee_ids employee_ids_t;
+begin
+  employee_ids(1) := 151;
+  employee_ids(2) := 162;
+  employee_ids(3) := 173;
+
+
+  for j in employee_ids.first..employee_ids.last
+  loop
+    update employees set salary = salary*1.1
+      where employee_id = employee_ids(j);
+  end loop;
+end;</pre>
+
+  <p>&#133;then&#133;</p>
+  <pre><b>forall</b> j in employee_ids.first..employee_ids.last
+  update employees set salary = salary*1.1
+    where employee_id = employee_ids(j);</pre>
+  <p>&#133;then&#133;</p>
+  <pre><b>forall</b> j in employee_ids.first..employee_ids.last
+  execute immediate 'update employees set salary = salary*1.1'
+  || ' where employee_id = :the_id'
+
+   <b>using</b> employee_ids(j) <span class="Updated">/* new at 9i */</span>;</pre>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

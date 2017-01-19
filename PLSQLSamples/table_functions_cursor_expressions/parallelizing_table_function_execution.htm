@@ -1,0 +1,63 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function execution - New in Oracle9i</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" >
+  <h1>Parallelizing Table Function execution - New in Oracle9<i>i</i></h1>
+
+
+  <p>It is beyond the scope of these samples to describe the details of Oracle&#146;s 
+    parallel query feature. Suffice it to say that when certain environment conditions 
+    are met (especially a hardware environment that supports multiple concurrently 
+    executing processes making concurrent disk accesses, and a user environment 
+    close to single-user) and when the objects referenced in a query have appropriate 
+
+    parallel attributes, then the elapsed time for long-running queries can be 
+    cut in direct proportion to the number of available CPUs. This is especially 
+    significant in decision support systems (<i>a.k.a</i>. DSS) both at query 
+    time and in the extraction, transformation and load (<i>a.k.a.</i> ETL) operations 
+    to populate them.</p>
+  <p>Oracle9<i>i</i> introduces table function features to allow their execution 
+
+    to be parallelized. These features require (with one small exception) that 
+    the table function has exactly one strongly typed <span class="Code_Emphasize">ref 
+    cursor</span> input parameter.</p>
+  <ul>
+    <li><a href="Parallelizing_Table_Function_Execution_Special_Case.htm">Special
+      Case: Function behavior is independent of the partitioning of the input
+      data</a></li>
+
+    <li><a href="Parallelizing_Table_Function_Execution_General_Case.htm">General
+      Case: Function behavior depends on the partitioning of the input data</a></li>
+    <li><a href="Parallelizing_Table_Function_Execution_Order_By_Versus_Cluster_By.htm">Order
+      by Versus Cluster by</a></li>
+  </ul>
+  <h3>Performance Experiment</h3>
+  <p>Oracle Corp compared pre-Oracle9i and Oracle9i performance using a Sun Ultra-Enterprise 
+    4500 machine with 3 GB RAM and 10 CPUs at 168 MHz. A 1,000,000 row source 
+
+    table was used for a 1 row in to 7 rows out pivot transform. The pre-Oracle9i 
+    approach was a PL/SQL cursor loop with 7 <i>INSERT</i>s. The Oracle9i approach 
+    was a table function with 7<b> </b><i>PIPE ROW</i>s. The experiment is described 
+    in <i>Performance and Scalability in DSS Environment with Oracle9i</i>, by 
+    Neil Thombre, on
+    <a href="/technology/deploy/performance">/deploy/performance/</a>.</p>
+  <p>The pre-Oracle9i approach took 87 minutes. The Oracle9<i>i</i> approach <i>with
+    no parallelization</i> took 37 minutes (ie improvement factor 2.4x). The Oracle9<i>i</i>
+    approach <i>with parallelization</i> <i>degree</i> 20 took 12 minutes (ie
+
+    improvement factor 7.5x over the pre-Oracle9i baseline).</p>
+  <h3>&nbsp;</h3>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

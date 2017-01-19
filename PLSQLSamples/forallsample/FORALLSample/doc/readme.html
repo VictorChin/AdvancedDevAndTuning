@@ -1,0 +1,208 @@
+<html>
+<head>
+<title>PL/SQL Sample Application - 
+ FORALL</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="otn_new.css" type="text/css">
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+<span class="topstoryhead"><font size="4"> PL/SQL Sample Application - FORALL</font></span><br>
+<hr noshade>
+<span class="parahead1"><font size="2"><br>
+Date: 12-Jan-2005</font></span><br>
+<br>
+<span class="topstoryhead"><font size="3">Table of Contents</font></span> 
+<p><a href="#intro" class="bodylink">Introduction</a><br>
+  <a href="#over" class="bodylink">Application Overview</a><br>
+  <a href="#reqn" class="bodylink">Software Requirements</a><br>
+  <a href="#terms" class="bodylink">Terminology</a><br>
+  <a href="#configure" class="bodylink">Configuring the Application</a><br>
+  <a href="#deploy" class="bodylink">Running the Application</a><br>
+  <a href="#files" class="bodylink">Sample Application Files</a><br>
+  <a href="#addref" class="bodylink">Additional References</a><br>
+</p>
+<p class="topstoryhead"><a NAME="intro"></a><font size="3">Introduction</font> 
+<ul class="list">
+  <li><a href="#pre" class="bodylink">Prerequisite</a><font color="#FF0000"><br>
+    <br>
+    </font></li>
+  <li><a href="#tech" class="bodylink">Technical Overview</a></li>
+</ul>
+<p class="topstoryhead"> <a NAME="pre"></a><font size="2">Prerequisite</font></p>
+<span class="bodycopy">To understand this sample application the user is expected 
+to have knowledge in the following area, </span> 
+<ul  class=bodycopy>
+  <li> <a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink" target="_blank">PL/SQL</a><br>
+    <br>
+  </li>
+</ul>
+<p></p>
+<p class="topstoryhead"> <a NAME="tech"></a><font size="2">Technical Overview</font></p>
+<p class=bodycopy>When a PL/SQL application requires to process an index-by table, 
+  at times the standard FOR loop can not be used to iterate through the values 
+  when is not sure that all the indexes exist on the table. Oracle Database 10g 
+  introduces support for the FORALL syntax with non-consecutive indexes in collections. 
+  The INDICES OF clause allows the FORALL syntax to be used with sparse collections, 
+  while the VALUE OF clause is used for collections of indexes pointing to other 
+  collections. <br>
+  <br>
+  <br>
+  The INDICES OF keyword can be used in a situation where a collection of records 
+  is validated programmatically and invalid records are removed from the collection. 
+  This results in a sparse collection of valid elements that may then be bulk 
+  inserted into a table. By using the INDICES OF keyword, the exceptions for the 
+  missing records are not generated. INDICES OF clause can be used when the row 
+  numbers defined in another array are to be used.<br>
+</p>
+<p class="bodycopy">The VALUES OF clause can be used when the values defined in 
+  another array are used in a DML operation. It only processes the rows with row 
+  numbers matching the content of a row in the driving array. Consider a scenario 
+  in which a collection of records must be copied to one or more collection variables, 
+  based upon some condition whereby certain records may or may not be copied, 
+  and then inserted into a table. This can be efficiently done by using the &quot;VALUES 
+  OF&quot; syntax and using a pointer array whose elements are pointers to the 
+  selected records within the original collection. </p>
+<p class="topstoryhead"> <a NAME="over"></a><font size="3">Application Overview</font> 
+<p class=bodycopy> This sample application demonstrates the use of new clauses 
+  in FORALL statement, with a order processing scenario. When a customer creates 
+  a shopping cart and checks out the cart, the order data is stored in the ALL_ORDERS 
+  table. Assuming that the application needs to separate the newly created records 
+  and to be sent for order processing. Also the orders that are already processed 
+  and quite old require to be archived in a separate table. In this application 
+  all the orders are stored in ALL_ORDERS table. When the filter_records.sql is 
+  run, it fetches all the records into a collection and further processed to separate 
+  the newly created orders and orders that are already fulfilled. The criteria 
+  used here based on the order date and the order status. When this criteria is 
+  satisfied certain elements are removed from the collection. This results in 
+  a sparse collection which is used to insert orders into the NEW_ORDERS table. 
+  This part of the code demonstrates the use of &quot;INDICES OF&quot; clause. 
+  Also a collection which points to the index values of 'to be archived' records 
+  is created which is then used to insert the data in the ORDERS_ARCHIVE table. 
+  This demonstrates the use &quot;VALUES OF&quot; clause while using the FORALL 
+  statement.</p>
+<p class="topstoryhead"><a NAME="reqn"></a><font size="3">Software Requirements</font> 
+<p class=bodycopy> List the softwares required for configuring and running this 
+  sample application. </p>
+<ul class="list">
+  <li> <a href="http://www.oracle.com/technology/software/products/database/oracle10g/index.html" class="bodylink" target="_blank">Oracle 
+    Database 10<i>g</i> Release 1 (10.1.0.2)</a> <br>
+  </li>
+</ul>
+<p> <span class="topstoryhead"> <a NAME="terms"></a><font size="3">Terminology</font></span> 
+  <br>
+  <br>
+<table border="1" cellpadding="5" cellspacing="0" width="559">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" width="204" height="24">Term</th>
+    <th class="boldbodycopy" width="687" height="24">Definition</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="204" height="26"> 
+      <div align="center">&lt;SAMPLE_HOME&gt;</div>
+    </td>
+    <td class="bodycopy" width="687" height="26"> 
+      <p> The directory where the sample is extracted<code></code></p>
+    </td>
+  </tr>
+</table>
+<br>
+<p class="topstoryhead"> <a NAME="configure"></a><font size="3">Configuring the 
+  Application </font> <br>
+  <font size="3"></font> 
+<ul>
+  <li class="bodycopy"><span class="bodycopy"> Unzip the downloaded <a href="forallsample.zip" class="bodylink">FORALLSample.zip</a>. 
+    Extract the file contents into <code>&lt;SAMPLE_HOME&gt;</code> directory. 
+    <br>
+    This creates <span class="bodycopy">FORALLSample folder</span> with all the 
+    files and folders. <br>
+    <br>
+    </span></li>
+  <li class="bodycopy"><span class="bodycopy">Open the command prompt and move 
+    to <code>&lt;SAMPLE_HOME&gt;/FORALLSample/src</code> </span> folder by executing 
+    the following command, <br>
+    <code><br>
+    cd &lt;SAMPLE_HOME&gt;/FORALLSample/src</code> <br>
+    <br>
+  </li>
+  <li> <span class="bodycopy">Open SQL prompt. Connect as SCOTT/TIGER and run 
+    the config.sql script from <code>&lt;SAMPLE_HOME&gt;/FORALLSample/src</code> 
+    folder. This will create the necessary tables and inserts the orders data 
+    into ALL_ORDERS table.<br>
+    Example,<br>
+    <br>
+    <code>SQL&gt;@config.sql </code><br>
+    </span><span class="bodycopy"> </span> </li>
+</ul>
+<p class="topstoryhead"> <a NAME="deploy"></a><font size="3">Running the Application</font> 
+<p class=bodycopy> Follow the steps give below to run this application. <br>
+</p>
+<ul>
+  <li class="bodycopy"><span class="bodycopy"> From the SQL command prompt run 
+    the filter_orders.sql file. Example, <br>
+    <br>
+    <code>SQL&gt;@filter_orders.sql </code><br>
+    <br>
+    </span>Running this will insert the filtered orders data into NEW_ORDERS and 
+    ORDERS_ARCHIVE tables. You can view this data by running the SELECT query 
+    on both the tables. <br>
+    <br>
+    Refer to the <span class="bodycopy"><code>filter_orders.sql </code></span>file 
+    for more details on how to use &quot;INDICES OF&quot; and &quot;VALUES OF&quot; 
+    clauses with the FORALL statement.<br>
+  </li>
+</ul>
+<p class="topstoryhead"> <a NAME="files"></a><font size="3">Sample Application 
+  Files&nbsp;</font> 
+<p class="bodycopy">This section provides a tabular listing of the sample application 
+  files and their descriptions.
+<p> 
+<table border="1" cellpadding="5" cellspacing="0" width="80%">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" height="33" width="38%">Directory</th>
+    <th class="boldbodycopy" height="33" width="13%">File</th>
+    <th class="boldbodycopy" height="33" width="49%">Description</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%" > 
+      <p align="center">FORALLSample\doc</p>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">readme.html </div>
+    </td>
+    <td class="bodycopy" width="49%"> 
+      <p align="left"> This file</p>
+    </td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center">FORALLSample\src</div>
+    </td>
+    <td class="bodycopy" width="13%" align="center">config.sql</td>
+    <td class="bodycopy" width="49%">SQL file that creates necessary database 
+      objects</td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center">FORALLSample\src</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">filter_orders.sql</div>
+    </td>
+    <td class="bodycopy" width="49%">Used for filtering out new and old orders. 
+      This file uses the new clauses in the FORALL statement. </td>
+  </tr>
+</table>
+<p class="topstoryhead"> <br>
+  <a NAME="addref"> </a><font size="3">Additional References&nbsp;</font>  
+<ul>
+  <li><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/oracle/04-jan/o14tech_plsql.html#t1" class="bodylink" target="_blank">Oracle 
+    10<i>g</i> Adds More to FORALL </a></span></li>
+  <li><a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink" target="_blank"> PL/SQL Samples
+  on OTN</a><br>
+  </li>
+</ul>
+<hr noshade>
+<p class="boldbodycopy"> Please enter your comments about this sample application 
+  <a href="http://www.oracle.com/technology/forums/sample_code.html" class="bodylink" target="_blank">here</a>.
+</body>
+</html>

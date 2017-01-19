@@ -1,0 +1,81 @@
+<html>
+
+<head>
+
+  <title>YOUNG MANAGERS Scenario - Using Function With Ref Cursor Parameter in WHERE clause</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3>-- Sample To Illustrate Table Functions And Cursor Expressions</h3>
+
+  <h4><i>-- &#147;YOUNG MANAGERS&#148; SCENARIO</i></h4>
+  <p>-- Find those managers in the employees table, the majority of whose direct 
+    reports were hired<br>
+    -- before the manager</p>
+  <p class="Updated"> -- USING FUNCTION WITH REF CURSOR PARAMETER IN WHERE CLAUSE</p>
+
+  <p><i>-- Note: </i>Following code sample depend on the <b><tt>employees </tt></b>and 
+    <b><tt>departments </tt></b>tables. These are<br>
+    -- in the <b><tt>hr </tt></b>sample schema. Scripts to create and populate 
+    this are provided with Oracle9i, <br>
+    -- and it is included in the standard pre-built database. The sample is complete.</p>
+  <pre>-- Connect hr/hr@9i
+
+set serveroutput on
+   
+drop function <span class="Code_Emphasize">Most_Reports_Before_Manager</span> ;   
+drop view <span class="Code_Emphasize">young_managers</span> ;
+
+create or replace <span class="Code_Emphasize">function Most_Reports_Before_Manager</span>    (
+  <span class="Code_Emphasize">report_hire_dates_cur in sys_refcursor</span><b>,</b>
+
+  manager_hire_date in date )
+  return number
+is
+  type report_hire_date_t is table of employees.hire_date%type
+                            index by binary_integer;
+  report_hire_dates report_hire_date_t;
+  before integer:=0; after integer:=0;
+begin
+
+  <span class="Code_Emphasize">fetch report_hire_dates_cur bulk collect into report_hire_dates</span><b>;</b>
+  if report_hire_dates.count &gt; 0
+  then
+    for j in report_hire_dates.first..report_hire_dates.last
+    loop
+      case report_hire_dates(j) &lt;= manager_hire_date
+        when true  then before := before + 1;
+        when false then after  := after + 1;
+      end case;
+
+    end loop;
+  end if;
+  case before &gt; after
+    when true  then return 1;
+    when false then return 0;
+  end case;
+end Most_Reports_Before_Manager;
+/
+Show Errors
+   
+
+create or replace <span class="Code_Emphasize">view young_managers</span> as
+  select managers.employee_id manager_employee_id
+  from employees managers
+  where Most_Reports_Before_Manager
+    (
+      <span class="Code_Emphasize">cursor ( select reports.hire_date from employees reports
+                 where reports.manager_id = managers.employee_id
+             )</span><b>,</b>
+      managers.hire_date
+    ) = 1;</pre>
+</div>
+
+<p>&nbsp;</p></body></html>
+

@@ -1,0 +1,65 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- INSERT many rows, bulk syntax
+
+  -- static SQL
+  -- fails at 9.0.1 PL/SQL: ORA-00906:
+  -- missing left parenthesis</span>
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+begin
+
+  forall j in v_emprecs.first..v_emprecs.last
+    insert into employees_2 values v_emprecs(j);
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+declare
+
+  <span class="Code_Comment">-- Rework the above to handle possible exceptions on INSERT</span>
+  bulk_errors exception;
+  pragma exception_init ( bulk_errors, -24381 );
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+begin
+  v_emprecs(1).employee_id :=
+   <span class="Code_Comment"> /* contrive &quot;unique constraint violated&quot; error on INSERT */</span>
+    v_emprecs(2).employee_id;
+
+  forall j in v_emprecs.first..v_emprecs.last save exceptions
+    insert into employees_2 values v_emprecs(j);
+exception when bulk_errors then
+  for j in 1..sql%bulk_exceptions.count
+  loop
+    Dbms_Output.Put_Line ( 'Error from element #' ||
+      To_Char(sql%bulk_exceptions(j).error_index) || ': ' ||
+      Sqlerrm(-sql%bulk_exceptions(j).error_code) );
+  end loop;
+
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

@@ -1,0 +1,105 @@
+<html>
+
+<head>
+
+  <title>Parallelizing Table Function - General Case: Function behavior depends on the partitioning of the input data</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>General Case: Function behavior depends on the partitioning of the input 
+    data</h1>
+
+
+  <p>Consider a transformation along the lines of&#133;</p>
+  <pre>select avg ( salary ), department_id from employees group by department_id;</pre>
+  <p>&#133;where the aggregation operation to be performed on the set of salaries 
+    for a given department is arbitrarily complex such that a classical SQL implementation 
+
+    is impossible, slow by virtue of a function invocation for each row of the 
+    source table, or prohibitively challenging to write and debug. For example, 
+    it might be that the cost to the employer of paying a given salary depends 
+    on the hire date because of changes in benefits packages that affect only 
+    employees hired after the date of change. This is illustrated in code <a href="Cr_Parallelizing_Table_Function_Execution_Only_Source_Rows_Clustered.htm">sample</a>, 
+    but to avoid obscuring it with a complicated algorithm, the aggregation is 
+
+    simply the sum for the salary for each distinct department. This has the general 
+    form&#133;</p>
+  <pre>create or replace function Aggregate_Xform ( p_input_rows in My_Types.cur_t )
+  return My_Types.dept_sals_tab
+  pipelined
+is
+  ...
+
+begin
+  Get_Next_Row();
+  while Got_Next_Dept() <span class="Updated">/* relies on assumption that<br>                       all rows for given dept are delivered consecutively */</span>
+  loop
+    v_total_sal := 0;
+    while Got_Next_Row_In_Dept()
+    loop
+      v_total_sal := v_total_sal + g_in_row.sal;
+
+      Get_Next_Row();
+    end loop;
+    g_out_row.sal := v_total_sal; g_out_row.dept := g_current_dept;
+    pipe row ( g_out_row );
+  end loop;
+  close p_input_rows;
+  return;
+end Aggregate_Xform;
+/</pre>
+
+  <p>Given that the input rows will be partitioned between different slaves, the 
+    integrity of the algorithm requires that <i>all the rows for a given department 
+    go to the same slave</i>, and that all these rows are delivered <i>consecutively</i>. 
+    (Strictly speaking, the requirement for consecutive delivery is negotiable, 
+    but the design of the algorithm to handle this case would need to be much 
+    more elaborate. For that reason, Oracle commits to consecutive delivery.) 
+    We use the term <i>clustered</i> to signify this type of delivery, and <i>cluster 
+    key</i> for the column (in this case &#147;department&#148;) on which the 
+    aggregations done. But significantly, the algorithm does<i> not</i> care<i> 
+    in what order of cluster key</i> it receives each successive cluster, and 
+
+    Oracle does not guarantee any particular order here.</p>
+  <p>This allows the possibility of a quicker algorithm than if rows were required 
+    to be clustered and delivered in order of the cluster key. It scales as <i>order</i> 
+    N rather than order N.<i>log(N)</i>, where N is the number of rows. The syntax 
+    is&#133;<br>
+  </p>
+  <pre>create or replace function Aggregate_Xform ( p_input_rows in My_Types.cur_t   )
+  return My_Types.dept_sals_tab
+  pipelined
+  <span class="Code_Emphasize">cluster p_input_rows by (dept)
+  parallel_enable
+
+    ( partition p_input_rows by hash (dept))</span></pre>
+  <p>is...</p>
+  <p>We can choose between <span class="Code_Emphasize">hash (dept)</span> and<b> 
+    </b><span class="Code_Emphasize">range (dept)</span> depending on what we 
+    know about the distribution of the values. (<span class="Code_Emphasize">hash</span> 
+    will be quicker than <span class="Code_Emphasize">range</span> and is the 
+    natural choice to be used with<b> </b><span class="Code_Emphasize">cluster... 
+    by</span>.) Here, to be partitioned by a specified column, the input <span class="Code_Emphasize">ref 
+    cursor</span> must be strongly typed.<b> </b><span class="Code_Emphasize">cluster... 
+    by</span> is not allowed without <span class="Code_Emphasize">parallel_enable 
+    ( partition... by</span>.</p>
+  <p><i>Note</i>: at version 9.0.1 it is necessary to include ORDER BY on the 
+
+    cluster key in the SELECT used to invoke the table function thus&#133;</p>
+  <pre>select * from table (
+  Aggregate_Xform (
+    cursor (
+      select salary, department_id from employees
+       where department_id is not null
+       <span class="Code_Emphasize">order by department_id</span> ) ) );</pre>
+  <p>&#133;to preserve correctness of behavior, but this restriction will be removed 
+    when the order N clustering algorithm is productized. </p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

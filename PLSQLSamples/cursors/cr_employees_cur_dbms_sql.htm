@@ -1,0 +1,91 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+
+create or replace <span class="Code_Emphasize">package Employees_Cur_Dbms_Sql</span> is
+  <span class="Code_Emphasize">type Last_Names_Tab_t</span> is table of employees.last_name%type
+    index by binary_integer;
+
+
+  procedure Set_Up_Statement;
+  function Fetch_All_Rows ( p_department_id in employees.department_id%type )
+    return Last_Names_Tab_t;
+  procedure Free_Resources;
+end Employees_Cur_Dbms_Sql;
+/
+
+Show Errors
+
+create or replace <span class="Code_Emphasize">package body Employees_Cur_Dbms_Sql</span> is
+  g_cur integer;
+  g_stmt constant varchar2(32000) :=
+    'select last_name from employees where department_id = :department_id';
+  g_last_name employees.last_name%type;
+
+
+  <span class="Code_Emphasize">procedure Set_Up_Statement</span> is
+  begin
+    <span class="Code_Comment">-- the approach saves costs by omitting the work
+    -- of this set-up for successive executions of the same statement
+    -- with different in-bind values</span>
+    g_cur := Dbms_Sql.Open_Cursor;
+    Dbms_Sql.Parse (
+
+      c             => g_cur,
+      statement     => g_stmt,
+      language_flag => Dbms_Sql.Native );
+    Dbms_Sql.Define_Column (
+      c             => g_cur,
+      position      => 1,
+      column        => g_last_name,
+      column_size   => 25 );
+  end Set_Up_Statement;
+
+
+  <span class="Code_Emphasize">function Fetch_All_Rows</span> ( p_department_id in employees.department_id%type )
+    return Last_Names_Tab_t is
+    v_junk integer;
+    n pls_integer := 0;
+    v_last_names_tab Last_Names_Tab_t;
+  begin
+    Dbms_Sql.Bind_Variable (
+      c     => g_cur,
+      name  => ':department_id',
+
+      value => p_department_id );
+    v_junk := Dbms_Sql.Execute ( c => g_cur );
+    while Dbms_Sql.Fetch_Rows ( c => g_cur ) > 0
+    loop
+      Dbms_Sql.Column_Value (
+        c        => g_cur,
+        position => 1,
+        value    => g_last_name );
+      n := n+1; v_last_names_tab(n) := g_last_name;
+    end loop;
+    return v_last_names_tab;
+
+  end Fetch_All_Rows;
+
+  <span class="Code_Emphasize">procedure Free_Resources</span> is
+  begin
+    Dbms_Sql.Close_Cursor ( c => g_cur );
+  end Free_Resources;
+end Employees_Cur_Dbms_Sql;
+/
+Show Errors
+</pre>
+</div></body></html>
+

@@ -1,0 +1,446 @@
+P#V PLSHPROF Internal Version 1.0
+P#! PL/SQL Timer Started
+P#C PLSQL."Main"::7."Main"#980980e97e42f8ec #1
+P#X 9
+P#C PLSQL."Pkg"::11."P1"#980980e97e42f8ec #32
+P#X 41685
+P#C SQL."Pkg"::11."__sql_fetch_line41" #41
+P#X 218579
+P#R
+P#X 18
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 79222
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 331905
+P#R
+P#X 36
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 329013
+P#R
+P#X 37
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 52729
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 200272
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 199645
+P#R
+P#X 36
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 31871
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 34737
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 206510
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 200222
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 200207
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 339045
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 331709
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 204962
+P#R
+P#X 36
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 200218
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 87483
+P#R
+P#X 22
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 144174
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142738
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 148938
+P#R
+P#X 23
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 145735
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 146492
+P#R
+P#X 24
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 152802
+P#R
+P#X 24
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 153820
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 141159
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 139699
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 150283
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143927
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142675
+P#R
+P#X 23
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 144112
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 140284
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 139929
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 144124
+P#R
+P#X 31
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 146185
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 139390
+P#R
+P#X 22
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 148135
+P#R
+P#X 24
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143809
+P#R
+P#X 24
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142225
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 149115
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 139504
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 164749
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 147040
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 166267
+P#R
+P#X 36
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 144341
+P#R
+P#X 45
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 140504
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142404
+P#R
+P#X 36
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 140915
+P#R
+P#X 22
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 149131
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142956
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 145680
+P#R
+P#X 26
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 150500
+P#R
+P#X 45
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 141232
+P#R
+P#X 23
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 167252
+P#R
+P#X 27
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 148363
+P#R
+P#X 39
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 165910
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 148524
+P#R
+P#X 25
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 164383
+P#R
+P#X 29
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142932
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 161451
+P#R
+P#X 38
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 140816
+P#R
+P#X 27
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 166872
+P#R
+P#X 36
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142618
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 164390
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143853
+P#R
+P#X 42
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 160888
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 145594
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 158361
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 145776
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 158910
+P#R
+P#X 23
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 145302
+P#R
+P#X 28
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 160178
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143077
+P#R
+P#X 24
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 157913
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142599
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 157936
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 146656
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 159376
+P#R
+P#X 37
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 145432
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 160106
+P#R
+P#X 23
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143100
+P#R
+P#X 27
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 160896
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143665
+P#R
+P#X 39
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 167922
+P#R
+P#X 26
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 148569
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 157953
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 143367
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 180124
+P#R
+P#X 24
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 144853
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 164715
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 141975
+P#R
+P#X 39
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 158799
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 141772
+P#R
+P#X 33
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 161906
+P#R
+P#X 27
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 146900
+P#R
+P#X 32
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 159495
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 146133
+P#R
+P#X 35
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 159323
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 142018
+P#R
+P#X 22
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 161070
+P#R
+P#X 34
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 146707
+P#R
+P#X 26
+P#C SQL."Pkg"::11."__static_sql_exec_line47" #47
+P#X 156645
+P#R
+P#X 38
+P#C SQL."Pkg"::11."__sql_fetch_line41" #41
+P#X 11638
+P#R
+P#X 79
+P#R
+P#X 7
+P#C PLSQL."Pkg"::11."P2"#980980e97e42f8ec #58
+P#X 4
+P#C PLSQL."Pkg"::11."Helper"#34ca7ad889ae0101 #14
+P#X 2
+P#R
+P#X 132324
+P#R
+P#X 7
+P#C PLSQL."Pkg"::11."P3"#980980e97e42f8ec #64
+P#X 8
+P#C PLSQL."Pkg"::11."Helper"#34ca7ad889ae0101 #14
+P#X 3
+P#R
+P#X 212424
+P#R
+P#X 4
+P#C PLSQL."Pkg"::11."P4"#980980e97e42f8ec #70
+P#X 3
+P#C PLSQL."Pkg"::11."Helper"#34ca7ad889ae0101 #14
+P#X 2
+P#R
+P#X 169368
+P#R
+P#X 7
+P#C PLSQL."Pkg"::11."P5"#980980e97e42f8ec #76
+P#X 255339
+P#R
+P#X 3
+P#R
+P#! PL/SQL Timer Stopped

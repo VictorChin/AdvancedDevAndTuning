@@ -1,0 +1,36 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+
+create or replace <span class="Code_Emphasize">procedure Show_Rows_For_Dept_Ref_Cursor</span> (
+  p_department_id in employees.department_id%type ) is
+  <span class="Code_Comment">-- No prior- set-up or post- clean-up required
+  -- to run this</span>
+  v_last_names_tab Employees_Cur_Ref_Cursor.Last_Names_Tab_t;
+
+begin
+  v_last_names_tab := Employees_Cur_Ref_Cursor.Fetch_All_Rows ( p_department_id );
+
+  for j in v_last_names_tab.First..v_last_names_tab.Last
+  loop
+    Dbms_Output.Put_Line ( v_last_names_tab(j) );
+
+  end loop;
+end Show_Rows_For_Dept_Ref_Cursor;
+/
+Show Errors
+</pre>
+</div></body></html>
+

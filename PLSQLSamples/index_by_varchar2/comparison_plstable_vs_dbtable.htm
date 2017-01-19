@@ -1,0 +1,82 @@
+<html>
+
+<head>
+
+  <title>Associative Array</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" > 
+<h2>Compare time to populate an index by varchar2 table with one million tuples<br>
+
+with time to populate a database table with the same data.</h2>
+  <pre>drop table t;
+create table t (
+  idx varchar2(4000),
+  data  varchar2(4000) );
+
+
+procedure P is
+  type text_tab_t is <span class="Code_Emphasize">table</span> of varchar2(4000) <span class="Code_Emphasize">index by varchar2(4000)</span>;
+  v_text_tab         text_tab_t;
+  v_index            t.idx%type;
+  v_data             t.data%type;
+
+  t_start            integer;
+  t_end              integer;
+  c_nof_rows constant pls_integer := 1000000;
+
+  procedure Show_Elapsed_Time ( p_start in number, p_end in number ) is
+  begin
+    Dbms_Output.Put_Line ( Lpad ( To_Char ( ((p_end-p_start)/100), 9999.9 ), 15 ) || ' seconds' );
+
+  end Show_Elapsed_Time;
+begin
+  <span class="Code_Comment">-- Database table ------------------------------------------------------------</span>
+  t_start := Dbms_Utility.Get_Time;
+  for j in 1..c_nof_rows
+  loop
+    v_index := To_Char(j) || ' suffix';
+    insert into t ( idx, data ) values
+
+      ( v_index, 'data for ' || v_index );
+  end loop;
+
+  execute immediate ( 'create unique index t_idx on t ( idx )' );
+
+  for j in ( select idx, data from t )
+  loop
+    v_index := j.idx; v_data := j.data;
+  <span class="Code_Comment">--Dbms_Output.Put_Line ( Rpad(v_index,20) || Rpad(v_data,20) );</span>
+
+  end loop;
+  t_end := Dbms_Utility.Get_Time;
+  Show_Elapsed_Time ( t_start, t_end );
+
+  <span class="Code_Comment">-- PL/SQL index by varchar2 table --------------------------------------------</span>
+  t_start := Dbms_Utility.Get_Time;
+  for j in 1..c_nof_rows
+  loop
+    v_index := To_Char(j) || ' suffix';
+    v_text_tab( v_index ) := 'data for ' || v_index;
+
+  end loop;
+
+  v_index := v_text_tab.First;
+  while v_index is not null
+  loop
+  <span class="Code_Comment">--Dbms_Output.Put_Line ( Rpad(v_index,20) || Rpad(v_text_tab(v_index),20) );</span>
+    v_index := v_text_tab.Next(v_index);
+  end loop;
+  t_end := Dbms_Utility.Get_Time;
+  Show_Elapsed_Time ( t_start, t_end );
+end P;</pre>
+
+</div>
+</body></html>
+

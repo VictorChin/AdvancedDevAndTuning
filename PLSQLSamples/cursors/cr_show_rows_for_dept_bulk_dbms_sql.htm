@@ -1,0 +1,48 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+
+create or replace <span class="Code_Emphasize">procedure Sh_Rws_For_Dept_Bulk_Dbms_Sql</span> (
+  p_department_id in employees.department_id%type ) is
+  v_last_names_tab Dbms_Sql.Varchar2_Table;
+begin
+  v_last_names_tab := Employees_Cur_Bulk_Dbms_Sql.Fetch_All_Rows ( p_department_id );
+
+
+  for j in v_last_names_tab.First..v_last_names_tab.Last
+  loop
+    Dbms_Output.Put_Line ( v_last_names_tab(j) );
+  end loop;
+end Sh_Rws_For_Dept_Bulk_Dbms_Sql;
+
+/
+Show Errors
+
+Connect programmer/p@9i
+Set ServerOutput On
+
+begin Employees_Cur_Bulk_Dbms_Sql.Set_Up_Statement; end;
+
+/
+begin Sh_Rws_For_Dept_Bulk_Dbms_Sql ( 10 ); end;
+/
+begin Sh_Rws_For_Dept_Bulk_Dbms_Sql ( 90 ); end;
+/
+begin Employees_Cur_Bulk_Dbms_Sql.Free_Resources; end;
+/
+</pre>
+
+</div></body></html>
+

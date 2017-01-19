@@ -1,0 +1,52 @@
+<html>
+
+<head>
+
+  <title>Associative Arrays</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" > 
+  <pre>drop table intersections;
+
+create table intersections (
+  bundle_id integer,
+  item_id   integer );
+
+insert into intersections values ( 1, 1 );
+
+insert into intersections values ( 1, 2 );
+insert into intersections values ( 1, 3 );
+
+insert into intersections values ( 2, 3 );
+insert into intersections values ( 2, 1 );
+insert into intersections values ( 2, 2 );
+
+
+insert into intersections values ( 3, 1 );
+insert into intersections values ( 3, 2 );
+insert into intersections values ( 3, 4 );
+
+insert into intersections values ( 4, 1 );
+insert into intersections values ( 4, 2 );
+
+
+insert into intersections values ( 5, 2 );
+insert into intersections values ( 5, 1 );
+
+insert into intersections values ( 6, 2 );
+insert into intersections values ( 6, 1 );
+insert into intersections values ( 6, 3 );
+
+
+insert into intersections values ( 7, 2 );
+insert into intersections values ( 7, 1 );
+
+create unique index intersections_i on intersections ( bundle_id, item_id );</pre>
+</div></body></html>
+

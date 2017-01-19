@@ -1,0 +1,77 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- SELECT returns many rows, bulk syntax
+
+  -- dynamic SQL
+  -- fails at 9.0.1 with PLS-00597:
+  -- expression 'V_EMPRECS' in the INTO list is of wrong type</span>
+  v_emprecs Emp_Util.emprec_tab_t;
+  v_avg_hire_date employees.hire_date%type := '25-JUN-97';
+
+  cur sys_refcursor;
+  v_limit natural := 10;
+begin
+  open cur for '
+    select * from employees where hire_date >= :avg_hire_date'
+      using v_avg_hire_date;
+
+  fetch cur bulk collect into v_emprecs limit v_limit; close cur;
+  Emp_Util.Show_All ( v_emprecs );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- alternative syntax, binding explicit column list
+  -- to RECORD with corresponding structure
+  -- fails at 9.0.1 with PLS-00597:
+  -- expression 'V_EMPRECS' in the INTO list is of wrong type</span>
+
+  v_emprecs Emp_Util.emprec_tab_t;
+  v_avg_hire_date employees.hire_date%type := '25-JUN-97';
+  cur sys_refcursor;
+  v_limit natural := 10;
+begin
+  open cur for '
+    select
+      employee_id,
+      first_name,
+
+      last_name,
+      email,
+      phone_number,
+      hire_date,
+      job_id,
+      salary,
+      commission_pct,
+      manager_id,
+      department_id
+    from employees where hire_date >= :avg_hire_date'
+
+    using v_avg_hire_date;
+  fetch cur bulk collect into v_emprecs limit v_limit; close cur;
+  Emp_Util.Show_All ( v_emprecs );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+</pre>
+</div>
+</body></html>
+

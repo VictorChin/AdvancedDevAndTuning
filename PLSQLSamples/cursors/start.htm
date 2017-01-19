@@ -1,0 +1,167 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+
+  <h1>Cursor reuse in PL/SQL static SQL</h1>
+
+
+  <h2>Background</h2>
+
+In order that a SQL satement can be executed, it
+has to be parsed (checked for syntactic and semantic correctness)
+
+and the execution plan has to be calculated.
+All this costs computational resources.
+<p>
+To save on these costs,
+the Oracle instance maintains a system-wide
+LRU cache (<i>aka</i> the shared cursor cache) - exposed via
+
+<tt>v$sqlarea</tt>
+- of previously encountered
+SQL statements and appropriate derived information
+so that when the next SQL statement is submitted for parsing
+it is checked for match against the cached ones.
+(The definition of the criterea for a match is beyond the scope of this tutorial.
+Roughly speaking, the current statement must be both textually
+
+identical to its match candidate, famously to the extent of
+whitespace and upper/lower case identity, and the types of the
+bind variables must match.) When the current statement is
+matched, the stored derived information (parse tree, execution plan, etc)
+is reused and computational cost is saved.
+<p>
+Moreover, the above processing has to be done in the context of a cursor
+which itself has to be opened and associated with the
+
+SQL statement in question, again at some cost.
+<p>
+A given session might have one or several concurrently
+open cursors. Information on these, including the foreign
+key reference to
+<tt>v$sqlarea</tt>
+is exposed  via
+<tt>v$open_cursor</tt>.
+<p>
+
+Advanced programmers using the &quot;difficult&quot;
+interfaces to cursor manipulation - <i>eg</i> OCI in
+a C programming environment or the
+<tt>Dbms_Sql</tt>
+package in a PL/SQL programming environment -
+typically code explicit, relatively elaborate approaches to minimize
+cursor costs. This cost-saving paradigm is described below.
+<p>
+Programmers whose requirements can be satisfied by
+static SQL in a PL/SQL programming environment
+
+enjoy the benefits of an implicit implementation
+of this cost-saving paradigm while writing
+simple, easy-to-maintain, code.
+<p>
+However, it is possible to subvert these implicit benefits
+by careless programing. This tutorial presents
+the conceptual background for understanding this
+and some guidelines for avoiding such mistakes.
+
+<ul class="Ul_1">
+<li><a href="Explictit_Cost_Saving_Paradigm.htm">The explicitly programmed cost-saving paradigm</a></li>
+
+<li><a href="Observing_Open_Cursor.htm">Observing v$open_cursor</a></li>
+<li><a href="Cost_Saving_Using_Static_Sql.htm">Benefiting from the cost-saving paradigm
+implicitly<br>
+by using PL/SQL static SQL</a></li>
+<li><a href="Demo_The_PLSQL_Cursor_Cache.htm">Demonstrating the LRU behavior
+of the PL/SQL cursor cache</a></li>
+<li><a href="How_Careless_Programing_Subverts.htm">How careless programing can subvert the benefit<br>
+of the PL/SQL cursor cache</a></li>
+<li><a href="How_To_Diagnose.htm">How to diagnose and avoid subverting the benefit<br>
+of the PL/SQL cursor cache
+</a><li><a href="How_To_Diagnose.htm"></a><a href="Ref_Cursors_Basic.htm">PL/SQL REF CURSORs don't (up to Oracle9<i>i</i>) implement<br>
+the cost-saving paradigm
+
+</a><li><a href="Ref_Cursors_Basic.htm"></a><a href="Ref_Cursors_Big_Picture.htm">REF CURSORs: the bigger picture
+</a></li>
+<li><a href="Native_Dynamic_SQL.htm">PL/SQL native dynamic SQL does not<br>
+implement the cost-saving paradigm
+</a></li>
+</ul>
+
+
+  <h2>Conclusion</h2>
+
+  <ul class="Ul_1">
+    <li>Using <tt>Dbms_Sql</tt> gives you the ultimately fine-grained level of 
+      control over cursors and thus it allows you to implement an approach which 
+
+      makes maximal possible reuse of the resources used to set up a cursor and 
+      to parse the SQL statement, even when this is a soft-parse (<i>ie</i> the 
+      statement is found in the <tt>v$sqlarea</tt> cache). 
+      <p> Moreover using <tt>Dbms_Sql</tt> develops your mental model in this 
+        critical area of functionality, so it's good at least to study it and 
+        practice with it a little.
+      <p> There are some use cases (for example when you don't know the number 
+        of bind variables until runtime) which are not supported using native 
+        dynamic SQL, and in such cases <tt>Dbms_Sql</tt> is the only viable approach. 
+      <p> Thus Oracle recommends that you use native dynamic SQL when its syntax 
+        supports your requirements, and that you use <tt>Dbms_Sql</tt> only when 
+        your functional requirements <i>cannot</i> be satisfied by native dynamic 
+        SQL. The theoretical performance advantage of <tt>Dbms_Sql</tt> over native 
+        dynamic SQL is in fact balanced by the performance advantages of the latter's 
+
+        tighter integration into the PL/SQL language, so you should not need to 
+        choose <tt>Dbms_Sql</tt> for performance reasons when other approaches 
+        are viable.<br>
+        &nbsp; 
+    </li>
+    <li>Static SQL constructs in PL/SQL, using both explicit and implicit cursors, 
+      give you the benefits of the cost-saving paradigm without the effort of 
+      programming it. 
+      <p> This is achieved because the PL/SQL runtime system does not actually 
+        close your cursor (in the sense of the actions impemented by <tt>Dbms_Sql.Close_Cursor</tt>, 
+        <i>aka</i> a hard-close) when the PL/SQL <tt>close</tt> statement is executed, 
+        or when an implicit cursor statement completes. Rather, it just soft-closes 
+        the cursor you think you've closed, <i>ie</i> it marks it as a candidate 
+        for later hard-close in the PL/SQL cursor cache, a LRU cache of potentially 
+        re-usable open cursors exposed via <tt>v$open_cursor</tt>. <br>
+
+        &nbsp; 
+    </li>
+    <li>It is possible to subvert this by careless programming, but it's easy 
+      to diagnose and correct such errors by monitoring <tt>v$open_cursor</tt>. 
+      <br>
+      &nbsp;</li>
+    <li><tt>REF CURSOR</tt>s used with static SQL do not currently (up to Oracle9<i>i</i>) 
+      give you the benefit of the cost-saving paradigm. The compiler does have 
+      information, and this may be improved in a later release. <br>
+      &nbsp;</li>
+    <li>Native dynamic SQL, which often implies the use of a <tt>REF CURSOR</tt> 
+      opened with a dynamic string, does not implement the cost-saving paradigm 
+      since it's current exposure in PL/SQL (up to Oracle9<i>i</i>) does not give 
+      language constructs to distinguish between opening and parsing on the one 
+      hand and binding, executing and fetching on the other. However (as sated 
+      above) this penalty is offset by the greater efficiency due to it's tighter 
+
+      integration.<br>
+      &nbsp;</li>
+    <li>There is no reason ever to omit the <tt>close</tt> statement to balance 
+      the <tt>open</tt> for any of the above flavors of cursor construct. If you 
+      do omit it, you've programmed a potential memory leak: this is simply bad 
+      code! Nevertheless, the PL/SQL runtime system generally rescues you from 
+      such mistakes. However, you should not rely on this.
+  </ul>
+
+  <p><span class="Author">Bryn Llewellyn, PL/SQL Product Manager, Oracle Corp</span><br>
+    <span class="Updated">last updated 4-Jun-2003</span><br>&nbsp;
+</div></body></html>
+

@@ -1,0 +1,64 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- UPDATE ... SET ROW for many rows, bulk syntax
+
+  -- static SQL
+  -- <b>fails at 9.2.0 with PLS-00436:
+  -- implementation restriction: cannot reference fields
+  -- of BULK In-BIND table of records</b></span>
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+
+begin
+  forall j in v_emprecs.first..v_emprecs.last
+    update employees_0 set row = v_emprecs(j)
+      where employee_id = v_emprecs(j).employee_id;  
+end;
+/
+
+<span class="Code_Comment">-- ERROR at line N:</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- <b>WORKAROUND</b>
+  -- fails at 9.0.1 with PL/SQL: ORA-00904:
+  -- invalid column name</span>
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+  type Employee_Id_Tab_t is table of employees.employee_id%type
+    index by binary_integer;
+
+  v_employee_ids Employee_Id_Tab_t;
+begin
+  for j in v_emprecs.first..v_emprecs.last loop
+    v_employee_ids(j) := v_emprecs(j).employee_id; end loop;
+
+  forall j in v_emprecs.first..v_emprecs.last
+    update employees_0 set row = v_emprecs(j)
+      where employee_id = v_employee_ids(j);  
+end;
+
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

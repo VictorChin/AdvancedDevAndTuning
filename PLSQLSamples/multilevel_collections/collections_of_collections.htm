@@ -1,0 +1,50 @@
+<html>
+
+<head>
+
+  <title>Collections of Collections - New in Oracle9i</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+
+  <h1> Collections of Collections - New in Oracle9<i>i</i></h1>
+
+
+  <p>Consider extending the departments table with a column to record the list 
+    current projects for each department, modeled as a collection. A project is 
+    characterized by <i>inter alia</i> a list of tasks, and a task is characterized 
+    by<i> inter alia</i> a list of employees currently or previously assigned 
+
+    to it. Thus a project list is a collection of collections of collections.<br>
+    This implies a requirement, in its simplest form, to support&#133;</p>
+  <pre>create type T1_tab_t is table of number;
+/
+create type T2_tab_t is table of <b>T1_tab_t</b>;
+/
+
+create type T3_tab_t is table of <b>T2_tab_t</b>;
+/</pre>
+  <p>&#133;but pre-Oracle9i the <b>create type T2_tab_t</b> statement fails with<i> 
+    &quot;PLS-00534: A Table type may not contain a nested table type or VARRAY</i>&quot;.</p>
+  <p>Oracle9i adds support for this, allowing collection hierarchies of arbitrary 
+    depth. The corresponding syntax for types defined within a PL/SQL library 
+    unit is also supported&#133;</p>
+
+  <pre>create or replace package p is
+  type T1_tab_t is table of number index by binary_integer;
+  type T2_tab_t is table of <b>T1_tab_t</b> index by binary_integer;
+  type T3_tab_t is table of <b>T2_tab_t</b> index by binary_integer;
+end p;
+/</pre>
+  <p>This fails pre-Oracle 9i with<i> &quot;PLS-00507: a PLSQL Table may not contain 
+    a table or a record with composite fields&quot;.</i><br>
+
+  </p>
+</div>
+</body></html>
+

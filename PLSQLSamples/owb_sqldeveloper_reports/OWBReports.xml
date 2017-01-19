@@ -1,0 +1,2158 @@
+<?xml version="1.0" encoding="UTF-8" ?><displays><folder>
+	<name><![CDATA[OWB]]></name>
+	<tooltip><![CDATA[OWB 10gR2 Reports]]></tooltip>
+	<description><![CDATA[OWB 10gR2 Reports (version 0.5/28 Feb 2007)]]></description>
+		<folder>
+		<name><![CDATA[Execution]]></name>
+		<tooltip><![CDATA[Execution]]></tooltip>
+		<description><![CDATA[Execution - general execution reports, use a target user]]></description>
+			<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Mappings]]></name>
+			<description><![CDATA[Mappings - View mapping throughput, audit and errors]]></description>
+			<tooltip><![CDATA[View mapping throughput, audit and errors]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select distinct object_name MAPPING_NAME from all_rt_tasks  where (object_type='SQLLoaderControlFile' or object_type='ABAPFile' or object_type = 'PLSQLMap' or object_type = 'Mapping') order by object_name;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Throughput]]></name>
+				<description><![CDATA[Throughput]]></description>
+				<tooltip><![CDATA[Throughput]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select r.start_time startd, mr.map_name "Map Name"
+, t.target_name "Target"
+,r.step_id "Step"
+, to_char(r.start_time,'DD-MON hh24:mi') "Exec Date"
+, to_char(r.end_time,'DD-MON hh24:mi') "End"
+, to_char(trunc(r.elapse_time/60))
+|| 'm '
+|| to_char(r.elapse_time - 60 * trunc(r.elapse_time/60))
+|| 's' "Exec Time"
+, substr(r.step_type,1,3) "Type"
+, nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0) "No Records"
+, decode( nvl(r.elapse_time,0)
+, 0, 'N/A'
+, to_char(trunc((nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0)) / r.elapse_time , 2))
+) ||' Per Second' "Throughput"
+from all_rt_audit_map_runs mr
+, all_rt_audit_step_runs r
+, all_rt_audit_step_run_targets t
+where (mr.map_name=:MAPPING_NAME or substr(mr.map_name, 2, length(mr.map_name)-2) = :MAPPING_NAME)
+and mr.map_run_id = r.map_run_id
+and mr.map_run_id = t.map_run_id
+and r.step_id = t.step_id
+and r.run_status = 'COMPLETE'
+order by startd DESC]]></sql>
+					<binds>
+						<bind id="MAPPING_NAME">
+							<prompt><![CDATA[MAPPING_NAME]]></prompt>
+							<tooltip><![CDATA[MAPPING_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Mapping Audit]]></name>
+				<description><![CDATA[Mapping Audit]]></description>
+				<tooltip><![CDATA[Mapping Audit]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select to_char(s.start_time, 'HH:MM:SS DD-MON-YY') "Start Time",
+to_char(s.end_time, 'HH:MM:SS DD-MON-YY') "End Time",
+s.elapse_time "Elapsed Time", 
+s.map_step, 
+s.step_name "Step Name" ,
+s.number_errors "Errors" ,
+s.number_records_selected "Selected",
+s.number_records_inserted "Inserted",
+s.number_records_updated "Updated",
+s.number_records_merged "Merged",
+a.created_by "Created By"
+from all_rt_audit_step_runs s, 
+  all_rt_audit_map_runs mr, 
+  all_rt_audit_executions a
+where mr.execution_audit_id=a.execution_audit_id and
+s.map_run_id=mr.map_run_id and
+a.object_name=:MAPPING_NAME and
+(a.object_type='SQLLoaderControlFile' or a.object_type='ABAPFile' or a.object_type = 'PLSQLMap' or a.object_type='Mapping')
+order by "Start Time" DESC, step_id DESC
+]]></sql>
+					<binds>
+						<bind id="MAPPING_NAME">
+							<prompt><![CDATA[MAPPING_NAME]]></prompt>
+							<tooltip><![CDATA[MAPPING_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Mapping Errors]]></name>
+				<description><![CDATA[Mapping Errors]]></description>
+				<tooltip><![CDATA[Mapping Errors]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select to_char(p.created_on, 'HH:MM:SS DD-MON-YY') "Exec Date", p.execution_audit_id "Audit ID",p.return_result "Activity Result", ml.message_text "Audit Text"
+from all_rt_audit_executions p,
+all_rt_audit_exec_messages ml
+where p.object_name=:MAPPING_NAME and
+(p.object_type='SQLLoaderControlFile' or p.object_type='ABAPFile' or p.object_type = 'PLSQLMap' or p.object_type='Mapping') and
+ml.execution_audit_id(+) = p.execution_audit_id
+order by p.created_on DESC, p.execution_audit_id DESC
+]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Chart" enable="true">
+				<name><![CDATA[Throughput Chart]]></name>
+				<description><![CDATA[Throughput Chart]]></description>
+				<tooltip><![CDATA[Throughput Chart]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<CustomValues>
+					<LEGEND>null</LEGEND>
+					<STYLE>Default</STYLE>
+					<THREED>true</THREED>
+					<GRADIENT>true</GRADIENT>
+					<GRID>null</GRID>
+					<TYPE>horizontal</TYPE>
+				</CustomValues>
+				<query>
+					<sql><![CDATA[select to_char(r.start_time,'DD-MON hh24:mi') "Exec Date"
+, t.target_name "Target"
+, to_number(decode( nvl(r.elapse_time,0)
+, 0, -1
+, trunc((nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0)) / r.elapse_time , 2)
+))  "Throughput"
+from all_rt_audit_map_runs mr
+, all_rt_audit_step_runs r
+, all_rt_audit_step_run_targets t
+where (mr.map_name = :MAPPING_NAME or substr(mr.map_name, 2, length(mr.map_name)-2) = :MAPPING_NAME)
+and mr.map_run_id = r.map_run_id
+and mr.map_run_id = t.map_run_id
+and r.step_id = t.step_id
+and r.run_status = 'COMPLETE'
+order by r.start_time DESC]]></sql>
+					<binds>
+						<bind id="MAPPING_NAME">
+							<prompt><![CDATA[MAPPING_NAME]]></prompt>
+							<tooltip><![CDATA[MAPPING_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Execution parameters]]></name>
+				<description><![CDATA[Execution parameters]]></description>
+				<tooltip><![CDATA[Execution parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select execution_audit_id "Audit ID", parameter_name "Parameter Name",
+value "Value",
+parameter_mode "Mode",
+parameter_type "Type"
+from all_rt_audit_execution_params
+where execution_audit_id in (
+  select distinct execution_audit_id from all_rt_audit_executions
+  where object_name=:MAPPING_NAME and
+  (object_type='SQLLoaderControlFile' or object_type='ABAPFile' or object_type = 'PLSQLMap' or object_type='Mapping'))
+order by execution_audit_id DESC, parameter_audit_id ASC;]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Timing Analysis]]></name>
+				<description><![CDATA[Timing Analysis]]></description>
+				<tooltip><![CDATA[Timing Analysis]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select
+ o.object_name,
+ o.object_type,
+ eo.count,
+ eo.min_time,
+ eo.max_time,
+ to_char(eo.stddev, '9999.9') "Standard Deviation"
+from all_rt_objects o,
+  (select
+     e.object_uoid as euoid,
+     count(*) as count,
+     min(e.elapse_time) as min_time,
+     max(e.elapse_time) as max_time,
+     stddev(e.elapse_time) as stddev
+   from
+     all_rt_audit_executions e
+   group by e.object_uoid) eo
+where
+  eo.euoid=o.object_uoid and (o.object_type='SQLLoaderControlFile' or o.object_type='ABAPFile' or o.object_type = 'PLSQLMap' or o.object_type='Mapping') and o.object_name=:MAPPING_NAME
+  order by object_name;]]></sql>
+					<binds>
+						<bind id="MAPPING_NAME">
+							<prompt><![CDATA[MAPPING_NAME]]></prompt>
+							<tooltip><![CDATA[MAPPING_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="sss" type="" style="Table" enable="true">
+			<name><![CDATA[Process Flows]]></name>
+			<description><![CDATA[Process flows and activities audit]]></description>
+			<tooltip><![CDATA[Process flows and activities audit]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>null</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select distinct object_name PROCESS_NAME from all_rt_tasks  where task_type='ProcessFlow' order by object_name;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Process Flow Activities]]></name>
+				<description><![CDATA[Process Flow Activities]]></description>
+				<tooltip><![CDATA[Process Flow Activities]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select p.execution_audit_id "Audit ID",c.task_name "Activity Name",
+c.execution_audit_id "Activity ID", c.parent_execution_audit_id "Parent ID",
+c.exec_location_name "Location", 
+c.return_result "Result", ml.message_text "Audit Text"
+from all_rt_audit_executions c, all_rt_audit_executions p,
+all_rt_audit_exec_messages ml
+where c.parent_execution_audit_id=p.execution_audit_id and
+p.object_name=:PROCESS_NAME and
+p.object_type='ProcessFlow' and
+ml.execution_audit_id(+)=c.execution_audit_id
+order by p.created_on DESC, c.execution_audit_id DESC
+]]></sql>
+					<binds>
+						<bind id="PROCESS_NAME">
+							<prompt><![CDATA[PROCESS_NAME]]></prompt>
+							<tooltip><![CDATA[PROCESS_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Process Flow Overview]]></name>
+				<description><![CDATA[Process Flow Overview]]></description>
+				<tooltip><![CDATA[Process Flow Overview]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select to_char(p.created_on, 'HH:MM:SS DD-MON-YY') "Exec Date",p.execution_audit_id "Audit ID", p.return_Result "Result"
+from  all_rt_audit_executions p
+where p.object_name=:PROCESS_NAME and
+object_type='ProcessFlow' 
+order by p.created_on DESC, p.execution_audit_id DESC
+]]></sql>
+					<binds>
+						<bind id="PROCESS_NAME">
+							<prompt><![CDATA[PROCESS_NAME]]></prompt>
+							<tooltip><![CDATA[PROCESS_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Execution Parameters]]></name>
+				<description><![CDATA[Execution Parameters]]></description>
+				<tooltip><![CDATA[Execution Parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select  execution_audit_id "Audit Id", parameter_name "Parameter", parameter_type "Type", value "Value" from all_rt_audit_execution_params
+where execution_audit_id in (
+  select distinct execution_audit_id from all_rt_audit_executions
+  where object_name=:PROCESS_NAME and
+  object_type='ProcessFlow')
+order by execution_audit_id DESC, parameter_audit_id ASC;]]></sql>
+					<binds>
+						<bind id="PROCESS_NAME">
+							<prompt><![CDATA[PROCESS_NAME]]></prompt>
+							<tooltip><![CDATA[PROCESS_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Activity Parameters]]></name>
+				<description><![CDATA[Activity Parameters]]></description>
+				<tooltip><![CDATA[Activity Parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select  a.execution_audit_id "Audit Id", c.task_name "Activity Name",  to_char(c.created_on,'HH:MM:SS DD-MON-YY') "Start Date", to_char(c.updated_on,'HH:MM:SS DD-MON-YY') "Completion Date", a.parameter_name "Parameter Name", value "Value", a.parameter_mode "Mode", a.parameter_type "Type" from all_rt_audit_execution_params a,
+    all_rt_audit_executions c,
+    all_rt_audit_executions p
+where a.execution_audit_id = c.execution_audit_id
+and c.parent_execution_audit_id=p.execution_audit_id
+and p.object_name=:PROCESS_NAME
+and p.object_type='ProcessFlow'
+order by a.execution_audit_id DESC, a.parameter_audit_id ASC;]]></sql>
+					<binds>
+						<bind id="PROCESS_NAME">
+							<prompt><![CDATA[PROCESS_NAME]]></prompt>
+							<tooltip><![CDATA[PROCESS_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Timing Analysis]]></name>
+				<description><![CDATA[Timing Analysis]]></description>
+				<tooltip><![CDATA[Timing Analysis]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select
+ o.object_name,
+ o.object_type,
+ eo.count,
+ eo.min_time,
+ eo.max_time,
+ to_char(eo.stddev, '9999.9') "Standard Deviation"
+from all_rt_objects o,
+  (select
+     e.object_uoid as euoid,
+     count(*) as count,
+     min(e.elapse_time) as min_time,
+     max(e.elapse_time) as max_time,
+     stddev(e.elapse_time) as stddev
+   from
+     all_rt_audit_executions e
+   group by e.object_uoid) eo
+where
+  eo.euoid=o.object_uoid and o.object_type='ProcessFlow' and o.object_name=:PROCESS_NAME
+  order by object_name;]]></sql>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Execution Time Breakdown]]></name>
+			<description><![CDATA[Execution Time Breakdown]]></description>
+			<tooltip><![CDATA[Execution Time Breakdown]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[with r as (select
+  sum(case when elapse_time between 0 and 3 then 1 else 0 end) as "0 3",
+  sum(case when elapse_time between 3 and 10 then 1 else 0 end) as "3 10",
+  sum(case when elapse_time between 10 and 50 then 1 else 0 end) as "10 50", 
+  sum(case when elapse_time between 51 and 100 then 1 else 0 end) as "51 100",
+  sum(case when elapse_time between 101 and 150 then 1 else 0 end) as "101 150",
+  sum(case when elapse_time between 151 and 200 then 1 else 0 end) as "151 200",
+  sum(case when elapse_time between 201 and 250 then 1 else 0 end) as "201 250",
+  sum(case when elapse_time between 251 and 300 then 1 else 0 end) as "251 300",
+  sum(case when elapse_time between 301 and 350 then 1 else 0 end) as "301 350",
+  sum(case when elapse_time between 351 and 400 then 1 else 0 end) as "351 400",
+  sum(case when elapse_time between 401 and 450 then 1 else 0 end) as "401 450",
+  sum(case when elapse_time between 451 and 500 then 1 else 0 end) as "451 500",
+  sum(case when elapse_time between 501 and 550 then 1 else 0 end) as "501 550",
+  sum(case when elapse_time > 551 then 1 else 0 end) as "551"
+from all_rt_audit_executions)
+select '0-3s'     Length, r."0 3"     "Number of Exes",0   min_elapsed,3   max_elapsed from r union all
+select '3-10s'    Length, r."3 10"    "Number of Exes",3   min_elapsed,10  max_elapsed from r union all
+select '10-50s'   Length, r."10 50"   "Number of Exes",10  min_elapsed,50  max_elapsed from r union all
+select '51-100s'  Length, r."51 100"  "Number of Exes",51  min_elapsed,100 max_elapsed from r union all
+select '101-150s' Length, r."101 150" "Number of Exes",101 min_elapsed,150 max_elapsed from r union all
+select '151-200s' Length, r."151 200" "Number of Exes",151 min_elapsed,200 max_elapsed from r union all
+select '201-250s' Length, r."201 250" "Number of Exes",201 min_elapsed,250 max_elapsed from r union all
+select '251-300s' Length, r."251 300" "Number of Exes",251 min_elapsed,300 max_elapsed from r union all
+select '301-350s' Length, r."301 350" "Number of Exes",301 min_elapsed,350 max_elapsed from r union all
+select '351-400s' Length, r."351 400" "Number of Exes",351 min_elapsed,400 max_elapsed from r union all
+select '401-450s' Length, r."401 450" "Number of Exes",401 min_elapsed,450 max_elapsed from r union all
+select '451-500s' Length, r."451 500" "Number of Exes",451 min_elapsed,500 max_elapsed from r union all
+select '501-550s' Length, r."501 550" "Number of Exes",501 min_elapsed,550 max_elapsed from r union all
+select '>551s'    Length, r."551"     "Number of Exes",551 min_elapsed,9999999 max_elapsed from r;]]></sql>
+				<columns>
+					<column colFormat="" hidden="false" isEditable="false">
+						<colName><![CDATA[Number of Execs]]></colName>
+					</column>
+					<column hidden="false" isEditable="false">
+						<colName><![CDATA[Length]]></colName>
+					</column>
+					<column hidden="false" isEditable="false">
+						<colName><![CDATA[min_elapsed]]></colName>
+					</column>
+					<column hidden="false" isEditable="false">
+						<colName><![CDATA[max_elapsed]]></colName>
+					</column>
+				</columns>
+			</query>
+			<display id="" type="Detail" style="Table" enable="true">
+				<name><![CDATA[Executables]]></name>
+				<description><![CDATA[Executables]]></description>
+				<tooltip><![CDATA[Executables]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select a.object_name, a.object_type, to_char(a.created_on, 'HH:MM:SS DD-MON-YY') start_time,
+a.elapse_time 
+from all_rt_audit_executions a
+where (a.elapse_time > :MIN_ELAPSED and a.elapse_time <=:MAX_ELAPSED)
+order by start_time DESC, object_name DESC]]></sql>
+					<binds>
+						<bind id="MIN_ELAPSED">
+							<prompt><![CDATA[MIN_ELAPSED]]></prompt>
+							<tooltip><![CDATA[MIN_ELAPSED]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+						<bind id="MAX_ELAPSED">
+							<prompt><![CDATA[MAX_ELAPSED]]></prompt>
+							<tooltip><![CDATA[MAX_ELAPSED]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Chart" enable="true">
+				<name><![CDATA[Executables in Graph]]></name>
+				<description><![CDATA[Executables in Graph]]></description>
+				<tooltip><![CDATA[Executables in Graph]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<CustomValues>
+					<LEGEND>false</LEGEND>
+					<STYLE>Default</STYLE>
+					<THREED>true</THREED>
+					<GRADIENT>true</GRADIENT>
+					<GRID>true</GRID>
+					<TYPE>horizontal</TYPE>
+				</CustomValues>
+				<query>
+					<sql><![CDATA[select a.object_name||'(' ||a.object_type||')', to_char(a.created_on, 'HH:MM:SS DD-MON-YY') start_time,
+a.elapse_time 
+from all_rt_audit_executions a
+where (a.elapse_time > :MIN_ELAPSED and a.elapse_time <=:MAX_ELAPSED)
+order by start_time DESC, object_name DESC]]></sql>
+					<binds>
+						<bind id="MIN_ELAPSED">
+							<prompt><![CDATA[MIN_ELAPSED]]></prompt>
+							<tooltip><![CDATA[MIN_ELAPSED]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+						<bind id="MAX_ELAPSED">
+							<prompt><![CDATA[MAX_ELAPSED]]></prompt>
+							<tooltip><![CDATA[MAX_ELAPSED]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Execution Analysis Summary]]></name>
+			<description><![CDATA[Execution Analysis Summary]]></description>
+			<tooltip><![CDATA[Execution Analysis Summary]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select
+ o.object_name "Object Name",
+ o.object_type "Type",
+ eo.count "Count",
+ eo.min_time "Min Time",
+ eo.max_time "Max Time",
+ to_char(eo.stddev, '99999.99') "Standard Deviation"
+from all_rt_objects o,
+  (select
+     e.object_uoid as euoid,
+     count(*) as count,
+     min(e.elapse_time) as min_time,
+     max(e.elapse_time) as max_time,
+     stddev(e.elapse_time) as stddev
+   from
+     all_rt_audit_executions e
+   group by e.object_uoid) eo
+where
+  eo.euoid=o.object_uoid order by object_name;]]></sql>
+				<columns>
+					<column hidden="false" isEditable="false">
+						<colName><![CDATA[Standard Deviation]]></colName>
+					</column>
+				</columns>
+			</query>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Mapping Profiles]]></name>
+			<description><![CDATA[PLSQL Profile Results for mappings, profile using DBMS_PROFILER]]></description>
+			<tooltip><![CDATA[PLSQL Profile Performance - profile your maps!]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select distinct t.object_name MAPPING_NAME,
+ u.runid runid,
+ to_char(UNIT_TIMESTAMP, 'DD/MON/YYYY') "Date Time" 
+from all_rt_tasks t
+, plsql_profiler_units u
+where (t.object_type='SQLLoaderControlFile' or t.object_type='ABAPFile' or t.object_type = 'PLSQLMap') 
+and u.unit_type='PACKAGE BODY' 
+and  u.unit_owner=USER and u.unit_name=t.object_name
+order by t.object_name, u.runid DESC;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Top 20 Statements]]></name>
+				<description><![CDATA[Top 20 Statements from PLSQL profiler]]></description>
+				<tooltip><![CDATA[Top 20 Statements]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[SELECT * FROM (
+select trim(decode(unit_type,'PACKAGE SPEC','PACKAGE',unit_type)|| ' '||trim(pu.unit_owner)||'.'||trim(pu.unit_name))||' (line '||pd.line#||')' object_name
+, pd.total_occur TotalOccurences
+, ROUND(pd.total_time/1000000000,2) total_in_seconds
+, ROUND(pd.min_time/1000000000,2) min_in_seconds
+, ROUND(pd.max_time/1000000000,2) max_in_seconds
+, src.text
+from plsql_profiler_units pu
+,    plsql_profiler_data pd
+,    all_source src
+where pu.unit_owner = user
+and pu.runid = :RUNID
+and pu.runid=pd.runid 
+and pu.unit_number = pd.unit_number
+and src.owner = pu.unit_owner 
+and src.type = pu.unit_type
+and src.name = pu.unit_name 
+and src.line = pd.line#
+order by total_in_seconds desc) where rownum<=20
+]]></sql>
+					<binds>
+						<bind id="RUNID">
+							<prompt><![CDATA[RUNID]]></prompt>
+							<tooltip><![CDATA[RUNID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="plsql-dbms_output" enable="true">
+				<name><![CDATA[Summary Report]]></name>
+				<description><![CDATA[Summary Report]]></description>
+				<tooltip><![CDATA[Summary Report]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[declare G_CUTOFF_PCT NUMBER; l_db_user varchar2(40); procedure ol(p_str IN varchar2) is  PRAGMA AUTONOMOUS_TRANSACTION; begin null;   dbms_output.put_line(substr(p_str,1,250)); end ol;  procedure dlog(p_str IN varchar2) is  PRAGMA AUTONOMOUS_TRANSACTION; begin   dbms_output.put_line(substr(p_str,1,250)); end dlog;  procedure PRINT_GRAND_SUMMARY(RELATED_RUN IN varchar2) is  l_sql_str varchar2(600); l_tmp_str varchar2(200); l_runid NUMBER; l_ts varchar2(100); l_run_total NUMBER; l_grand_total NUMBER; l_comment varchar2(200); TYPE CurTyp IS REF CURSOR;    c_runs   CurTyp; begin   l_sql_str :='select trunc(sum(total_time/1000000000),2) '||               'from plsql_profiler_units ' ||               'where runid in ( select runid from plsql_profiler_runs ' ||               '                  where related_run = '||RELATED_RUN||')';   EXECUTE IMMEDIATE l_sql_str into l_grand_total;  ol('<table >'); ol('<tr><td class=OraTableTitle>'); ol('Grand Summary For Related Run : '||RELATED_RUN); ol('</td></tr><tr><td>'); ol('<table class="OraTable">'); ol('<tr>'); ol('<td class="tshn" width=60 >Run ID</td>'); ol('<td class="tshc" width=125>Date</td>'); ol('<td class="tshn" width=125 >Total Time (s)</td>'); ol('<td class="tshn" width=125 >% Total </td>'); ol('<td  class="tshc" width=250>Run Comment</td>'); ol('</tr>');  IF l_grand_total > 0 THEN   l_sql_str:='select runid,TO_CHAR(run_date,''DD-MON-RR HH24:'||'MI:'||'SS''),'||              '(select to_char(sum(total_time/1000000000),''999,999.00'') '||              '   from plsql_profiler_units u '||              '   where r.runid=u.runid), '||              'run_comment||''   '' ||run_comment1 ' ||              'from plsql_profiler_runs r '||              'where related_run='||related_run||' order by runid';        open c_runs for l_sql_str;        loop          fetch c_runs into l_runid,l_ts,l_run_total,l_comment;          EXIT WHEN c_runs%NOTFOUND;            ol('<tr class=tdc>');                                    ol('<td class=tdn> <a href="#R'||l_runid||'">'||l_runid||'</a></td>');           ol('<td >'||l_ts||'</td>');           ol('<td class=tdn >'||l_run_total||'</td>');           ol('<td class=tdn >');           ol(to_char((l_run_total*100)/(l_grand_total),'999.00'));           ol('</td>');           ol('<td>'||l_comment||'</td>');           ol('</tr>');                                 end loop;        close c_runs;           ol('<tr class=tdc>');                                    ol('<td colspan=2>Total</td>');           ol('<td class=tdn >'||l_grand_total||'</td>');           ol('<td class=tdn colspan=2></td>');           ol('</tr>');                          ELSE    ol('<tr><td class=tdc colspan=5> Grand Total Time is 0.</td></tr>'); END IF; ol('</table>'); ol('</td></tr></table>'); ol('<br>'); ol('<br>'); ol('<br>'); end PRINT_GRAND_SUMMARY;   procedure PRINT_HEADER is  l_timestamp varchar2(40); l_instance varchar2(40); begin    l_timestamp:=to_char(sysdate,'dd-Mon-yy hh24:'||'mi');   select instance_name into l_instance   from v$instance;   ol('<table width=100%><tr><td class=applicationName>');   ol('PL/SQL Profiler Report');   ol('</td><td>');   ol('<table>');     ol('<tr class=reportDataCell>');       ol('<td align=right>Instance : </td>');       ol('<td>'||l_instance||'</td></tr>');       ol('<tr class=reportDataCell>');       ol('<td align=right>Report Date : </td>');       ol('<td>'||l_timestamp||'</td></tr>');   ol('</table>');   ol('</td></tr>');   ol('</table>');   ol('<br>');   ol('<br>'); end PRINT_HEADER;   procedure PRINT_UNIT(RUN_ID IN number,                      U_NUMBER IN number,                      U_TYPE IN varchar2,                      U_OWNER IN varchar2,                      U_NAME IN varchar2 ) is  l_sql_str varchar2(4000); l_line_num varchar2(40); l_line_min number; l_line_max number; l_occ varchar2(80); l_exec varchar2(80); l_text varchar2(4000);  TYPE CurTyp IS REF CURSOR;    c_units   CurTyp; begin  ol('<table>'); ol('<tr><td class=OraTableTitle>'); ol('<A NAME="U'||RUN_ID||'_'||U_NUMBER||'"></A>'); ol('Execution Details For Program Units : '||U_OWNER||'.'||U_NAME); ol('</td></tr>');   ol('<tr><td>'); ol('<table class="OraTable" border=0>'); ol('<tr>'); ol('<td class="tshn" width=60 >Line #</td>'); ol('<td class="tshn" width=100 >Executions</td>'); ol('<td class="tshn" width=100 >Time (ms)</td>'); ol('<td class="tshc" width=600>Line Text </td>'); ol('</tr>');        l_sql_str:='select p.line||decode(d.line#,null,null,'||                  '''<a name="l''||d.line#||''">''), '||        'to_char(d.total_occur,''999,999,999''),'||        'to_char((d.total_time/1000000),''999,999.00'') ,ltrim(p.text) '||   'from plsql_profiler_data d, '||        'all_source p '||  'where p.line = d.line#(+)   '||    'and p.type in (''PACKAGE'',''PACKAGE BODY'',''PROCEDURE'',''FUNCTION'') '||    'and p.owner = '||U_OWNER||' '||    'and p.name = upper('||u_NAME||' ) '||    'and d.runid(+)  = '||RUN_ID||' '||    'and d.unit_number(+)   = '||U_NUMBER||' '||    'and p.type = '||U_TYPE||' '||  'order by p.line ';        open c_units for l_sql_str;        loop          fetch c_units                 into l_line_num,l_occ,l_exec,l_text;          EXIT WHEN c_units%NOTFOUND;            ol('<tr class=tdn>');                                      ol('<td >'||l_line_num||'</td>');             ol('<td >'||l_occ||'</td>');             ol('<td >'||l_exec||'</td>');             ol('<td class=tdc>'||l_text||'</td>');            ol('</tr>');                                 end loop;        close c_units; ol('</table> '); ol('</td></tr></table> ');   ol('<br>');   ol('<br>');  end PRINT_UNIT;   procedure PRINT_RUN(run_id IN number) is  l_tmp_str varchar2(100); l_sql_str varchar2(4096); l_buf varchar2(8192); l_run_total number; TYPE CurTyp IS REF CURSOR;    c_units   CurTyp;    u_number  number;    u_type  varchar2(32);    u_owner  varchar2(32);    u_name  varchar2(32);    u_timestamp  varchar2(32);    u_total_time  varchar2(40);    u_percent  number;    u_comm  varchar2(400);     begin       l_tmp_str:='select nvl(ROUND(sum(total_time)/1000000000,3),0) '||                   'from plsql_profiler_units where runid= '||RUN_ID;      EXECUTE IMMEDIATE l_tmp_str INTO l_run_total;     dlog('Run total is '||l_run_total);   ol('<table class="OraTable">'); ol('<tr>'); ol('<td class="tshn" width=60 >'); ol('<a name="R'||RUN_ID||'" </a>Run ID</td>'); ol('<td class="tshc" width=100>Date</td>'); ol('<td class="tshn" width=125 >Total Time (s)</td>'); ol('<td  class="tshc" width=250>Run Comment</td>'); ol('</tr>');  l_sql_str:=' SELECT ''<tr>''||         ''<td class="tdn" >''||runid||''</td>''||        ''<td class="tdc">''||TO_CHAR(run_date,''DD-MON-RR HH24:'||'MI:'||'SS'')||        ''</td>''|| ''<td class="tdn" >''||'||l_run_total||'||''</td>''||        ''<td class="tdc">''||run_comment||''   '' ||run_comment1||''</td>''||        ''</tr>''     FROM plsql_profiler_runs  WHERE runid = '||RUN_ID;  EXECUTE IMMEDIATE l_sql_str INTO l_buf; ol(l_buf); ol('</table> '); IF l_run_total =0 THEN   ol('<table><tr><td colspan=4> <br></td></tr>');    ol('<tr><td colspan=4 class=OraTableTitle> ');   ol('Program Unit Summary/Details for this run not printed as Run Total is 0.');   ol('</td></tr></table>'); END IF;    ol('<br>');   IF(l_run_total > 0) THEN  ol('<table >'); ol('<tr><td class=OraTableTitle>'); ol('Execution Summary By Program Units (consuming > '||G_CUTOFF_PCT); ol('% of Total Time) For Run ID : '||RUN_ID); ol('</td></tr>');   ol('<tr><td>');    ol('<table class="OraTable" border=0>');   ol('<tr>');   ol('<td class="tshn" width=50 >Unit #</td>');   ol('<td class="tshc" width=100>Type</td>');   ol('<td class="tshc" width=75>Owner</td>');   ol('<td class="tshc" width=250>Program Unit Name</td>');   ol('<td class="tshn" width=100 >Total Time(s)</td>');   ol('<td class="tshn" width=100 >% Total</td>');   ol('<td class="tshn" width=200 >Comment</td>');   ol('</tr>');           l_sql_str:='select unit_number,unit_type,unit_owner,unit_name, ' ||               ' unit_timestamp, '||               'trunc((total_time/1000000000),2), '||               'trunc(((total_time*100)/(1000000000*'||l_run_total||')),2) '||               ',decode(unit_owner,'''||l_db_user||''',                          (select text from all_source where type=unit_type and owner=unit_owner and name=unit_name and line=2),'' '')' ||                'from plsql_profiler_units  '||               'where runid = '||RUN_ID||'  '||               'and (total_time*100)/(1000000000*'||l_run_total||') > '||G_CUTOFF_PCT||' '||               ' order by total_time desc';     open c_units for l_sql_str;      loop        fetch c_units          into u_number,u_type,u_owner,u_name,u_timestamp,u_total_time,u_percent,u_comm;          EXIT WHEN c_units%NOTFOUND;            ol('<tr class=tdc>');                                      ol('<td class=tdn>'||u_number||'</td>');             ol('<td>'||u_type||'</td>');             ol('<td>'||u_owner||'</td>');             IF u_owner=l_db_user THEN               ol('<td><a href="#U'||run_id||'_'||u_number||'">'||u_name||'</a></td>');             ELSE                ol('<td>'||u_name||'</td>');             END IF;             ol('<td class=tdn>'||u_total_time||'</td>');             ol('<td class=tdn>'||u_percent||'</td>');             ol('<td class=tdn>'||u_comm||'</td>');            ol('</tr>');                                 end loop;        close c_units;  ol('</table> ');   ol('</td></tr>'); ol('</table> ');    ol('<br>');    l_sql_str:='select unit_number,unit_type,unit_owner,unit_name ' ||            'from plsql_profiler_units  '||            'where runid = '||RUN_ID||' and total_time > 1000000 '||            'and unit_owner = '''||l_db_user||''' and unit_type IN '||            '(''PACKAGE'',''PACKAGE BODY'',''PROCEDURE'',''FUNCTION'') '||             'and (total_time*100)/(1000000000*'||l_run_total||') > '||G_CUTOFF_PCT||' '||            ' order by total_time desc';          open c_units for l_sql_str;        loop          fetch c_units                 into u_number,u_type,u_owner,u_name;          EXIT WHEN c_units%NOTFOUND;             PRINT_UNIT(RUN_ID,u_number,u_type,u_owner,u_name);        end loop;        close c_units;   END IF;    ol('<br>');   ol('<br>');  end PRINT_RUN;  procedure PLSQL_PROF_RPT( RUN_ID in NUMBER,                           RELATED_RUN in NUMBER,                           PURGE_DATA IN VARCHAR2 DEFAULT 'Y',                           CUTOFF_PCT in NUMBER)  IS  l_tmp_str varchar2(100); l_sql_str varchar2(4096); l_buf varchar2(8192); l_run_total number; l_run_ok varchar2(1) :='N'; l_single_runid varchar2(1) :='Y'; l_run_count number :=1; l_runid number;  TYPE CurTyp IS REF CURSOR;    c_runs   CurTyp;  BEGIN G_CUTOFF_PCT:=CUTOFF_PCT;    BEGIN null;   EXCEPTION     WHEN NO_DATA_FOUND THEN      dlog('Profiler Package and/or Profiler Tables could not be accessed.');      dlog(' ');      dlog(' ');      dlog(' ');      dlog('Please run the following scripts to install the PL/SQL Profiler objects and repeat the run.');      dlog(' ');      dlog(' ');      dlog('To install the PL/SQL Profiler package, run this as the SYS user:');      dlog('  $ORACLE_HOME/rdbms/admin/profload.sql ');      dlog(' ');      dlog('To install the PL/SQL Profiler tables, run this as the APPS user:');      dlog('  $ORACLE_HOME/rdbms/admin/proftab.sql ');      dlog(' ');      dlog(' ');      raise ;   END;  ol('<html><head><title>PL/SQL Profiler Output</title>'); ol('<style type="text/css">'); ol('h1  { font-family:'||'Arial,Helvetica,Geneva,sans-serif;font-size:'||'16pt }'); ol('h2  { font-family:'||'Arial,Helvetica,Geneva,sans-serif;font-size:'||'12pt }'); ol('h3  { font-family:'||'Arial,Helvetica,Geneva,sans-serif;font-size:'||'10pt }'); ol('pre { font-family:'||'Courier New,Geneva;font-size:'||'8pt }'); ol('HR { color:'||' #CCCC99; height:'||' 1px; }');  ol('.applicationBody { background-image:'||' url(/OA_MEDIA/jtfulnon_med.gif); background-repeat:'||' no-repeat; background-color:'||' #FFFFFF }'); ol('.applicationName { font-family:'||' Times New Roman, Times, serif; font-size:'||' 18pt; font-weight:'||' bold; color:'||' #336699 }');  ol('.OraTableTitle {font-family:'||'Arial,Helvetica,Geneva,sans-serif;font-size:'||'13pt;background-color:'||'#ffffff;color:'||'#336699}'); ol('.OraTable {background-color:'||'#999966}');  ol('.tdn { background-color:'||' #f7f7e7; font-family:'||' Arial, Helvetica, Geneva, sans-serif; font-size:'||' 9pt; text-align:'||'right }'); ol('.tdc { background-color:'||' #f7f7e7; font-family:'||' Arial, Helvetica, Geneva, sans-serif; font-size:'||' 9pt; text-align:'||'left }'); ol('.OraLinkText { background-color:'||' #f7f7e7; font-family:'||' Arial, Helvetica, Geneva, sans-serif; font-size:'||' 9pt; color:'||' #663300; }'); ol('.tableBigHeaderCell { background-color:'||' #CCCC99; font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 12pt; font-weight:'||' bold; color:'||'#336699 }'); ol('.tableRowHeader { background-color:'||' #FFFFCC; font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 10pt; font-weight:'||' bold }'); ol('.tshc { background-color:'||' #CCCC99; font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 10pt; font-weight:'||' bold; color:'||'#336699; text-align:'||'left }'); ol('.tshn { background-color:'||' #CCCC99; font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 10pt; font-weight:'||' bold; color:'||'#336699; text-align:'||'right }'); ol('.tableSubHeaderCell { background-color:'||' #CCCC99; font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 10pt; color:'||' #336699 }'); ol('.tableTotal { font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 10pt; font-weight:'||' bold; text-align:'||' right }'); ol('.reportDataCell { background-color:'||' #FFFFFF; font-size:'||' 8pt }'); ol('.reportFootnote { background-color:'||' #FFFFFF; font-family:'||' Arial, Helvetica, sans-serif; font-size:'||' 8pt; color:'||' #336699 }');  ol('</style></head><body class="applicationBody">');    PRINT_HEADER;    if RELATED_RUN is not null then     l_sql_str:='select count(*) from plsql_profiler_runs '||                'where related_run = '||RELATED_RUN;     EXECUTE IMMEDIATE l_sql_str INTO l_run_count;      dlog(l_run_count||' Runs found for Related Run Id '||RELATED_RUN);     if l_run_count > 0 then         l_sql_str:='select runid from plsql_profiler_runs '||                  'where related_run='||related_run||' order by runid';        open c_runs for l_sql_str;        loop          fetch c_runs into l_runid;          EXIT WHEN c_runs%NOTFOUND;          dlog('Rolling Up Run '||l_runid);          l_sql_str:='begin dbms_profiler.rollup_run('||RUN_ID||'); end;';          EXECUTE IMMEDIATE l_sql_str;        end loop;        close c_runs;       dlog('Printing Grand Summary');       print_grand_summary(RELATED_RUN);        l_sql_str:='select runid from plsql_profiler_runs '||                  'where related_run='||related_run||' order by runid';        open c_runs for l_sql_str;        loop          fetch c_runs into l_runid;          EXIT WHEN c_runs%NOTFOUND;          dlog('Processing Run Id '||l_runid);          print_run(l_runid);        end loop;        close c_runs;      elsif l_run_count =1 then        if RUN_ID is not null then           dlog('Rolling Up Run '||RUN_ID);          l_sql_str:='begin dbms_profiler.rollup_run('||RUN_ID||'); end;';          EXECUTE IMMEDIATE l_sql_str;          dlog('Printing Run Id '||RUN_ID);           print_run(RUN_ID);       else           l_runid:=-1;          l_sql_str:='select runid from plsql_profiler_runs '||                     'where related_run='||RELATED_RUN;          EXECUTE IMMEDIATE l_sql_str INTO l_runid;           if l_runid > -1 then           dlog('Rolling Up Run '||l_runid);             l_sql_str:='begin dbms_profiler.rollup_run('||RUN_ID||'); end;';             EXECUTE IMMEDIATE l_sql_str;             dlog('Printing Run Id '||l_runid);             print_run(l_runid);          else             dlog('Data for the given profiler run could not be found.');          end if;        end if;       else        dlog('No runs were found for the given RELATED RUN');     end if;    else      if RUN_ID is not null then        dlog('Rolling Up Run '||RUN_ID);       l_sql_str:='begin dbms_profiler.rollup_run('||RUN_ID||'); end;';       EXECUTE IMMEDIATE l_sql_str;       dlog('Processing Run Id '||RUN_ID);       print_run(RUN_ID);     else        dlog('Data for Profiler Run Id : '||RUN_ID||' could not be found.');     end if;     end if;      if ( (UPPER(PURGE_DATA) = 'Y') OR  (UPPER(PURGE_DATA) = 'YES') ) then   if RELATED_RUN is not null then    begin     dlog('Purging Profiler Data for Related Run '||RELATED_RUN);      l_sql_str:='delete plsql_profiler_data where runid in '||        '(select runid from plsql_profiler_runs where related_run='||RELATED_RUN||')';       EXECUTE IMMEDIATE l_sql_str;      l_sql_str:='delete plsql_profiler_units where runid in '||        '(select runid from plsql_profiler_runs where related_run='||RELATED_RUN||')';       EXECUTE IMMEDIATE l_sql_str;      l_sql_str:='delete plsql_profiler_runs where related_run='||RELATED_RUN;       EXECUTE IMMEDIATE l_sql_str;         commit;    exception      when NO_DATA_FOUND then       null;    end;    elsif RUN_ID is not null then    begin     dlog('Purging Profiler Data  for Run Id '||RUN_ID);      l_sql_str:='delete plsql_profiler_data where runid ='||RUN_ID;       EXECUTE IMMEDIATE l_sql_str;      l_sql_str:='delete plsql_profiler_units where runid ='||RUN_ID;       EXECUTE IMMEDIATE l_sql_str;      l_sql_str:='delete plsql_profiler_runs where runid='||RUN_ID;       EXECUTE IMMEDIATE l_sql_str;      commit;    exception      when NO_DATA_FOUND then       null;    end;   else     dlog('No Profiler Data found for purging');   end if;    else      dlog('No Profiler Data Purged');  end if;    ol('</body></html>');  END PLSQL_PROF_RPT;  procedure PLSQL_PROF_RPT( errbuf OUT NOCOPY /* file.sql.39 change */ VARCHAR2,                           retcode OUT NOCOPY /* file.sql.39 change */ NUMBER,                             RUN_ID in NUMBER,                           RELATED_RUN in NUMBER,                           PURGE_DATA IN VARCHAR2 DEFAULT 'Y',                           CUTOFF_PCT in NUMBER)  IS BEGIN  G_CUTOFF_PCT:=CUTOFF_PCT;  PLSQL_PROF_RPT(RUN_ID,RELATED_RUN,PURGE_DATA,CUTOFF_PCT);    EXCEPTION      WHEN NO_DATA_FOUND THEN      dbms_output.put_line(substr(errbuf,1,250));      dbms_output.put_line('No Profiler Data was Found for the given Run');      WHEN OTHERS THEN         errbuf := 'Error:'||sqlerrm ;         retcode := '2';         dbms_output.put_line('Error running PLSQL_PROF_RPT');  END PLSQL_PROF_RPT; begin    PLSQL_PROF_RPT( :RUNID, NULL, 'N', 0); end;]]></sql>
+					<binds>
+						<bind id="RUNID">
+							<prompt><![CDATA[RUNID]]></prompt>
+							<tooltip><![CDATA[RUNID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Profile Detail]]></name>
+				<description><![CDATA[Profile Detail]]></description>
+				<tooltip><![CDATA[Profile Detail - see line by line]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select unit_name, s.line "Line",
+   p.total_occur "Occurences",
+   p.total_time "Msec",
+   s.text "Text"
+from   all_source s, (select u.unit_owner, u.unit_name, u.unit_type, d.line#,
+                             d.total_occur, d.total_time/1000000 total_time
+                      from   plsql_profiler_data d, plsql_profiler_units u
+                      where  u.runid = :RUNID
+                      and    u.runid = d.runid
+                      and    u.unit_type <> 'ANONYMOUS BLOCK'
+                      and    u.unit_number = d.unit_number) p
+where  s.owner = p.unit_owner
+and    s.name = p.unit_name 
+and    s.type = p.unit_type 
+and    s.line = p.line# 
+order by unit_name,s.line;
+]]></sql>
+					<binds>
+						<bind id="RUNID">
+							<prompt><![CDATA[RUNID]]></prompt>
+							<tooltip><![CDATA[RUNID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Code Coverage]]></name>
+				<description><![CDATA[Code Coverage]]></description>
+				<tooltip><![CDATA[Code Coverage]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select exec.cnt/total.cnt * 100 "% Code Coverage"
+from  (select count(1) cnt
+      from plsql_profiler_data d,
+      plsql_profiler_units u
+  where d.runid = :RUNID
+    and u.runid = d.runid
+    and    u.unit_type <> 'ANONYMOUS BLOCK'
+    and u.unit_number = d.unit_number) total,
+    (select count(1) cnt
+      from plsql_profiler_data d,
+      plsql_profiler_units u
+      where d.runid = :RUNID
+      and u.runid = d.runid
+      and u.unit_number = d.unit_number
+      and d.total_occur > 0) exec;]]></sql>
+					<binds>
+						<bind id="RUNID">
+							<prompt><![CDATA[RUNID]]></prompt>
+							<tooltip><![CDATA[RUNID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Jobs]]></name>
+			<description><![CDATA[Jobs]]></description>
+			<tooltip><![CDATA[Jobs]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select distinct context_object_name JOB_NAME from all_rt_tasks  where context_object_type='ScheduledJob' order by context_object_name;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Job Overview]]></name>
+				<description><![CDATA[Job Overview]]></description>
+				<tooltip><![CDATA[Job Overview]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select to_char(p.created_on, 'HH:MM:SS DD-MON-YY') "Exec Date",p.execution_audit_id "Audit ID", p.return_Result "Result"
+from  all_rt_audit_executions p
+where p.object_name=:JOB_NAME and
+object_type='ScheduledJob' 
+order by p.created_on DESC, p.execution_audit_id DESC
+]]></sql>
+					<binds>
+						<bind id="JOB_NAME">
+							<prompt><![CDATA[JOB_NAME]]></prompt>
+							<tooltip><![CDATA[JOB_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Execution Parameters]]></name>
+				<description><![CDATA[Execution Parameters]]></description>
+				<tooltip><![CDATA[Execution Parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select  execution_audit_id "Audit Id", parameter_name "Parameter", parameter_type "Type", value "Value" from all_rt_audit_execution_params
+where execution_audit_id in (
+  select distinct execution_audit_id from all_rt_audit_executions
+  where object_name=:JOB_NAME and
+  object_type='ScheduledJob')
+order by execution_audit_id DESC, parameter_audit_id ASC;]]></sql>
+					<binds>
+						<bind id="JOB_NAME">
+							<prompt><![CDATA[JOB_NAME]]></prompt>
+							<tooltip><![CDATA[JOB_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+	</folder>
+	<folder>
+		<name><![CDATA[General Runtime]]></name>
+		<tooltip><![CDATA[General Runtime]]></tooltip>
+		<description><![CDATA[General Runtime]]></description>
+			<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Deployments]]></name>
+			<description><![CDATA[ Deployments]]></description>
+			<tooltip><![CDATA[ Deployments]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select ao.status_when_deployed status
+, ao.object_name deployed_object
+, ao.object_type deployed_type
+, max(ao.version_tag) last_deployment
+, al.location_name location
+, al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION ltype
+from ALL_RT_AUDIT_LOCATIONS al
+, ALL_RT_AUDIT_OBJECTS ao
+where ao.LOCATION_AUDIT_ID = al.LOCATION_AUDIT_ID
+and PARENT_OBJECT_AUDIT_ID is null
+group by ao.status_when_deployed, ao.object_name, ao.object_type, al.location_name,
+al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION
+order by 4 DESC,3 ASC]]></sql>
+			</query>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Installations]]></name>
+			<description><![CDATA[Installations]]></description>
+			<tooltip><![CDATA[Installations]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select * from all_rt_installations]]></sql>
+			</query>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Registered Locations]]></name>
+			<description><![CDATA[Registered Locations]]></description>
+			<tooltip><![CDATA[Registered Locations]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select LOCATION_NAME,IS_DEPLOYMENT_TARGET "Is Target",LOCATION_TYPE "Type",LOCATION_TYPE_VERSION "Version"
+from all_rt_locations
+order by LOCATION_TYPE, LOCATION_NAME]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Location Details]]></name>
+				<description><![CDATA[Location Details]]></description>
+				<tooltip><![CDATA[Location Details]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select PARAMETER_NAME "Parameter",PARAMETER_VALUE "Value"
+from all_rt_location_parameters where location_name=:LOCATION_NAME --and is_access_restricted='FALSE'
+order by parameter_name]]></sql>
+					<binds>
+						<bind id="LOCATION_NAME">
+							<prompt><![CDATA[LOCATION_NAME]]></prompt>
+							<tooltip><![CDATA[LOCATION_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Physical Details]]></name>
+				<description><![CDATA[Physical Details]]></description>
+				<tooltip><![CDATA[Physical Details]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select owner "Owner",directory_name "Name",
+directory_path "Definition", 'N/A' "Username",
+'Directory' "Implementation" 
+from all_directories where directory_name=:LOCATION_NAME
+union
+select owner "Owner",db_link "Name",host "Definition",
+USERNAME "Username",
+'Database Link' "Implementation" 
+from all_db_links where db_link like '%'||:LOCATION_NAME||'%'
+]]></sql>
+					<binds>
+						<bind id="LOCATION_NAME">
+							<prompt><![CDATA[LOCATION_NAME]]></prompt>
+							<tooltip><![CDATA[LOCATION_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[RTP/Control Center Versions]]></name>
+			<description><![CDATA[RTP/Control Center Service]]></description>
+			<tooltip><![CDATA[RTP/Control Center Service]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[SELECT
+  wb_rt_platform_repository
+, wb_rt_version 
+FROM dual]]></sql>
+			</query>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Mappings]]></name>
+			<description><![CDATA[Mappings]]></description>
+			<tooltip><![CDATA[Mappings]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select task_name MAPPING_NAME from all_rt_tasks  where (object_type='SQLLoaderControlFile' or object_type='ABAPFile' or object_type='PLSQLMap') order by task_name;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Mapping Parameters]]></name>
+				<description><![CDATA[Mapping Parameters]]></description>
+				<tooltip><![CDATA[Mapping Parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select parameter_name, parameter_type, parameter_mode,default_value, is_required from all_rt_task_parameters
+where task_name=:MAPPING_NAME;]]></sql>
+					<binds>
+						<bind id="MAPPING_NAME">
+							<prompt><![CDATA[MAPPING_NAME]]></prompt>
+							<tooltip><![CDATA[MAPPING_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Deployments]]></name>
+				<description><![CDATA[Deployments]]></description>
+				<tooltip><![CDATA[Deployments]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select ao.status_when_deployed status
+, ao.object_name deployed_object
+, ao.object_type deployed_type
+, ao.version_tag deployed_at
+, al.location_name location
+, al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION ltype
+from ALL_RT_AUDIT_LOCATIONS al
+, ALL_RT_AUDIT_OBJECTS ao
+where ao.LOCATION_AUDIT_ID = al.LOCATION_AUDIT_ID
+and ao.object_name=:MAPPING_NAME and (ao.object_type='PLSQLMap' or ao.object_type='SQLLoaderControlFile' or ao.object_type='ABAPFile')
+and PARENT_OBJECT_AUDIT_ID is null
+order by 4 DESC,3 ASC]]></sql>
+					<binds>
+						<bind id="MAPPING_NAME">
+							<prompt><![CDATA[MAPPING_NAME]]></prompt>
+							<tooltip><![CDATA[MAPPING_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Process Flows]]></name>
+			<description><![CDATA[Process Flows]]></description>
+			<tooltip><![CDATA[Process Flows]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select task_name PROCESS_NAME from all_rt_tasks  where object_type='ProcessFlow' order by task_name;
+]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Process Flow Parameters]]></name>
+				<description><![CDATA[Process Flow Parameters]]></description>
+				<tooltip><![CDATA[Process Flow Parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select parameter_name, parameter_type, parameter_mode,default_value, is_required from all_rt_task_parameters
+where task_name=:PROCESS_NAME;
+]]></sql>
+					<binds>
+						<bind id="PROCESS_NAME">
+							<prompt><![CDATA[PROCESS_NAME]]></prompt>
+							<tooltip><![CDATA[PROCESS_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Deployments]]></name>
+				<description><![CDATA[Deployments]]></description>
+				<tooltip><![CDATA[Deployments]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select ao.status_when_deployed status
+, ao.object_name deployed_object
+, ao.object_type deployed_type
+, ao.version_tag deployed_at
+, al.location_name location
+, al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION ltype
+from ALL_RT_AUDIT_LOCATIONS al
+, ALL_RT_AUDIT_OBJECTS ao
+where ao.LOCATION_AUDIT_ID = al.LOCATION_AUDIT_ID
+and ao.object_name=:PROCESS_NAME and (ao.object_type='ProcessFlow')
+order by 4 DESC,3 ASC]]></sql>
+					<binds>
+						<bind id="PROCESS_NAME">
+							<prompt><![CDATA[PROCESS_NAME]]></prompt>
+							<tooltip><![CDATA[PROCESS_NAME]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Packages]]></name>
+			<description><![CDATA[Packages]]></description>
+			<tooltip><![CDATA[Packages]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select object_name OBJECT_NAME from ALL_RT_AUDIT_OBJECTS  where (object_type like 'Library%') order by object_name;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Deployments]]></name>
+				<description><![CDATA[Deployments]]></description>
+				<tooltip><![CDATA[Deployments]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select ao.status_when_deployed status
+, ao.object_name deployed_object
+, ao.object_type deployed_type
+, ao.version_tag deployed_at
+, al.location_name location
+, al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION ltype
+from ALL_RT_AUDIT_LOCATIONS al
+, ALL_RT_AUDIT_OBJECTS ao
+where ao.LOCATION_AUDIT_ID = al.LOCATION_AUDIT_ID
+and ao.object_name=:OBJECT_NAME and (ao.object_type like 'Library%')
+and PARENT_OBJECT_AUDIT_ID is null
+order by 4 DESC,3 ASC]]></sql>
+				</query>
+			</display>
+		</display>
+		<display id="6a2636ca-012b-1000-801c-8223aece9681" type="" style="Table" enable="true">
+			<name><![CDATA[Deployments today]]></name>
+			<description><![CDATA[Deployments today]]></description>
+			<tooltip><![CDATA[Deployments today]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select
+ max(ao.version_tag) last_deployment
+,ao.object_type deployed_type
+, ao.object_name deployed_object
+, al.location_name location
+, al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION ltype
+,ao.status_when_deployed status
+from ALL_RT_AUDIT_LOCATIONS al
+, ALL_RT_AUDIT_OBJECTS ao
+where ao.LOCATION_AUDIT_ID = al.LOCATION_AUDIT_ID and
+ao.updated_on = SYSDATE
+and PARENT_OBJECT_AUDIT_ID is null
+group by ao.status_when_deployed, ao.object_name, ao.object_type, al.location_name,
+al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION
+order by 1 DESC,3 ASC]]></sql>
+			</query>
+		</display>
+		<display id="6a292c5b-012b-1000-8026-8223aece9681" type="" style="Table" enable="true">
+			<name><![CDATA[Deployments in past n days]]></name>
+			<description><![CDATA[Deployments in past n days]]></description>
+			<tooltip><![CDATA[Deployments in past n days]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select
+ max(ao.version_tag) last_deployment
+,ao.object_type deployed_type
+, ao.object_name deployed_object
+, al.location_name location
+, al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION ltype
+,ao.status_when_deployed status
+from ALL_RT_AUDIT_LOCATIONS al
+, ALL_RT_AUDIT_OBJECTS ao
+where ao.LOCATION_AUDIT_ID = al.LOCATION_AUDIT_ID and
+ao.updated_on > SYSDATE - :NUMBER_OF_DAYS
+and PARENT_OBJECT_AUDIT_ID is null
+group by ao.status_when_deployed, ao.object_name, ao.object_type, al.location_name,
+al.LOCATION_TYPE||' '||al.LOCATION_TYPE_VERSION
+order by 1 DESC,3 ASC]]></sql>
+				<binds>
+					<bind id="NUMBER_OF_DAYS">
+						<prompt><![CDATA[Number of days]]></prompt>
+						<value><![CDATA[21]]></value>
+					</bind>
+				</binds>
+			</query>
+		</display>
+	</folder>
+	<folder>
+		<name><![CDATA[Administrative]]></name>
+		<tooltip><![CDATA[Administrative]]></tooltip>
+		<description><![CDATA[Administrative - use a control center logon]]></description>
+			<display id="" type="" style="Script" enable="true">
+			<name><![CDATA[RTP Service Doctor]]></name>
+			<description><![CDATA[RTP Service Doctor]]></description>
+			<tooltip><![CDATA[RTP Service Doctor]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<query>
+				<sql><![CDATA[rem
+rem This script can be used to display some diagnostics about the Control
+rem Center Repository and its Service.
+rem 
+rem
+rem USAGE
+rem Logon as the Control Center Owner
+rem    
+rem    @<OWB-HOME>/owb/rtp/sql/service_doctor.sql
+rem
+rem This script will display various diagnostic messages
+rem
+
+
+--set serveroutput on;
+exec dbms_output.enable(999999)
+
+declare
+  l_available number;
+  l_count number;
+  l_job_procs number;
+begin
+
+  select
+    count(*) into l_count
+  from
+    user_errors;
+    
+  if l_count = 0
+  then
+    dbms_output.put_line('All PL/SQL packages and functions are valid');
+  else
+    dbms_output.put_line('>>>>>> There are errors in one or more PL/SQL packages and functions');
+  end if;    
+
+  select 
+    count(*) into l_count
+  from 
+    wb_rt_platform_properties;
+    
+  if l_count > 2
+  then
+    dbms_output.put_line('Platform properties have been loaded correctly');
+  else
+    dbms_output.put_line('>>>>>> Not all platform properties have been loaded');
+  end if;    
+  
+  select 
+    count(*) into l_count
+  from 
+    wb_rt_stores
+  where
+    store_name = 'PlatformSchema';
+    
+  if l_count = 1
+  then
+    dbms_output.put_line('Platform location has been seeded correctly');
+  else
+    dbms_output.put_line('>>>>>> Platform location has not been seeded');
+  end if;    
+  
+  select 
+    count(*) into l_count
+  from 
+    wb_rt_nls_messages;
+    
+  if l_count > 0
+  then
+    dbms_output.put_line('NLS messages have been loaded correctly');
+  else
+    dbms_output.put_line('>>>>>> NLS messages have not been correctly loaded');
+  end if;    
+
+  select value into l_job_procs from v$parameter where name = 'job_queue_processes';
+  if l_job_procs < 10
+  then
+    dbms_output.put_line('>>>>>> warning: job_queue_processes is ' || l_job_procs || 
+      ' - recommended minimum value for owb is 10.');
+  end if;
+  
+  service_available(l_available);
+  
+  if l_available <> 0
+  then
+    dbms_output.put_line('The platform service is available');
+  else
+    dbms_output.put_line('>>>>>> The platform service is not available');
+  end if;
+  
+  declare
+    l_message varchar(512);
+  begin
+    wb_rt_service_doctor.check_startup_script;
+    dbms_output.put_line('Service script is accessible to the database server');    
+  exception
+    when others
+    then
+      dbms_output.put_line('>>>>>> There is a problem accessing the service startup script from the database server');
+      dbms_output.put_line('>>>>>>   Here is the detailed error message which contains the name of the start script file:-');
+      l_message := replace(sqlerrm, 'ORA-29532: ', '');
+      l_message := replace(l_message, 'Java call terminated by uncaught Java exception: ', '');
+      l_message := replace(l_message, 'java.sql.SQLException: ', '');
+      dbms_output.put_line('>>>>>>     ' || l_message);
+      dbms_output.put_line('>>>>>>   Please verify that the disk containing the file is visible to the database server');
+      dbms_output.put_line('>>>>>>   Please verify that the database server account has access rights on the file');
+  end;
+  
+  declare
+    l_message varchar(512);
+  begin
+    wb_rt_service_doctor.check_repos_connection;
+    dbms_output.put_line('Connection information stored within the repository is correct');
+  exception
+    when others
+    then
+      dbms_output.put_line('>>>>>> There is a problem with the repository connection information used to start the service');
+      dbms_output.put_line('>>>>>>   Here is the detailed error message which contains the connection information passed to the service:-');
+      l_message := replace(sqlerrm, 'ORA-29532: ', '');
+      l_message := replace(l_message, 'Java call terminated by uncaught Java exception: ', '');
+      l_message := replace(l_message, 'java.sql.SQLException: ', '');
+      dbms_output.put_line('>>>>>>     ' || l_message);
+      dbms_output.put_line('>>>>>>   Please verify that this information is accurate');
+      dbms_output.put_line('>>>>>>   If this information is correct, then please use the ''set_repository_password.sql'' script to reset the stored password');
+  end;
+  
+end;
+/
+]]></sql>
+			</query>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Runtime Active Executions]]></name>
+			<description><![CDATA[Active Executions]]></description>
+			<tooltip><![CDATA[Active Executions]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>null</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select 
+  to_char(execution_audit_id) as EXEC_ID,
+  execution_audit_status as "Status",
+  execution_name as "Name",
+  to_char(created_on, 'DD-MON-IY HH:MI:SS') as "Date",
+  created_by as "Owner"
+from 
+  all_rt_audit_executions
+where 
+  execution_audit_status in (
+    wb_rt_constants.to_string(wb_rt_constants.EXECUTION_STATUS_BUSY), 
+    wb_rt_constants.to_string(wb_rt_constants.EXECUTION_STATUS_READY));
+]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Execution Summary]]></name>
+				<description><![CDATA[Execution Summary]]></description>
+				<tooltip><![CDATA[Execution Summary]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select ex.top_level_execution_audit_id, 
+       ex.parent_execution_audit_id, 
+       ex.execution_audit_id,
+       to_char(ex.created_on, 'YYYY/MM/DD-HH24:MI:SS') created_on, 
+       ex.execution_name,
+       ex.task_type,
+       ex.exec_location_name,
+       ex.execution_audit_status,
+       mr.run_status,
+       count(sr.step_id) step_count,
+       ex.return_result, 
+       ex.return_code,
+       ex.number_task_errors, 
+       ex.number_task_warnings
+from 
+      all_rt_audit_executions ex,
+      all_rt_audit_map_runs mr,
+      all_rt_audit_step_runs sr
+where 
+      (ex.execution_audit_id=:EXEC_ID or 
+       ex.parent_execution_audit_id=:EXEC_ID or
+       ex.execution_audit_id in
+          (select 
+             top_level_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID) or
+       ex.execution_audit_id in
+          (select 
+             parent_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID) or
+       ex.parent_execution_audit_id in
+          (select 
+             parent_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID)
+       ) and
+       ex.execution_audit_id=mr.execution_audit_id(+) and
+       mr.map_run_id=sr.map_run_id(+) 
+group by
+       ex.top_level_execution_audit_id, 
+       ex.parent_execution_audit_id, 
+       ex.execution_audit_id,
+       to_char(ex.created_on, 'YYYY/MM/DD-HH24:MI:SS'), 
+       ex.execution_name,
+       ex.task_type,
+       ex.exec_location_name,
+       ex.execution_audit_status,
+       mr.run_status,
+       ex.return_result, 
+       ex.return_code,
+       ex.number_task_errors, 
+       ex.number_task_warnings
+order by
+      ex.top_level_execution_audit_id,
+      ex.execution_audit_id;]]></sql>
+					<binds>
+						<bind id="EXEC_ID">
+							<prompt><![CDATA[EXEC_ID]]></prompt>
+							<tooltip><![CDATA[EXEC_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Audit Execution Acks]]></name>
+				<description><![CDATA[Audit Execution Acks]]></description>
+				<tooltip><![CDATA[Audit Execution Acks]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select 
+    ac.audit_id,
+    ac.stream_id,
+    decode(ac.ack_type, 
+           20001, 'NONE', 
+           20002, 'RECOVERIES',  
+           20003, 'ERRORS', 
+           20004, 'WARNINGS', 
+           ack_type) ack_type, 
+    ac.ack_pending
+from
+    wb_rt_notification_acks ac,
+    all_rt_audit_executions ex
+where 
+      (ex.execution_audit_id=:EXEC_ID or 
+       ex.parent_execution_audit_id=:EXEC_ID or
+       ex.execution_audit_id in
+          (select 
+             top_level_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID) or
+       ex.execution_audit_id in
+          (select 
+             parent_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID) or
+       ex.parent_execution_audit_id in
+          (select 
+             parent_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID)
+       ) and
+       ex.execution_audit_id=ac.audit_id
+order by
+      ac.audit_id,
+      ac.stream_id;]]></sql>
+					<binds>
+						<bind id="EXEC_ID">
+							<prompt><![CDATA[EXEC_ID]]></prompt>
+							<tooltip><![CDATA[EXEC_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Audit Execution Interests]]></name>
+				<description><![CDATA[Audit Execution Interests]]></description>
+				<tooltip><![CDATA[Audit Execution Interests]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select 
+    nc.audit_id,
+    nc.stream_id,
+    decode(nc.event_type, 
+           1001, 'UNIT_OP_START',
+           1002, 'UNIT_OP_COMPLETE',
+           1003, 'EXEC_OP_START',
+           1004, 'EXEC_OP_COMPLETE',
+           1005, 'SCRIPT_RUN_BEGIN',
+           1006, 'SCRIPT_RUN_END',
+           1007, 'TASK_BEGIN',
+           1008, 'TASK_END',
+           1009, 'FILE',
+           1010, 'INFORMATIONAL',
+           1011, 'WARNING',
+           1012, 'ERROR',
+           1013, 'RECOVERY',
+           1014, 'PREPARED',
+           1015, 'UNPREPARED',
+           1016, 'TIMEOUT',
+           event_type) event_type
+from
+    wb_rt_notification_components nc,
+    all_rt_audit_executions ex
+where 
+      (ex.execution_audit_id=:EXEC_ID or 
+       ex.parent_execution_audit_id=:EXEC_ID or
+       ex.execution_audit_id in
+          (select 
+             top_level_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID) or
+       ex.execution_audit_id in
+          (select 
+             parent_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID) or
+       ex.parent_execution_audit_id in
+          (select 
+             parent_execution_audit_id
+           from
+             all_rt_audit_executions
+           where
+             execution_audit_id=:EXEC_ID)
+       ) and
+       ex.execution_audit_id=nc.audit_id
+order by
+      nc.audit_id,
+      nc.stream_id;]]></sql>
+					<binds>
+						<bind id="EXEC_ID">
+							<prompt><![CDATA[EXEC_ID]]></prompt>
+							<tooltip><![CDATA[EXEC_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Nofity Queue Messages]]></name>
+				<description><![CDATA[Nofity Queue Messages]]></description>
+				<tooltip><![CDATA[Nofity Queue Messages]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select 
+    corr_id,
+    msg_state, 
+    to_char(enq_time, 'YYYY/MM/DD-HH24:MI:SS') enq_time
+from
+    aq$wb_rt_notify_queue_tab
+where
+    corr_id in (select distinct
+                      ns.stream_id
+                from 
+                      wb_rt_notification_components nc,
+                      wb_rt_notification_acks ac,
+                      wb_rt_notification_streams ns,
+                      all_rt_audit_executions ex
+                where
+                      (ex.parent_execution_audit_id=:EXEC_ID or 
+                       ex.execution_audit_id=:EXEC_ID or
+                       ex.execution_audit_id in
+                          (select 
+                             top_level_execution_audit_id
+                           from
+                             all_rt_audit_executions
+                           where
+                             execution_audit_id=:EXEC_ID) or
+                       ex.execution_audit_id in
+                          (select 
+                             parent_execution_audit_id
+                           from
+                             all_rt_audit_executions
+                           where
+                             execution_audit_id=:EXEC_ID) or
+                       ex.parent_execution_audit_id in
+                          (select 
+                             parent_execution_audit_id
+                           from
+                             all_rt_audit_executions
+                           where
+                             execution_audit_id=:EXEC_ID)
+                      ) and
+                      ((ns.stream_id=nc.stream_id and ex.execution_audit_id=nc.audit_id) or
+                       (ns.stream_id=ac.stream_id and ex.execution_audit_id=ac.audit_id))
+                )
+order by
+      corr_id,
+      enq_time;]]></sql>
+					<binds>
+						<bind id="EXEC_ID">
+							<prompt><![CDATA[EXEC_ID]]></prompt>
+							<tooltip><![CDATA[EXEC_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Objects in runtime]]></name>
+			<description><![CDATA[Objects in runtime]]></description>
+			<tooltip><![CDATA[Objects in runtime]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[SELECT 
+  'wb_rt_audit_executions' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_audit_executions
+UNION
+SELECT
+  'wb_rt_audit_deployments'  AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_audit_deployments
+UNION
+SELECT
+  'wb_rt_audit_tasks' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_audit_tasks
+UNION
+SELECT
+  'wb_rt_platform_properties' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_platform_properties
+UNION
+SELECT
+  'wb_rt_def_deployment_adapters' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_deployment_adapters
+UNION
+SELECT
+  'wb_rt_def_execution_adapters' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_execution_adapters
+UNION
+SELECT
+  'wb_rt_def_execution_operators' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_execution_operators
+UNION
+SELECT
+  'wb_rt_def_execution_operators' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_execution_operators
+UNION
+SELECT
+  'wb_rt_def_file_types' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_file_types
+UNION
+SELECT
+  'wb_rt_def_object_types' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_object_types
+UNION
+SELECT
+  'wb_rt_def_object_type_defs' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_object_type_defs
+UNION
+SELECT
+  'wb_rt_def_store_types' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_store_types
+UNION
+SELECT
+  'wb_rt_def_store_type_params' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_store_type_params
+UNION
+SELECT
+  'wb_rt_def_system_parameters' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_system_parameters
+UNION
+SELECT
+  'wb_rt_def_impl_types' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_impl_types
+UNION
+SELECT
+  'wb_rt_def_system_parameters' AS RUNTIME_TABLE
+, count(*)||' rows'  AS "Number of Rows"
+FROM wb_rt_def_system_parameters]]></sql>
+			</query>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Runtime Service Nodes]]></name>
+			<description><![CDATA[Runtime Service Nodes]]></description>
+			<tooltip><![CDATA[Runtime Service Nodes]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select * from wb_rt_service_nodes]]></sql>
+			</query>
+		</display>
+	</folder>
+	<folder>
+		<name><![CDATA[Design]]></name>
+		<tooltip><![CDATA[Design]]></tooltip>
+		<description><![CDATA[Design]]></description>
+			<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Mappings]]></name>
+			<description><![CDATA[Mappings]]></description>
+			<tooltip><![CDATA[Mappings]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select map_name "Name",
+'/'||i.project_name||'/'||i.information_system_name "Path",
+map_id id
+from all_iv_xform_maps m, all_iv_information_systems i
+where m.information_system_id=i.information_system_id
+order by map_name]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Map Summary]]></name>
+				<description><![CDATA[Map Summary]]></description>
+				<tooltip><![CDATA[Map Summary]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<CustomValues>
+				</CustomValues>
+				<query>
+					<sql><![CDATA[select * from (              SELECT c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c, all_iv_xform_maps m
+                     WHERE m.map_id = :ID AND m.map_id = c.map_id
+               UNION
+              SELECT c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c, all_iv_pluggable_maps m
+                     WHERE m.map_id = :ID AND m.map_id = c.map_id
+               )
+ORDER BY 2
+]]></sql>
+					<binds>
+						<bind id="ID">
+							<prompt><![CDATA[ID]]></prompt>
+							<tooltip><![CDATA[ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Data Objects]]></name>
+			<description><![CDATA[Data Objects]]></description>
+			<tooltip><![CDATA[Data Objects]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select * from (
+SELECT t.table_name "Name",
+                 '/'||i.project_name||'/'||i.information_system_name "Path",
+                 t.business_name, 'Table' "Type",
+                 t.description,
+                 t.table_id id,
+                 t.created_on,
+                 t.created_by,
+                 t.updated_on,
+                 t.updated_by,
+                 t.is_valid
+                 FROM all_iv_tables t, all_iv_information_systems i
+                 WHERE i.information_system_id = t.schema_id
+union
+SELECT t.table_name "Name",
+                 '/'||i.project_name||'/'||i.information_system_name "Path",
+                 t.business_name, 'External Table' "Type",
+                 t.description,
+                 t.table_id id,
+                 t.created_on,
+                 t.created_by,
+                 t.updated_on,
+                 t.updated_by,
+                 t.is_valid
+                 FROM all_iv_external_tables t, all_iv_information_systems i
+                 WHERE i.information_system_id = t.schema_id
+union
+SELECT t.view_name "Name",
+                 '/'||i.project_name||'/'||i.information_system_name "Path",
+                 t.business_name, 'View' "Type",
+                 t.description,
+                 t.view_id id,
+                 t.created_on,
+                 t.created_by,
+                 t.updated_on,
+                 t.updated_by,
+                 t.is_valid
+                 FROM all_iv_views t, all_iv_information_systems i
+                 WHERE i.information_system_id = t.schema_id
+union
+SELECT t.view_name "Name",
+                 '/'||i.project_name||'/'||i.information_system_name "Path",
+                 t.business_name, 'Materialized View' "Type",
+                 t.description,
+                 t.view_id id,
+                 t.created_on,
+                 t.created_by,
+                 t.updated_on,
+                 t.updated_by,
+                 t.is_valid
+                 FROM all_iv_materialized_views t, all_iv_information_systems i
+                 WHERE i.information_system_id = t.schema_id 
+)
+ ORDER BY 1
+]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Dependent Maps]]></name>
+				<description><![CDATA[Dependent Maps]]></description>
+				<tooltip><![CDATA[Dependent Maps]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select * from (              SELECT c.map_name "Map", 
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c
+                     WHERE c.data_entity_id = :TABLE_ID
+               UNION
+              SELECT c.map_name "Map",
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c, all_iv_pluggable_maps m
+                     WHERE c.data_entity_id=:ID
+               )
+ORDER BY 1,2
+]]></sql>
+					<binds>
+						<bind id="TABLE_ID">
+							<prompt><![CDATA[TABLE_ID]]></prompt>
+							<tooltip><![CDATA[TABLE_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+						<bind id="ID">
+							<prompt><![CDATA[ID]]></prompt>
+							<tooltip><![CDATA[ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Dimensional Objects]]></name>
+			<description><![CDATA[Dimensional Objects]]></description>
+			<tooltip><![CDATA[Dimensional Objects]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[SELECT t.dimension_name "Name",
+                 '/'||i.project_name||'/'||i.information_system_name "Path",
+                 t.business_name, 'Dimension' "Type",
+                 t.description,
+                 t.dimension_id id,
+                 t.created_on,
+                 t.created_by,
+                 t.updated_on,
+                 t.updated_by,
+                 t.is_valid
+                 FROM all_iv_dimensions t, all_iv_information_systems i
+                 WHERE i.information_system_id = t.schema_id
+union
+SELECT t.cube_name "Name",
+                 '/'||i.project_name||'/'||i.information_system_name "Path",
+                 t.business_name, 'Cube' "Type",
+                 t.description,
+                 t.cube_id id,
+                 t.created_on,
+                 t.created_by,
+                 t.updated_on,
+                 t.updated_by,
+                 t.is_valid
+                 FROM all_iv_cubes t, all_iv_information_systems i
+                 WHERE i.information_system_id = t.schema_id
+                 ]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Dependent Maps]]></name>
+				<description><![CDATA[Dependent Maps]]></description>
+				<tooltip><![CDATA[Dependent Maps]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select * from (              SELECT c.map_name "Map", 
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c
+                     WHERE c.data_entity_id = :TABLE_ID
+               UNION
+              SELECT c.map_name "Map",
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c, all_iv_pluggable_maps m
+                     WHERE c.data_entity_id=:ID
+               )
+ORDER BY 1,2
+]]></sql>
+					<binds>
+						<bind id="TABLE_ID">
+							<prompt><![CDATA[TABLE_ID]]></prompt>
+							<tooltip><![CDATA[TABLE_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+						<bind id="ID">
+							<prompt><![CDATA[ID]]></prompt>
+							<tooltip><![CDATA[ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="6a17eea9-012b-1000-8003-8223aece9681" type="" style="Table" enable="true">
+			<name><![CDATA[Objects Changed in past n days]]></name>
+			<description><![CDATA[Objects Changed in past n days]]></description>
+			<tooltip><![CDATA[Objects Changed in past n days]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[SELECT t.object_type "Type",t.object_name "Name",
+                 t.business_name, 
+                 t.description,
+                 t.updated_on,
+                 t.updated_by,
+                 t.created_on,
+                 t.created_by,
+                 t.object_id id
+FROM all_iv_firstclass_objects t
+                 where t.updated_on>SYSDATE - :NUMBER_OF_DAYS
+ ORDER BY 1,2]]></sql>
+				<binds>
+					<bind id="NUMBER_OF_DAYS">
+						<prompt><![CDATA[Changed in number of days:]]></prompt>
+						<value><![CDATA[21]]></value>
+					</bind>
+				</binds>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Dependent Mappings]]></name>
+				<description><![CDATA[Dependent Mappings]]></description>
+				<tooltip><![CDATA[Dependent Mappings]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<CustomValues>
+				</CustomValues>
+				<query>
+					<sql><![CDATA[select * from (              SELECT c.map_name "Map", 
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c
+                     WHERE c.data_entity_id = :TABLE_ID
+               UNION
+              SELECT c.map_name "Map",
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c, all_iv_pluggable_maps m
+                     WHERE c.data_entity_id=:ID
+               )
+ORDER BY 1,2]]></sql>
+					<binds>
+						<bind id="TABLE_ID">
+							<prompt><![CDATA[TABLE_ID]]></prompt>
+							<tooltip><![CDATA[TABLE_ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+						<bind id="ID">
+							<prompt><![CDATA[ID]]></prompt>
+							<tooltip><![CDATA[ID]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+		<display id="6a1ee1c6-012b-1000-800f-8223aece9681" type="" style="Table" enable="true">
+			<name><![CDATA[Objects Changed Today]]></name>
+			<description><![CDATA[Objects Changed Today]]></description>
+			<tooltip><![CDATA[Objects Changed Today]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[SELECT t.object_type "Type",t.object_name "Name",
+                 t.business_name, 
+                 t.description,
+                 t.updated_on,
+                 t.updated_by,
+                 t.created_on,
+                 t.created_by,
+                 t.object_id id
+FROM all_iv_firstclass_objects t
+                 where t.updated_on=SYSDATE
+ ORDER BY 1]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Dependent Mappings]]></name>
+				<description><![CDATA[Dependent Mappings]]></description>
+				<tooltip><![CDATA[Dependent Mappings]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<CustomValues>
+				</CustomValues>
+				<query>
+					<sql><![CDATA[select * from (              SELECT c.map_name "Map", 
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c
+                     WHERE c.data_entity_id = :TABLE_ID
+               UNION
+              SELECT c.map_name "Map",
+              c.map_component_name "Operator", c.operator_type
+              , data_entity_name "Bound To"
+                     FROM all_iv_xform_map_components c, all_iv_pluggable_maps m
+                     WHERE c.data_entity_id=:ID
+               )
+ORDER BY 1,2]]></sql>
+				</query>
+			</display>
+		</display>
+	</folder>
+	<folder>
+		<name><![CDATA[Data Quality]]></name>
+		<tooltip><![CDATA[Data Quality]]></tooltip>
+		<description><![CDATA[Data Quality]]></description>
+			<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Data Profiles]]></name>
+			<description><![CDATA[Data Profiles]]></description>
+			<tooltip><![CDATA[Data Profiles - use repository owner]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select p.profile_name PROFILE,
+e.elapse_time "Exec Time",
+p.description "Description",
+profile_id ID,
+'/'||p.project_name "Project",
+e.execution_audit_id EXEC_ID,
+to_char(e.CREATED_ON, 'HH:MM:SS DD-MON-YYYY') "Date"
+from all_iv_profiles p,
+all_rt_audit_executions  e
+where 
+e.task_name =p.profile_name
+order by p.profile_name ASC,e.execution_audit_id DESC
+
+]]></sql>
+			</query>
+			<display id="" type="Child" style="plsql-dbms_output" enable="true">
+				<name><![CDATA[Performance Statistics]]></name>
+				<description><![CDATA[Performance Statistics]]></description>
+				<tooltip><![CDATA[Performance Statistics]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[declare  latestAuditId NUMBER;  msg VARCHAR2(4000);  type dType is ref cursor;  d dType;  prfID NUMBER(9);  numRows NUMBER;  numCols NUMBER;  BEGIN      dbms_output.put_line('<html><body>');    prfId := :ID;    latestAuditId := :EXEC_ID;    for c in (select profile_object_id, object_id,object_name from all_iv_profile_objects      where profile_id = prfID  ) loop      numRows := 0;      begin      select value into numRows from cmpstringpropertyvalue_v where         propertyowner = c.profile_object_id and logicalname like '%NUM_ROWS';      exception when others then null; end;      select count(1) into numCols from all_iv_profile_columns where profile_id= prfId and profile_object_id = c.profile_object_id;      dbms_output.put_line('<b><u>'||c.object_name || ' (' || numCols || ' columns and ' ||        numRows || ' rows)</u></b><br>');      open d for 'select lines.plain_text from ' ||      'wb_rtv_audit_message_lines lines,wb_rtv_audit_messages mess ' ||      'where mess.audit_message_id = lines.audit_message_id and ' ||      'mess.audit_execution_id = ' || latestAuditId ||      ' and plain_text like ''%' || c.object_name || '% s.''' ||      ' order by lines.audit_message_line_id';      loop        fetch d into msg;        exit when d%NOTFOUND;        msg:= replace(msg,' for object ' || c.object_name || ' complete in ',': ');        dbms_output.put_line('&nbsp; '||msg||'<br>');      end loop;       end loop;    dbms_output.put_line('<p><b><u>Common Analysis</u></b></p>'); open d for 'select lines.plain_text from ' ||      'wb_rtv_audit_message_lines lines,wb_rtv_audit_messages mess ' ||      'where mess.audit_message_id = lines.audit_message_id and ' ||      'mess.audit_execution_id = ' || latestAuditId ||      ' and plain_text like ''%' || 'Referential analysis% s.%''' ||      ' order by lines.audit_message_line_id';    loop      fetch d into msg;      exit when d%NOTFOUND;      dbms_output.put_line('&nbsp; '||msg||'<br>');    end loop; dbms_output.put_line('</body></html>');  END;]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Data Stage Throughput]]></name>
+				<description><![CDATA[Data Stage Throughput]]></description>
+				<tooltip><![CDATA[Data Stage Throughput]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select mr.map_name "Map Name"
+, t.target_name "Target"
+,r.step_id "Step"
+, to_char(r.start_time,'DD-MON hh24:mi') "Exec Date"
+, to_char(trunc(r.elapse_time/60))
+|| 'm '
+|| to_char(r.elapse_time - 60 * trunc(r.elapse_time/60))
+|| 's' "Exec Time"
+, substr(r.step_type,1,3) "Type"
+, nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0) "No Records"
+, decode( nvl(r.elapse_time,0)
+, 0, 'N/A'
+, to_char(trunc((nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0)) / r.elapse_time , 2))
+) ||' Per Second' "Throughput"
+from all_rt_audit_map_runs mr
+, all_rt_audit_step_runs r
+, all_rt_audit_step_run_targets t
+,all_rt_audit_executions e
+where e.parent_execution_audit_id=:EXEC_ID
+and (mr.execution_audit_id = e.execution_audit_id)
+and mr.map_run_id = r.map_run_id
+and mr.map_run_id = t.map_run_id
+and r.step_id = t.step_id
+and r.run_status = 'COMPLETE'
+order by r.start_time DESC]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Timing Analysis]]></name>
+				<description><![CDATA[]]></description>
+				<tooltip><![CDATA[]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select
+ o.object_name,
+ o.object_type,
+ eo.count,
+ eo.min_time,
+ eo.max_time,
+ to_char(eo.stddev, '9999.9') "Standard Deviation"
+from all_rt_objects o,
+  (select
+     e.object_uoid as euoid,
+     count(*) as count,
+     min(e.elapse_time) as min_time,
+     max(e.elapse_time) as max_time,
+     stddev(e.elapse_time) as stddev
+   from
+     all_rt_audit_executions e
+   group by e.object_uoid) eo
+where
+  eo.euoid=o.object_uoid and (o.object_type='DataProfile') and o.object_name=:PROFILE
+  order by object_name;]]></sql>
+				</query>
+			</display>
+		</display>
+		<display id="" type="" style="Table" enable="true">
+			<name><![CDATA[Data Auditors]]></name>
+			<description><![CDATA[Data Auditors - View throughput, audit and errors]]></description>
+			<tooltip><![CDATA[View  throughput, audit and errors]]></tooltip>
+			<drillclass><![CDATA[]]></drillclass>
+			<CustomValues>
+				<TYPE>horizontal</TYPE>
+			</CustomValues>
+			<query>
+				<sql><![CDATA[select distinct object_name DATA_AUDITOR
+from all_rt_tasks
+where (object_type='DataAuditor') order by object_name;]]></sql>
+			</query>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Data Quality Results Summary]]></name>
+				<description><![CDATA[Data Quality Results Summary]]></description>
+				<tooltip><![CDATA[Data Quality Results Summary]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select execution_audit_id "Audit ID", parameter_name "Parameter Name",
+decode(parameter_name, 'AUDIT_RESULT', decode(value,0,'No Data Rule Violations',1,'At least one data rule violation occurred, but no data rule failed to meet the minimum quality threshold', 2, 'At least one data rule failed to meet the minimum quality threshold', value), value) "Value",
+parameter_type "Type"
+from all_rt_audit_execution_params
+where execution_audit_id in (
+  select distinct execution_audit_id from all_rt_audit_executions
+  where object_name=:DATA_AUDITOR and
+  (object_type='DataAuditor'))
+  AND PARAMETER_MODE ='OUT'
+order by execution_audit_id DESC, parameter_audit_id ASC;]]></sql>
+					<binds>
+						<bind id="DATA_AUDITOR">
+							<prompt><![CDATA[DATA_AUDITOR]]></prompt>
+							<tooltip><![CDATA[DATA_AUDITOR]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Throughput]]></name>
+				<description><![CDATA[Throughput]]></description>
+				<tooltip><![CDATA[Throughput]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select mr.map_name "Auditor Name"
+, t.target_name "Target"
+,r.step_id "Step"
+, to_char(r.start_time,'DD-MON hh24:mi') "Exec Date"
+, to_char(trunc(r.elapse_time/60))
+|| 'm '
+|| to_char(r.elapse_time - 60 * trunc(r.elapse_time/60))
+|| 's' "Exec Time"
+, substr(r.step_type,1,3) "Type"
+, nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0) "No Records"
+, decode( nvl(r.elapse_time,0)
+, 0, 'N/A'
+, to_char(trunc((nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0)) / r.elapse_time , 2))
+) ||' Per Second' "Throughput"
+from all_rt_audit_map_runs mr
+, all_rt_audit_step_runs r
+, all_rt_audit_step_run_targets t
+where (mr.map_name=:DATA_AUDITOR or substr(mr.map_name, 2, length(mr.map_name)-2) = :DATA_AUDITOR)
+and mr.map_run_id = r.map_run_id
+and mr.map_run_id = t.map_run_id
+and r.step_id = t.step_id
+and r.run_status = 'COMPLETE'
+order by r.step_id ASC, r.start_time DESC]]></sql>
+					<binds>
+						<bind id="DATA_AUDITOR">
+							<prompt><![CDATA[DATA_AUDITOR]]></prompt>
+							<tooltip><![CDATA[DATA_AUDITOR]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Data Auditor Audit]]></name>
+				<description><![CDATA[Data Auditor Audit]]></description>
+				<tooltip><![CDATA[Data Auditor Audit]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select to_char(s.start_time, 'HH:MM:SS DD-MON-YY') "Start Time",
+to_char(s.end_time, 'HH:MM:SS DD-MON-YY') "End Time",
+s.elapse_time "Elapsed Time", 
+s.map_step "Step", 
+s.step_name "Step Name" ,
+s.number_errors "Errors" ,
+s.number_records_selected "Selected",
+s.number_records_inserted "Inserted",
+s.number_records_updated "Updated",
+s.number_records_merged "Merged",
+a.created_by "Created By"
+from all_rt_audit_step_runs s, 
+  all_rt_audit_map_runs mr, 
+  all_rt_audit_executions a
+where mr.execution_audit_id=a.execution_audit_id and
+s.map_run_id=mr.map_run_id and
+a.object_name=:DATA_AUDITOR and
+(a.object_type='DataAuditor')
+order by "Start Time" DESC, step_id DESC
+]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Mapping Errors]]></name>
+				<description><![CDATA[Mapping Errors]]></description>
+				<tooltip><![CDATA[Mapping Errors]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select to_char(p.created_on, 'HH:MM:SS DD-MON-YY') "Exec Date", p.execution_audit_id "Audit ID",p.return_result "Activity Result", ml.message_text "Audit Text"
+from all_rt_audit_executions p,
+all_rt_audit_exec_messages ml
+where p.object_name=:DATA_AUDITOR and
+(p.object_type='DataAuditor') and
+ml.execution_audit_id(+) = p.execution_audit_id
+order by p.created_on DESC, p.execution_audit_id DESC
+]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Chart" enable="true">
+				<name><![CDATA[Throughput Chart]]></name>
+				<description><![CDATA[Throughput Chart]]></description>
+				<tooltip><![CDATA[Throughput Chart]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<CustomValues>
+					<LEGEND>null</LEGEND>
+					<STYLE>Default</STYLE>
+					<THREED>true</THREED>
+					<GRADIENT>true</GRADIENT>
+					<GRID>null</GRID>
+					<TYPE>horizontal</TYPE>
+				</CustomValues>
+				<query>
+					<sql><![CDATA[select to_char(r.start_time,'DD-MON hh24:mi') "Exec Date"
+, t.target_name "Target"
+, to_number(decode( nvl(r.elapse_time,0)
+, 0, -1
+, trunc((nvl(r.number_records_merged,0)+nvl(r.number_records_inserted,0)+nvl(r.number_records_updated,0)) / r.elapse_time , 2)
+))  "Throughput"
+from all_rt_audit_map_runs mr
+, all_rt_audit_step_runs r
+, all_rt_audit_step_run_targets t
+where (mr.map_name = :DATA_AUDITOR or substr(mr.map_name, 2, length(mr.map_name)-2) = :DATA_AUDITOR)
+and mr.map_run_id = r.map_run_id
+and mr.map_run_id = t.map_run_id
+and r.step_id = t.step_id
+and r.run_status = 'COMPLETE'
+order by r.start_time DESC]]></sql>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Execution parameters]]></name>
+				<description><![CDATA[Execution parameters]]></description>
+				<tooltip><![CDATA[Execution parameters]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select execution_audit_id "Audit ID", parameter_name "Parameter Name",
+value "Value",
+PARAMETER_MODE "Mode",
+parameter_type "Type"
+from all_rt_audit_execution_params
+where execution_audit_id in (
+  select distinct execution_audit_id from all_rt_audit_executions
+  where object_name=:DATA_AUDITOR and
+  (object_type='DataAuditor'))
+order by execution_audit_id DESC, parameter_audit_id ASC;]]></sql>
+					<binds>
+						<bind id="DATA_AUDITOR">
+							<prompt><![CDATA[DATA_AUDITOR]]></prompt>
+							<tooltip><![CDATA[DATA_AUDITOR]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+			<display id="" type="Child" style="Table" enable="true">
+				<name><![CDATA[Timing Analysis]]></name>
+				<description><![CDATA[Timing Analysis]]></description>
+				<tooltip><![CDATA[Timing Analysis]]></tooltip>
+				<drillclass><![CDATA[]]></drillclass>
+				<query>
+					<sql><![CDATA[select
+ o.object_name,
+ o.object_type,
+ eo.count,
+ eo.min_time,
+ eo.max_time,
+ to_char(eo.stddev, '9999.9') "Standard Deviation"
+from all_rt_objects o,
+  (select
+     e.object_uoid as euoid,
+     count(*) as count,
+     min(e.elapse_time) as min_time,
+     max(e.elapse_time) as max_time,
+     stddev(e.elapse_time) as stddev
+   from
+     all_rt_audit_executions e
+   group by e.object_uoid) eo
+where
+  eo.euoid=o.object_uoid and (o.object_type='DataAuditor') and o.object_name=:DATA_AUDITOR
+  order by object_name;]]></sql>
+					<binds>
+						<bind id="DATA_AUDITOR">
+							<prompt><![CDATA[DATA_AUDITOR]]></prompt>
+							<tooltip><![CDATA[DATA_AUDITOR]]></tooltip>
+							<value><![CDATA[NULL_VALUE]]></value>
+						</bind>
+					</binds>
+				</query>
+			</display>
+		</display>
+	</folder>
+</folder>
+</displays>

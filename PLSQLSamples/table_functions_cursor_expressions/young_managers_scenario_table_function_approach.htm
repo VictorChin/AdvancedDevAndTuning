@@ -1,0 +1,36 @@
+<html>
+
+<head>
+
+  <title>The &quot;Young Managers&quot; Scenario revisited - Table Function approach</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>The &quot;Young Managers&quot; Scenario revisited - Table Function approach</h1>
+
+
+  <p>We can now use yet another approach! The complete solution can be implemented 
+    in a table function. This has the usability advantage of keeping all the logic 
+    in one place, and the performance advantage of invoking the function only 
+    once rather than once per row in the table. See code <a href="Cr_Young_Managers_Scenario_Using_Table_Function.htm">sample-5</a> 
+    . This was derived &#147;mechanically&#148; from code <a href="Cr_Young_Managers_Scenario_Classical_Approach.htm">sample-1</a> 
+
+    simply by creating an appropriate PL/SQL table type and by creating the block 
+    as a pipelined function to return that type, substituting <span class="Code_Emphasize">pipe 
+    row ( manager_employee_id )</span> for <span class="Code_Emphasize">insert 
+    into young_managers values ( manager_employee_id )</span>.</p>
+  <p>The function can be made more general by giving it a <b class="Code_Emphasize">ref 
+    cursor</b> input parameter and by passing in the cursor expression as the 
+
+    actual parameter. See code <a href="Cr_Young_Managers_Scenario_Using_Table_Function_With_Ref_Cursor_Input_Parameter.htm">sample-6</a>. 
+    This would allow it to be &#147;pointed at&#148; <i>any</i> table which expressed 
+    a hierarchy where both parent and child have a date.</p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

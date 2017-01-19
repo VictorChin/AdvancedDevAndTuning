@@ -1,0 +1,110 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><pre>Set ServerOutput On
+declare
+  v_line             varchar2(32767);
+
+  c_location         constant varchar2(80) := 'UTL_FILE_TEST';
+  c_source_filename  constant varchar2(80) := 'test.txt';
+  c_copy_filename    constant varchar2(80) := 'copy.txt';
+  c_ren_filename     constant varchar2(80) := 'ren.txt';
+
+
+  procedure Show_Attr ( p_filename in varchar2 ) is
+    v_exists         boolean;
+    v_file_length    number;
+    v_block_size     binary_integer;
+  begin
+    <span class="Code_Emphasize">Utl_File.Fgetattr (
+
+      location    =&gt; c_location,
+      filename    =&gt; p_filename,
+      fexists     =&gt; v_exists,
+      file_length =&gt; v_file_length,
+      block_size  =&gt; v_block_size )</span>;
+    <span class="Code_Comment">-- Bug #2240685. v_exists is always returned TRUE
+    -- But non-existent file has ZERO file_length and block_size</span>
+
+    if not v_exists then Raise_Application_Error ( -20000, 'Bug #2240685 is fixed' ); end if;
+    Dbms_Output.Put_Line (
+      p_filename             || ' : ' ||
+      To_Char(v_file_length) || ' : ' ||
+      To_Char(v_block_size ) );
+  end Show_Attr;
+
+  procedure Remove ( p_filename in varchar2 ) is
+
+  begin
+    <span class="Code_Emphasize">Utl_File.Fremove (
+      location    =&gt; c_location,
+      filename    =&gt; p_filename )</span>;
+  exception
+    when Utl_File.Delete_Failed then
+      <span class="Code_Emphasize">Utl_File.Fclose_All</span>;
+      Raise_Application_Error ( -20000, 'Fremove: Delete_Failed trapped' );
+    when Utl_File.Invalid_Operation then
+
+      <span class="Code_Emphasize">Utl_File.Fclose_All</span>;
+      Raise_Application_Error ( -20000, 'Fremove: Invalid_Operation trapped' );
+  end Remove;
+
+  procedure Full_Copy ( p_source in varchar2, p_dest in varchar2 ) is
+  begin
+    <span class="Code_Emphasize">Utl_File.Fcopy (
+      src_location  =&gt; c_location,
+      src_filename  =&gt; p_source,
+      dest_location =&gt; c_location,
+
+      dest_filename =&gt; p_dest )</span>;
+<span class="Code_Comment">--    start_line       binary_integer in default<br>--    end_line         binary_integer in default</span><br>
+  exception when Utl_File.Invalid_Operation then
+    <span class="Code_Emphasize">Utl_File.Fclose_All</span>;
+    Raise_Application_Error ( -20000, 'Fcopy: Invalid_Operation trapped' );
+  end Full_Copy;
+
+  procedure Rename ( p_source in varchar2, p_dest in varchar2 ) is
+  begin
+    <span class="Code_Emphasize">Utl_File.Frename (
+      src_location  =&gt; c_location,
+
+      src_filename  =&gt; p_source,
+      dest_location =&gt; c_location,
+      dest_filename =&gt; p_dest,
+      overwrite     =&gt; false)</span>;
+  exception when Utl_File.Rename_Failed then
+    <span class="Code_Emphasize">Utl_File.Fclose_All</span>;
+    Raise_Application_Error ( -20000, 'Frename: Rename_Failed trapped' );
+  end Rename;
+begin
+  Show_Attr ( c_source_filename );
+  Show_Attr ( c_copy_filename );
+
+
+  Full_Copy ( c_source_filename, c_copy_filename );
+<span class="Code_Comment">--</span>Full_Copy ( 'not_there.txt', c_copy_filename ) <span class="Code_Comment">/* Uncomment to see Utl_File.Invalid_Operation */</span>;
+  Show_Attr ( c_copy_filename );
+
+  <span class="Code_Comment">-- Create ren.txt before running this block to see Utl_File.Rename_Failed</span>
+<span class="Code_Comment"></span>  Rename ( c_copy_filename, c_ren_filename );
+  Show_Attr ( c_ren_filename );
+
+  Remove ( c_ren_filename );
+  <span class="Code_Comment">-- Create protected.txt by hand and do &quot;chmod a-x protected.txt&quot;</span>
+<span class="Code_Comment">--</span>Remove ( 'protected.txt' ) <span class="Code_Comment">/* Uncomment to see Utl_File.Invalid_Operation */</span>;
+end;
+/
+
+</pre>
+</body>
+</html>
+

@@ -1,0 +1,91 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <h2>How careless programing can subvert the benefit<br>
+    of the PL/SQL cursor cache</h2>
+
+
+Consider this trivial program, <a href="Cr_Open_Close_5_Same.htm"> <tt>Open_Close_5_Same</tt></a>. 
+  This was generated thus...
+  <pre class="Code_Emphasize">begin Generate_Open_Many_Cursors (
+  p_number=>5, p_close=>true, p_same_sql=>true ); end;</pre>
+
+Compile and run it, and observe it from another session as above. You'll 
+    see...
+  <pre class="Code_Emphasize">BEGIN Open_Close_5_Same; END;
+SELECT 'same' from dual
+SELECT 'same' from dual
+SELECT 'same' from dual
+
+SELECT 'same' from dual
+SELECT 'same' from dual
+</pre>
+  ...because, from the viewpoint of the PL/SQL run-time system
+the cursors, having different names, are different.
+<p>
+Though the SQL statement will be represented only once in
+
+<tt>v$sqlarea</tt>,
+and the cost of parsing it and calculating the execution plan
+will be saved for each successive different cursor with the
+same SQL, we're nevertheless still wasting some resources
+by each time we open a new cursor, by looking up its SQL in
+<tt>v$sqlarea</tt>,
+and setting up the define-binds.
+<p>
+
+This can also occur when using an implicit cursor.
+(An implicit cursor has no identifier, and the programmer does not use
+the
+<tt>open</tt>,
+<tt>fetch</tt> and
+<tt>close</tt>
+statements with it.
+Implicit cursors occur for all cases of static SQL DML,
+for the
+
+<tt>SELECT...INTO</tt>
+construct, and for a cursor
+<tt>FOR</tt>
+loop with a
+<tt>SELECT</tt>
+statement.)
+<p>
+Create this procedure...
+  <pre><span class="Code_Emphasize">procedure P is
+  v_last_name employees.last_name%type;
+
+begin
+  select last_name into v_last_name from employees where employee_id = 100;</span>
+  <span class="Code_Comment">--
+  -- time elapses, last_name may have changed for this employee
+  --</span>
+  <span class="Code_Emphasize">select last_name into v_last_name from employees where employee_id = 100;
+end P;</span>
+</pre>
+  ...re-connect as
+<tt>programmer</tt>
+and execute it. Observe
+
+<tt>open_cursor_sql_text</tt>
+as above.
+You'll see...
+  <pre class="Code_Emphasize">SELECT last_name from employees where employee_id = 100
+SELECT last_name from employees where employee_id = 100
+begin p; end;
+</pre>
+  ...which shows that the implicit cursor created for
+the first SQL statement is not reused for the second,
+even though the text is identical.
+</div></body></html>
+

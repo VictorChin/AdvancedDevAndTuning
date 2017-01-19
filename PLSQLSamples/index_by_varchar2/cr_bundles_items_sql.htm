@@ -1,0 +1,49 @@
+<html>
+
+<head>
+
+  <title>Associative Arrays</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div">
+  <pre><span class="Code_Comment">-- Find the bundle_id's for bundles with the same composition as
+
+-- bundle_id=1.</span>
+
+variable b number
+begin :b := 1; end;
+/
+
+
+select distinct bundle_id
+  from intersections outer
+  where bundle_id  != :b
+  and not exists
+  (
+
+    (
+     select item_id from intersections where
+       bundle_id = :b
+     minus
+     select item_id from intersections where
+       bundle_id = outer.bundle_id
+    )
+
+   union
+    (
+    select item_id from intersections where
+      bundle_id = outer.bundle_id
+    minus
+    select item_id from intersections where
+      bundle_id = :b
+    )
+
+  );</pre>
+</div></body></html>
+

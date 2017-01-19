@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML><HEAD><TITLE>Define the datastructures</TITLE>
+
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="Bryn Llewellyn" name=Author><LINK 
+
+href="../Content.css" rel=stylesheet 
+type=text/css>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+
+<BODY>
+<DIV class=Content_Div> 
+  <H3> -- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<br>
+    -- THE &quot;RUNNER'S TRAINING LOGS&quot; EXAMPLE SCENARIO<br>
+
+  </H3>
+  <H3><SPAN class=Updated><I>-- DEFINE THE DATASTRUCTURES<br>
+    </I></SPAN></H3>
+  <PRE>-- Connect programmer/p@9i
+set serveroutput on
+
+
+
+drop package My_Types;
+drop table nested_training_logs;
+drop table nested_training_logs_2;
+drop table reln_training_logs;
+
+drop table reln_training_logs_2;
+drop type training_log_t;
+drop type weeks_running_t;
+drop type run_t;
+
+
+<font color="#FF0000">-- DEFINE THE DATASTRUCTURES</font>
+
+
+create type run_t as object ( distance number, pace number );
+/
+create type weeks_running_t is varray(20) of run_t not null;
+/
+create type training_log_t is varray(255) of weeks_running_t not null;
+/
+create or replace package My_Types is
+
+  type reln_training_log_row_t is record (
+  first_name varchar2(20),
+  week number,
+  run number,
+  distance number,
+  pace number );
+  type cur_t is ref cursor
+    /* strong cursor type for table function partitioning */
+    return reln_training_log_row_t;
+
+  type reln_training_logs_tab_t is table of reln_training_log_row_t;
+  type nested_training_log_row_t is record (
+    first_name varchar2(20),
+    training_log training_log_t );
+    type nested_training_logs_tab_t is table of nested_training_log_row_t;
+end My_Types;
+/
+Show Errors
+
+create table nested_training_logs (
+
+  first_name varchar2(20) primary key,
+  training_log training_log_t );
+
+create table nested_training_logs_2 (
+  first_name varchar2(20) primary key,
+  training_log training_log_t );
+
+create table reln_training_logs (
+  first_name varchar2(20) not null,
+  week number not null,
+  run number not null,
+
+  distance number not null,
+  pace number not null );
+
+alter table reln_training_logs
+  add constraint reln_training_logs_pk primary key (first_name,week,run)
+  using index;
+
+create table reln_training_logs_2 (
+  first_name varchar2(20) not null,
+  week number not null,
+  run number not null,
+  distance number not null,
+
+  pace number not null );
+
+alter table reln_training_logs_2
+  add constraint reln_training_logs_2_pk primary key (first_name,week,run)
+  using index;
+<font color="#FF0000"></font>
+
+</PRE>
+</DIV>
+<P>&nbsp;</P></BODY></HTML>
+

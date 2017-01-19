@@ -1,0 +1,62 @@
+<html>
+
+<head>
+
+  <title>Using a Cursor Expression as an actual parameter to a PL/SQL function</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Using a Cursor Expression as an actual parameter to a PL/SQL function</h1>
+
+
+  <p>A cursor variable (<i>i.e</i>. a variable of type <span class="Code_Emphasize">ref 
+    cursor</span>) points to an actual cursor, and may be used as a formal parameter 
+    to a PL/SQL procedure or function. A cursor expression defines an actual cursor, 
+    and as we have seen is a construct that&#146;s legal in a SQL statement. (Both 
+    these statements are true pre-Oracle9<i>i</i>.) So we would expect that it 
+
+    would be possible to invoke a PL/SQL procedure or function which has a formal 
+    parameter of type ref cursor with a cursor expression as its actual parameter, 
+    thus&#133;</p>
+  <pre>My_Function ( <span class="Code_Emphasize">cursor</span> ( select my_col from my_tab ) )</pre>
+  <p>In fact, this was not allowed under any circumstances pre-Oracle9<i>i</i> 
+    (<i>ORA-22902</i> ). New at Oracle9<i>i</i> it<i> is</i> now allowed under 
+
+    certain circumstances: when the function (it cannot be a procedure) is invoked 
+    in a top level SQL statement. Given a function that can be invoked thus&#133;</p>
+  <pre>declare
+  the_cursor sys_refcursor;
+  n number;
+begin
+  open the_cursor for
+
+    select my_col from my_tab;
+  n := My_Function ( the_cursor );
+  close the_cursor;
+end;
+/</pre>
+  <p>&#133;it can now be invoked&#133;</p>
+  <pre>select 'My_Function' My_Function from dual
+  where My_Function ( <span class="Code_Emphasize">cursor</span> ( select my_col from my_tab ) ) = 1;</pre>
+
+  <p>&#133;or&#133;</p>
+  <pre>select 'My_Function' My_Function from dual
+  order by My_Function ( <span class="Code_Emphasize">cursor</span> ( select my_col from my_tab ) );</pre>
+  <p>Most significantly, this syntax is now allowed in the invocation of a <i>table 
+    function</i> in the FROM list of a SELECT statement.</p>
+  <p><i>Note</i>: the following syntax&#133;</p>
+  <pre>begin
+  My_Function ( <span class="Code_Emphasize">cursor</span> ( select my_col from my_tab ) );
+end;</pre>
+
+  <p>&#133;is <i>not</i> allowed. (It fails with<i> &#147;PLS-00405: subquery 
+    not allowed in this context&#148;</i>.) </p>
+  <p>&nbsp;</p>
+</div>
+</body></html>
+

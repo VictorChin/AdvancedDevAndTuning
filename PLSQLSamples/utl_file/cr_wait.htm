@@ -1,0 +1,54 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><pre>Set ServerOutput On
+
+create or replace <tt>package Wait</tt> is
+
+  procedure Go;
+  procedure Finish;
+end Wait;
+/
+Show Errors
+
+
+create or replace package body Wait is
+  g_pipe_name constant varchar2(30) := 'Slow_Motion';
+
+  <tt>procedure Go</tt> is
+    v_dummy integer; v_item varchar2(4000);
+
+  begin
+    Dbms_Pipe.Purge ( pipename => g_pipe_name );
+
+    <span class="Code_Comment">-- The following call to Receive_Message will
+    -- wait until another session calls Wait.Finish</span>
+    v_dummy := Dbms_Pipe.Receive_Message ( pipename => g_pipe_name );
+    Dbms_Pipe.Unpack_Message ( item => v_item );
+
+  end Go;
+
+  <tt>procedure Finish</tt> is
+    v_dummy integer;
+  begin
+    Dbms_Pipe.Pack_Message ( item => 'stop' );
+    v_dummy := Dbms_Pipe.Send_Message ( pipename => g_pipe_name );
+  end Finish;
+
+end Wait;
+/
+Show Errors
+grant execute on Wait to public;
+</pre>
+</body>
+</html>
+

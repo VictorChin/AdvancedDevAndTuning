@@ -1,0 +1,77 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- DELETE RETURNs many rows
+
+  -- static SQL
+  -- fails at 9.2.0 with PL/SQL: ORA-00936:
+  -- missing expression
+  --
+  -- <b>CANNOT AVOID NAMING COLUMNS YET</b>
+
+  --</span>
+  v_avg_hire_date employees_0.hire_date%type := '25-JUN-97';
+  v_emprecs Emp_Util.emprec_tab_t;
+begin
+  delete from employees_0 where hire_date < = v_avg_hire_date
+    returning * bulk collect into v_emprecs
+
+    <span class="Code_Comment">/* this may or may not be the syntax that is supported in a later realease */</span>;
+end;
+/
+<span class="Code_Comment">-- ERROR at line N:</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- <b>WORKAROUND</b>
+  -- List all the columns for RETURNING in the SQL
+  -- target out-bind CAN be a RECORD
+
+  -- fails at 9.0.1 with PLS-00597:
+  -- expression 'V_EMPRECS' in the INTO list is of wrong type</span>
+  v_avg_hire_date employees_0.hire_date%type := '25-JUN-97';
+  v_emprecs Emp_Util.emprec_tab_t;
+begin
+  delete from employees_0 where hire_date < = v_avg_hire_date
+    returning
+      employee_id,
+      first_name,
+
+      last_name,
+      email,
+      phone_number,
+      hire_date,
+      job_id,
+      salary,
+      commission_pct,
+      manager_id,
+      department_id
+    bulk collect into v_emprecs;
+
+  Emp_Util.Show_All ( v_emprecs );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

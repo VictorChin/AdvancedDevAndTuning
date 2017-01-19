@@ -1,0 +1,88 @@
+<html>
+
+<head>
+
+  <title>Piping data from one Table Function to the next - New in Oracle9i</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Piping data from one Table Function to the next - New in Oracle9<i>i</i></h1>
+
+
+  <p>A table function may now be defined with an input parameter of type <span class="Code_Emphasize">ref 
+    cursor</span> and invoked with a cursor expression as the actual parameter. 
+    Consider the following&#133;</p>
+  <pre>create or replace function Mappings_Fn ( <span class="Code_Emphasize">p_input_rows in sys_refcursor</span> )
+  return My_Types.lookups_tab
+
+  pipelined
+is
+  v_in_row My_Types.lookup_row;
+  v_out_row My_Types.lookup_row;
+begin
+<span class="Updated">/*
+
+  The following causes...
+  PLS-00361: IN cursor 'P_INPUT_ROWS' cannot be OPEN'ed
+  (The system opens the cursor on invoking the function.)
+*/
+--open p_input_rows;</span>
+  loop
+    <span class="Code_Emphasize">fetch p_input_rows into v_in_row</span><b>;</b>
+
+    exit when p_input_rows%notfound;
+
+    case v_in_row.idx
+      when 1 then v_out_row.idx := 1*2; v_out_row.text := 'was one';
+      when 2 then v_out_row.idx := 2*3; v_out_row.text := 'was TWO';
+      when 3 then v_out_row.idx := 3*4; v_out_row.text := 'was three';
+      when 4 then v_out_row.idx := 4*5; v_out_row.text := 'was FOUR';
+      when 5 then v_out_row.idx := 5*6; v_out_row.text := 'was five';
+
+      when 6 then v_out_row.idx := 6*7; v_out_row.text := 'was SIX';
+      when 7 then v_out_row.idx := 7*8; v_out_row.text := 'was seven';
+      else        v_out_row.idx :=
+                     v_in_row.idx*10;   v_out_row.text := 'was other';
+    end case;
+    pipe row ( v_out_row );
+  end loop;
+  close p_input_rows;
+  return;
+
+end Mappings_Fn;
+/</pre>
+  <p><br>
+    Suppose <span class="Code_Emphasize">t</span> is a table which supports a 
+    select list compatible with <span class="Code_Emphasize">My_Types.lookup_row</span>. 
+    We can now invoke the table function thus&#133;<br>
+  </p>
+  <pre>select * from table ( Mappings_Fn ( <span class="Code_Emphasize">cursor ( select idx, text from t )</span> ) );
+</pre>
+  <p>Of course, <span class="Code_Emphasize">t</span> might have been a view defined 
+
+    thus&#133;<br>
+  </p>
+  <pre>create or replace view t as
+  select * from table ( Lookups_Fn() );</pre>
+  <p>&#133;which implies the more compact syntax&#133;<br>
+  </p>
+  <pre>create or replace view v as
+  select *
+    from table ( Mappings_Fn ( cursor ( select * from table ( Lookups_Fn() ) ) ) );
+</pre>
+  <p>Data can be piped from one to the next of an arbitrary number of table functions 
+
+    daisy-chained in succession. And due to the pipelining feature storage of 
+    intermediate results is avoided. Table functions can thus be used to implement 
+    the <i>Extraction, Transformation and Load</i> operation (<i>a.k.a</i>. ETL) 
+    for building a datawarehouse from OLTP data. In the limit, the extraction 
+    table function would access a foreign data source as discussed above.</p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

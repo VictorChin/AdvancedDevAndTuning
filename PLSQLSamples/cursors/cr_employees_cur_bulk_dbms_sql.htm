@@ -1,0 +1,98 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+&nbsp;
+create or replace <span class="Code_Emphasize">package Employees_Cur_Bulk_Dbms_Sql</span> is
+  procedure Set_Up_Statement;
+  function Fetch_All_Rows ( p_department_id in employees.department_id%type )
+    return Dbms_Sql.Varchar2_Table;
+
+  procedure Free_Resources;
+end Employees_Cur_Bulk_Dbms_Sql;
+/
+Show Errors
+
+create or replace <span class="Code_Emphasize">package body Employees_Cur_Bulk_Dbms_Sql</span> is
+
+  g_cur integer;
+  g_stmt constant varchar2(32000) :=
+    'select last_name from employees where department_id = :department_id';
+  g_start_at constant number := 1;
+
+  <span class="Code_Comment">-- This is a naive implementation just to illustrate the syntax.
+  -- It assumes that the predicate will never select more than 100000 rows
+
+  -- and fetches them all in one call to Fetch_Rows</span>
+  g_rows_requested  constant number := 100000;
+
+  <span class="Code_Comment">-- Define_Array and Column_Value non-negotiably
+  -- require parameters of type Varchar2_Table</span>
+  g_last_names_tab Dbms_Sql.Varchar2_Table;
+
+  <span class="Code_Emphasize">procedure Set_Up_Statement</span> is
+
+  begin
+    g_cur := Dbms_Sql.Open_Cursor;
+    Dbms_Sql.Parse (
+      c             => g_cur,
+      statement     => g_stmt,
+      language_flag => Dbms_Sql.Native );
+    Dbms_Sql.Define_Array (
+      c             => g_cur,
+      position      => 1,
+
+      c_tab         => g_last_names_tab,
+      cnt           => g_rows_requested,
+      lower_bound   => g_start_at );
+  end Set_Up_Statement;
+
+  <span class="Code_Emphasize">function Fetch_All_Rows</span> ( p_department_id in employees.department_id%type )
+    return Dbms_Sql.Varchar2_Table is
+    v_junk integer;
+    v_rows_returned number;
+  begin
+
+    Dbms_Sql.Bind_Variable (
+      c     => g_cur,
+      name  => ':department_id',
+      value => p_department_id );
+    v_junk := Dbms_Sql.Execute ( c => g_cur );
+
+    v_rows_returned := Dbms_Sql.Fetch_Rows ( c => g_cur );
+    <span class="Code_Emphasize">if not v_rows_returned < g_rows_requested then
+      Raise_Application_Error ( -20000, 'Program doesn''t cater for so many rows' ); end if;</span>
+    Dbms_Sql.Column_Value ( c => g_cur, position => 1, c_tab => g_last_names_tab );
+
+
+    return g_last_names_tab;
+  exception when others then
+    if Dbms_Sql.Is_Open ( g_cur ) then
+      Dbms_Sql.Close_Cursor ( g_cur );
+    end if;
+    raise;
+  end Fetch_All_Rows;
+
+  <span class="Code_Emphasize">procedure Free_Resources</span> is
+  begin
+    Dbms_Sql.Close_Cursor ( c => g_cur );
+  end Free_Resources;
+
+end Employees_Cur_Bulk_Dbms_Sql;
+/
+Show Errors
+</pre>
+</div></body></html>
+

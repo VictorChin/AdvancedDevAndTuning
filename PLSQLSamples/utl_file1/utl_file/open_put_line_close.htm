@@ -1,0 +1,95 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<pre>Set ServerOutput On
+declare
+
+  v_line           varchar2(32767);
+  c_location       constant varchar2(80) := 'UTL_FILE_TEST'
+                                            <span class="Code_Comment">/* new in 9.2.0 - use a DIRECTORY */</span>;
+  c_filename       constant varchar2(80) := 'test.txt';
+  v_handle         <span class="Code_Emphasize">Utl_File.File_Type</span>;
+
+
+  procedure Show_Is_Open is begin
+    case <span class="Code_Emphasize">Utl_File.Is_Open ( file =&gt; v_handle )</span>
+      when true then Dbms_Output.Put_Line ( 'open' );
+      else           Dbms_Output.Put_Line ( 'closed' );
+    end case;
+
+  end Show_Is_Open;
+
+  procedure Put_Line is begin
+    <span class="Code_Emphasize">Utl_File.Put_Line (
+      file     =&gt; v_handle,
+      buffer   =&gt; 'Hello world',
+     autoflush =&gt; false )</span>;
+
+  end Put_Line;
+
+begin
+  <span class="Code_Comment">-- Oracle recommends that you always use max_linesize =&gt; 32767
+  -- This is a &quot;magic number&quot; which prevents error if the
+  -- linesize exceeds max_linesize (character file) or if the file size
+  -- exceeds max_linesize (binary file).
+  --
+
+  -- If the file is treated as character data, then max_linesize must be
+  -- no smaller than the longest line. Else exception when a line
+  -- is attempted read whose length exceeds max_linesize
+  -- UNLESS max_linesize is 32767
+  --
+  -- If the file is treated as binary data, then max_linesize must be
+  -- no smaller than the size of the file
+  -- UNLESS max_linesize is 32767</span>
+&nbsp;
+
+  v_handle := <span class="Code_Emphasize">Utl_File.Fopen (
+    location    =&gt; c_location,
+    filename    =&gt; c_filename,
+    open_mode   =&gt; 'w'</span> <span class="Code_Comment">/* write over any existing file with this name */</span>,
+    <span class="Code_Emphasize">max_linesize =&gt; 32767 )</span>;
+<span class="Code_Comment">--</span>  max_linesize =&gt; 32768 ) <span class="Code_Comment">/* uncomment to see Utl_File.Invalid_Maxlinesize */</span>;
+
+  Show_Is_Open;
+  Put_Line;
+  <span class="Code_Emphasize">Utl_File.Fclose ( file =&gt; v_handle )</span>;
+
+  Show_Is_Open;
+<span class="Code_Comment">--</span>Put_Line <span class="Code_Comment">/* uncomment to see Utl_File.Invalid_Filehandle */</span>;
+
+exception
+  when
+    <span class="Code_Comment">-- ORA-29287: invalid maximum line size</span>
+    <span class="Code_Emphasize">Utl_File.Invalid_Maxlinesize</span>
+  then
+    <span class="Code_Comment">-- Fclose_All closes all open files for this session.
+    -- It is for cleanup use only. File handles will not be cleared
+    -- (Is_Open will still indicate they are valid)</span>
+
+    <span class="Code_Emphasize">Utl_File.Fclose_All</span>;
+    Raise_Application_Error ( -20000, 'Invalid_Maxlinesize trapped' );
+
+  when
+    <span class="Code_Comment">-- ORA-29282: invalid file ID</span>
+    <span class="Code_Emphasize">Utl_File.Invalid_Filehandle</span>
+  then
+    <span class="Code_Emphasize">Utl_File.Fclose_All</span>;
+    Raise_Application_Error ( -20000, 'Invalid_Filehandle trapped' );
+end;
+/
+</pre>
+
+</body>
+</html>
+

@@ -1,0 +1,95 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<pre>Set ServerOutput On
+&nbsp;
+
+<span class="Code_Comment">-- Demonstrate random picewise read from a binary file using Fseek & Get_Raw.
+--
+-- Create a file with Put_Raw, writing a buffer of constant length with each successive call.
+-- This is conveniently done for this example by casting a CHAR to a RAW.
+--
+
+-- Re-open the file for reading and use Fseek to position at the start of a record
+-- and Get_Raw to read one record.</span>
+&nbsp;
+declare
+  v_record        char(80);
+  c_record_size   constant binary_integer := 80;
+
+  v_raw           raw(32767);
+  v_raw_size      constant binary_integer := 32767;
+
+  v_handle        Utl_File.File_Type;
+  c_location      constant varchar2(80) := 'UTL_FILE_TEST';
+  c_filename      constant varchar2(80) := 'dest.jpg';
+
+
+  procedure Put_Raw ( p_text in varchar2 ) is begin
+    v_record := p_text;
+    v_raw := Utl_Raw.Cast_To_Raw ( v_record );
+    Utl_File.Put_Raw (
+      file      => v_handle,
+      buffer    => v_raw,
+      autoflush => false );
+  end Put_Raw;
+
+
+  procedure Get_Raw ( p_offset in binary_integer ) is begin
+    Utl_File.Fseek (
+      file            => v_handle,
+      absolute_offset => p_offset );
+
+    Utl_File.Get_Raw (
+      file   => v_handle,
+      buffer => v_raw,
+
+      len    => c_record_size );
+
+    Dbms_Output.Put_Line (
+      Utl_Raw.Cast_To_Varchar2 ( v_raw ) );
+  end Get_Raw;
+
+begin
+  v_handle := Utl_File.Fopen (
+    location    => c_location,
+    filename    => c_filename,
+
+    open_mode   => 'w' /* Create for writing */,
+    max_linesize => v_raw_size );
+
+  Put_Raw ( 'Mary had a little lamb' );
+  Put_Raw ( 'The cat sat on the mat' );
+  Put_Raw ( 'The quick brown fox jumped over the lazy dog' );
+
+  Utl_File.Fclose ( file => v_handle );
+
+  v_handle := Utl_File.Fopen (
+    location    => c_location,
+
+    filename    => c_filename,
+    open_mode   => 'r' /* Re-open for reading */,
+    max_linesize => v_raw_size );
+
+  Get_Raw ( 2*c_record_size-1 );
+  Get_Raw ( 0 );
+
+  Utl_File.Fclose ( file => v_handle );
+end;
+/
+
+</pre>
+
+</body>
+</html>
+

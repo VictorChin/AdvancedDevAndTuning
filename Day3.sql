@@ -64,7 +64,25 @@ EXCEPTION
       RAISE;
 END;  
 
-EXECUTE ENABLE_DEBUGGING('HR');
+
+grant debug connect session to OE;
+grant debug any procedure to OE;
+EXECUTE ENABLE_DEBUGGING('OE');
 
 alter user OE identified by oracle account unlock;
 grant dba to OE;
+
+Create or replace Function GetCompensation(empid number) return number 
+--RESULT_CACHE RELIES_ON (Employees)
+IS
+v_comp number;
+Begin
+  Select Salary*(1+NVL(Commission_PCT,0)) into v_comp 
+  from hr.employees
+  where employee_id = empid;
+  return v_comp;
+End;
+
+/
+
+select GetCompensation(Employee_ID),First_Name from Hr.Employees;

@@ -1,0 +1,51 @@
+<html>
+
+<head>
+
+  <title>Using CASE Expressions in PL/SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div"> 
+  <pre>-- Connect programmer/p@9i
+
+set serveroutput on;  
+
+drop function <span class="Code_Emphasize">Get_Grade_Description</span>;
+
+create or replace <span class="Code_Emphasize">function Get_Grade_Description(grade IN VARCHAR2) </span>RETURN VARCHAR2 is
+
+  description VARCHAR2(15);
+begin
+<span class="Code_Comment">  -- use a CASE Expression to store the description for
+  -- the grade in a variable</span>
+  description := CASE grade
+                   WHEN 'A' THEN 'Excellent'
+
+                   WHEN 'B' THEN 'Very Good'
+                   WHEN 'C' THEN 'Good'
+                   WHEN 'D' THEN 'Fair'
+                   WHEN 'F' THEN 'Fail'
+                   ELSE 'No such grade'
+                 END;
+  <span class="Code_Comment">-- return the description</span>
+
+  return description;
+end Get_Grade_Description;
+/
+Show Errors
+
+select Get_Grade_Description('A') from dual
+/
+
+
+
+</pre>
+</div>
+</body></html>
+

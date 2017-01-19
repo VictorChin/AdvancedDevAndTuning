@@ -1,0 +1,134 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- UPDATE ... SET ROW for many rows, bulk syntax
+
+  -- dynamic SQL
+  -- fails at 9.2.0 with PLS-00457:
+  -- expressions have to be of SQL types
+  --
+  -- <b>NO FLAVOR OF EXECUTE IMMEDIATE IS SUPPORTED WITH A RECORD BIND YET</b>
+
+  --</span>
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+  type Employee_Id_Tab_t is table of employees.employee_id%type
+    index by binary_integer;
+  v_employee_ids Employee_Id_Tab_t;
+begin
+
+  for j in v_emprecs.first..v_emprecs.last loop
+    v_employee_ids(j) := v_emprecs(j).employee_id; end loop;
+
+  forall j in v_emprecs.first..v_emprecs.last
+    execute immediate '
+      update employees_0 set row = :emprec
+        where employee_id = :employee_id'
+
+      using v_emprecs(j), v_employee_ids(j);
+end;
+/
+<span class="Code_Comment">-- ERROR at line N:</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- <b>WORKAROUND</b>
+  -- Doesn't use RECORD bind so works pre 9.2.0</span>
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+
+  type Employee_Id_Tab_t    is table of employees_0.employee_id    %type index by binary_integer;
+
+  type First_Name_Tab_t     is table of employees_0.first_name     %type index by binary_integer;
+  type Last_Name_Tab_t      is table of employees_0.last_name      %type index by binary_integer;
+  type Email_Tab_t          is table of employees_0.email          %type index by binary_integer;
+  type Phone_Number_Tab_t   is table of employees_0.phone_number   %type index by binary_integer;
+  type Hire_Date_Tab_t      is table of employees_0.hire_date      %type index by binary_integer;
+  type Job_Id_Tab_t         is table of employees_0.job_id         %type index by binary_integer;
+  type Salary_Tab_t         is table of employees_0.salary         %type index by binary_integer;
+  type Commission_Pct_Tab_t is table of employees_0.commission_pct %type index by binary_integer;
+  type Manager_Id_Tab_t     is table of employees_0.manager_id     %type index by binary_integer;
+  type Department_Id_Tab_t  is table of employees_0.department_id  %type index by binary_integer;
+
+
+  v_employee_ids    Employee_Id_Tab_t;
+  v_first_names     First_Name_Tab_t;
+  v_last_names      Last_Name_Tab_t;
+  v_emails          Email_Tab_t;
+  v_phone_numbers   Phone_Number_Tab_t;
+  v_hire_dates      Hire_Date_Tab_t;
+  v_job_ids         Job_Id_Tab_t;
+  v_salaries        Salary_Tab_t;
+  v_commission_pcts Commission_Pct_Tab_t;
+  v_manager_ids     Manager_Id_Tab_t;
+
+  v_department_ids  Department_Id_Tab_t;
+begin
+  for j in v_emprecs.First..v_emprecs.Last
+  loop
+    v_employee_ids(j)    := v_emprecs(j).employee_id;
+    v_first_names(j)     := v_emprecs(j).first_name;
+    v_last_names(j)      := v_emprecs(j).last_name;
+    v_emails(j)          := v_emprecs(j).email;
+    v_phone_numbers(j)   := v_emprecs(j).phone_number;
+    v_hire_dates(j)      := v_emprecs(j).hire_date;
+    v_job_ids(j)         := v_emprecs(j).job_id;
+    v_salaries(j)        := v_emprecs(j).salary;
+
+    v_commission_pcts(j) := v_emprecs(j).commission_pct;
+    v_manager_ids(j)     := v_emprecs(j).manager_id;
+    v_department_ids(j)  := v_emprecs(j).department_id;
+  end loop;
+
+  forall j in v_emprecs.first..v_emprecs.last
+    execute immediate '
+      update employees_0 set
+        first_name        = :first_name,
+        last_name         = :last_name,
+        email             = :email,
+        phone_number      = :phone_number,
+        hire_date         = :hire_date,
+
+        job_id            = :job_id,
+        salary            = :salary,
+        commission_pct    = :commission_pct,
+        manager_id        = :manager_id,
+        department_id     = :department_id
+        where employee_id = :employee_id'
+      using
+        v_first_names(j),
+        v_last_names(j),
+        v_emails(j),
+        v_phone_numbers(j),
+        v_hire_dates(j),
+        v_job_ids(j),
+        v_salaries(j),
+
+        v_commission_pcts(j),
+        v_manager_ids(j),
+        v_department_ids(j),
+        v_employee_ids(j);
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

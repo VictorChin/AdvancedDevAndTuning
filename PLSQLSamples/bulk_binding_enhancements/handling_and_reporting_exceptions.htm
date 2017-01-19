@@ -1,0 +1,100 @@
+<html>
+
+<head>
+
+  <title>Handling and Reporting Exceptions</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" >
+  <h1>Handling and Reporting Exceptions</h1>
+
+
+  <p>Consider a program to insert the elements in a PL/SQL collection into a database
+    table. It&#146;s possible that some elements might fail and that the designer
+    would regard this as a non-fatal error and want to continue to insert subsequent
+    elements. The explicit row by row implementation would handle the exception,
+    and probably record it for subsequent review thus&#133;</p>
+
+  <pre>declare <span class="Code_Comment">/* relies on... create table t ( text varchar2(3) ) */</span>
+  type words_t is table of varchar2(10);
+  words words_t :=
+    words_t ( 'dog', 'fish', 'cat', 'ball', 'bat', 'spoke', 'pad' )
+    <span class="Code_Comment">/* 'ball' and 'spoke' will raise ORA-01401 */;</span>
+  n integer := 0;
+
+  type error_indexes_t is table of integer index by binary_integer;
+  error_indexes error_indexes_t;
+  type error_codes_t is table of varchar2(255) index by binary_integer;
+  error_codes error_codes_t;
+begin
+  for j in words.first..words.last
+    loop
+
+      begin
+        insert into t ( text ) values ( words(j) );
+      exception when others then
+      n := n+1; error_indexes(n) := j; error_codes(n) := SQLERRM;
+      end;
+    end loop;</pre>
+  <pre>  for j in 1..n
+    loop
+
+      Dbms_Output.Put_Line ( error_indexes(j) || ': ' || error_codes(j) );
+    end loop;
+end;</pre>
+  <p>Pre-Oracle9i there was no way to continue after a row-wise exception in the
+    bulk binding approach&#133;</p>
+  <pre>forall j in words.first..words.last
+  insert into t ( text ) values ( words(j) );</pre>
+  <p>&#133;and the effect of the<i> ORA-01401</i> on [what would be] just <i>some</i>
+    of the rows meant that no rows are inserted.</p>
+
+  <p>Oracle9i introduces the <b>save exceptions</b> syntax and the corresponding
+    &#147;<i>ORA-24381: error(s) in array DM</i>L&#148; exception. This allows
+    the implied loop to continue after row-wise failure&#133; </p>
+  <pre>forall j in words.first..words.last
+  <span class="Code_Emphasize">save exceptions</span> <span class="Code_Comment">/* new at 9<i>i</i> */</span>
+  insert into t ( text ) values ( words(j) );</pre>
+  <p>&#133;resulting in the successful insert of 'dog', 'cat', 'bat', 'pad'.</p>
+  <p>To complement this construct, the <b>sql%bulk_exceptions</b> collection allows
+    reporting of the erroring rows in the exception handler for <i>ORA-24381</i>
+    thus&#133;</p>
+
+  <pre>declare
+  type words_t is table of varchar2(10);
+  words words_t :=
+    words_t ( 'dog', 'fish', 'cat', 'ball', 'bat', 'spoke', 'pad' );
+  <span class="Code_Emphasize">bulk_errors exception;</span>
+  <span class="Code_Emphasize">pragma exception_init ( bulk_errors, -24381 );</span>
+begin
+  forall j in words.first..words.last
+    <span class="Code_Emphasize">save exceptions</span>
+    insert into t ( text ) values ( words(j) );
+exception when <span class="Code_Emphasize">bulk_errors</span> then
+
+  for j in 1..<span class="Code_Emphasize">sql%bulk_exceptions.count</span>
+  loop
+    Dbms_Output.Put_Line (
+    <span class="Code_Emphasize">sql%bulk_exceptions(j).error_index || ', ' ||</span>
+    Sqlerrm(<span class="Code_Emphasize">-sql%bulk_exceptions(j).error_code</span>) );
+  end loop;
+end;</pre>
+  <p>&#133;which produces&#133;</p>
+  <p><i>2: ORA-01401: inserted value too large for column<br>
+    4: ORA-01401: inserted value too large for column<br>
+    6: ORA-01401: inserted value too large for column</i></p>
+  <p>The construct is also supported in native dynamic SQL thus&#133;</p>
+
+  <pre>forall j in words.first..words.last
+  <span class="Code_Emphasize">save exceptions</span>
+  execute immediate 'insert into t ( text ) values ( :the_word )'
+  using words(j);</pre>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

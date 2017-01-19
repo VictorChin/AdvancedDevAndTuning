@@ -1,0 +1,228 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf540
+{\fonttbl\f0\froman\fcharset0 Times-Roman;\f1\fnil\fcharset0 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;\red0\green15\blue241;\red204\green204\blue204;\red128\green128\blue128;
+\red0\green0\blue0;\red255\green0\blue0;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc2\leveljcn2\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid0\'02\'05.;}{\levelnumbers\'01;}}{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc2\leveljcn2\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid0\'02\'05.;}{\levelnumbers\'01;}}{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc2\leveljcn2\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid0\'02\'05.;}{\levelnumbers\'01;}}{\listname ;}\listid3}
+{\list\listtemplateid4\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc2\leveljcn2\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid0\'02\'05.;}{\levelnumbers\'01;}}{\listname ;}\listid4}
+{\list\listtemplateid5\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc2\leveljcn2\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid0\'02\'05.;}{\levelnumbers\'01;}}{\listname ;}\listid5}
+{\list\listtemplateid6\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc2\leveljcn2\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid0\'02\'05.;}{\levelnumbers\'01;}}{\listname ;}\listid6}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}{\listoverride\listid4\listoverridecount0\ls4}{\listoverride\listid5\listoverridecount0\ls5}{\listoverride\listid6\listoverridecount0\ls6}}
+\margl1440\margr1440\vieww16560\viewh13820\viewkind0
+\deftab720
+\pard\pardeftab720\sa240\ql\qnatural
+
+\f0\fs20 \cf0 Technical Overview
+\fs24 \
+Regular expressions represent a powerful tool for describing and manipulating text data. These are supported by a wide variety of programming and scripting languages, text editors, and now by Oracle Database 10
+\i g
+\i0  SQL and PL/SQL.
+\f1 \uc0\u8232 
+\f0 It is a method for simple and complex patterns for searching and manipulating a text. The regular expression APIs facilitate to search, extract, format, and manipulate a text in the database.
+\f1 \uc0\u8232 \u8232 
+\f0 The newest Oracle Database release, Oracle Database 10g, implements regular expression support in the form of the following four new functions, which work equally well in SQL and PL/SQL:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\ql\qnatural
+\ls1\ilvl0\cf0 {\listtext	\'95	}REGEXP_LIKE - This is similar to the LIKE operator. Returns true if the first argument matches an expression\
+{\listtext	\'95	}REGEXP_REPLACE - This replaces a string with the given matching substring pattern\
+{\listtext	\'95	}REGEXP_INSTR - Returns the starting position of the first substring within a string that matches a regular expression\
+{\listtext	\'95	}REGEXP_SUBSTR - Returns the substring that matches a regular expression\
+\pard\pardeftab720\sa240\ql\qnatural
+\cf0 Regular expressions are extremely useful, because they allow programmers to work with text in terms of patterns. They are considered the most sophisticated means of performing operations such as string searching, manipulation, validation, and formatting in all applications that deal with text data. Also they are used in bioinformatics to assist with identifying DNA and protein sequences. Linguists use regular expressions to aid research of natural languages. The introduction of native regular expression support to SQL and PL/SQL in the Oracle Database revolutionizes the ability to search for and manipulate text within the database by providing expressive power in queries, data definitions and string manipulations.\
+Application Overview\
+In this sample application, we implement the usage of REGEXP_LIKE regular expression function with the scenario of user registration. When the application runs, it displays a form where the user can enter his details. Two stored procedures CHECK_EMAIL and CHECK_PHONE created in the database, use the REGEXP_LIKE function to evaluate the correctness of e-mail and phone number entered by the user. When the user submits the form, the DBManager class connects to the database and executes the two user define procedures by passing the required data. If the given data is not valid then the stored procedure throws a SQL error. This error is displayed to the user in the message field. If both email and phone are valid then the user data is inserted into the database. 
+\f1 \uc0\u8232 
+\f0 \
+Software Requirements\
+List the softwares required for configuring and running this sample application.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\ql\qnatural
+\ls2\ilvl0\cf2 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "http://www.oracle.com/technology/products/jdev/content.html"}}{\fldrslt \ul Oracle JDeveloper 10
+\i \ulnone g}}\cf0  or {\field{\*\fldinst{HYPERLINK "http://java.sun.com/products"}}{\fldrslt \cf2 \ul \ulc2 J2ESDK1.4.x}}\
+\ls2\ilvl0\cf2 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "http://www.oracle.com/technology/software/content.html"}}{\fldrslt \ul Oracle Database 10
+\i \ulnone g}}\cf0 \
+\ls2\ilvl0\cf2 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html"}}{\fldrslt \ul Oracle Database 10
+\i \ulnone g
+\i0 \ul  JDBC Driver}}\cf0  \
+\pard\pardeftab720\sa240\ql\qnatural
+\cf0 Terminology 
+\f1 \uc0\u8232 
+\f0 \
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth11140\trftsWidth3 \trbrdrt\brdrs\brdrw20\brdrcf4 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clcbpat3 \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx4320
+\clvertalc \clcbpat3 \clwWidth8580\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+
+\b \cf0 Term\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 Definition\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth11140\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx4320
+\clvertalc \clshdrawnil \clwWidth8580\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+
+\b0 \cf0 <SAMPLE_HOME>\cell 
+\pard\intbl\itap1\pardeftab720\sa240\ql\qnatural
+\cf0 The directory where the sample is extracted\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth11140\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalt \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx4320
+\clvertalt \clshdrawnil \clwWidth8580\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 <JAVA_HOME>\cell 
+\pard\intbl\itap1\pardeftab720\sa240\ql\qnatural
+\cf0 Directory where JAVA is installed\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth11140\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrb\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalt \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx4320
+\clvertalt \clshdrawnil \clwWidth8580\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 <ORACLE_HOME>\cell 
+\pard\intbl\itap1\pardeftab720\ql\qnatural
+\cf0 The directory where Oracle Database is installed\cell \lastrow\row
+\pard\pardeftab720\sa240\ql\qnatural
+\cf0 \
+Configuring the Application\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\ql\qnatural
+\ls3\ilvl0\cf0 {\listtext	\'95	}Unzip the downloaded\'a0{\field{\*\fldinst{HYPERLINK "http://www.oracle.com/technology/sample_code/tech/pl_sql/regexp/validation/regexpvalidate.zip"}}{\fldrslt \cf2 \ul \ulc2 RegExpValidate.zip}}. Extract the file contents into <SAMPLE_HOME> directory. 
+\f1 \uc0\u8232 
+\f0 This creates REGEXPValidate folder with all the source files.\
+{\listtext	\'95	}Open SQL prompt. Connect as scott/tiger and run the RegExp.sql script from <SAMPLE_HOME>/REGEXPValidate/config folder. This will create the necessary table and procedures used by this application. \
+{\listtext	\'95	}Edit REGEXPvalidate/config/Connection.properties file in your favorite editor. Change the 
+\i HostName
+\i0 , 
+\i Port, SID, UserName
+\i0  and\'a0
+\i Password
+\i0  to connect to your own database Example,
+\f1 \uc0\u8232 
+\f0 \
+            Hostname =  localhost (or name of the server where database is installed)\
+           SID = ORCL\
+           Port = 1521\
+           Username = Scott\
+           Password = tiger\
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth6840\trftsWidth3 \trmarl3860 \trmarr3880 \trbrdrt\brdrnil \trbrdrl\brdrnil \trbrdrt\brdrnil \trbrdrr\brdrnil 
+\clvertalt \clshdrawnil \clwWidth1100\clftsWidth3 \clheight780 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt40 \clpadl40 \clpadb40 \clpadr40 \gaph\cellx2880
+\clmrg \clvertalt \clshdrawnil \clwWidth1100\clftsWidth3 \clheight780 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt40 \clpadl40 \clpadb40 \clpadr40 \gaph\cellx5760
+\clmrg \clvertalt \clshdrawnil \clwWidth1100\clftsWidth3 \clheight780 \clmart10 \clmarl10 \clmarb10 \clmarr10 \clbrdrt\brdrnil \clbrdrl\brdrnil \clbrdrb\brdrnil \clbrdrr\brdrnil \clpadt40 \clpadl40 \clpadb40 \clpadr40 \gaph\cellx8640
+\pard\intbl\itap1\tx220\tx720\pardeftab720\li720\fi-720\sa240\ql\qnatural
+\ls3\ilvl0\cf0 \
+\cell 
+\pard\intbl\itap1\cell 
+\pard\intbl\itap1\cell \lastrow\row
+\pard\pardeftab720\sa240\ql\qnatural
+\cf0 Deploying and Running the Application\
+The application can be deployed and run in either of the following ways:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\ql\qnatural
+\ls4\ilvl0\cf2 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "http://www.oracle.com/technology/sample_code/tech/pl_sql/regexp/validation/readme.html#jdev"}}{\fldrslt \ul Run the Application using Oracle JDeveloper 10
+\i \ulnone g}}
+\f1 \cf6 \uc0\u8232 
+\f0 \cf0 \
+\ls4\ilvl0\cf2 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "http://www.oracle.com/technology/sample_code/tech/pl_sql/regexp/validation/readme.html#jdk"}}{\fldrslt \ul Run the Application using JDK}}\cf0 \
+\pard\pardeftab720\sa240\ql\qnatural
+\cf0 \
+\pard\pardeftab720\sa240\ql\qnatural
+
+\fs20 \cf0 Run the Application using JDeveloper 10
+\i g
+\i0\fs24 \
+This section describes the steps required in running this application using Oracle JDeveloper 10
+\i g
+\i0 .\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\ql\qnatural
+\ls5\ilvl0\cf0 {\listtext	\'95	}Open Oracle JDeveloper 10
+\i g
+\i0  and use 
+\i File/Open
+\i0  option to select the RegExpValidate.jws from the <SAMPLE_HOME>/RegExpValidate directory
+\f1 \uc0\u8232 
+\f0 \
+{\listtext	\'95	}Next, select 
+\i Project/Make RegExpValidate.jpr
+\i0  from main menu
+\f1 \uc0\u8232 
+\f0 \
+{\listtext	\'95	}Now, select 
+\i Run/Run RegExpValidate.jpr
+\i0  from main menu. This opens up the Registration Form frame.\
+\pard\pardeftab720\sa240\ql\qnatural
+
+\fs20 \cf0 Run the Application using JDK
+\fs24 \
+This section describes the steps involved in running this sample application.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\ql\qnatural
+\ls6\ilvl0\cf0 {\listtext	\'95	}Open the command prompt and change the working directory to <SAMPLE_HOME>/RegExpValidate/src\
+{\listtext	\'95	}Set the classpath to include JDBC driver library ( i;e classes12.jar or ojdbc14.jar ), Connection.properties, and the present working directory. For example, 
+\f1 \uc0\u8232 
+\f0 set CLASSPATH=d:\\<ORACLE_HOME>\\jdbc\\lib\\classes12.jar;<SAMPLE_HOME>/REGEXPValidate/config;. ;\
+{\listtext	\'95	}Compile the classes using the following command 
+\f1 \uc0\u8232 
+\f0 javac oracle/otnsamples/plsql/*.java \
+{\listtext	\'95	}Run the sample by issuing the following command
+\f1 \uc0\u8232 
+\f0 Java oracle.otnsamples.plsql.Registration \
+{\listtext	\'95	}This brings up the Registration Form frame. Enter the required values and "Submit" the form. \
+\pard\pardeftab720\sa240\ql\qnatural
+\cf0 Sample Application Files\'a0\
+This section will provide a tabular listing of the sample application files, along with their respective directory locations and a description of what they do in the overall scheme of the application.\
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth12260\trftsWidth3 \trbrdrt\brdrs\brdrw20\brdrcf4 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clcbpat3 \clwWidth4360\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx2880
+\clvertalc \clcbpat3 \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx5760
+\clvertalc \clcbpat3 \clwWidth5100\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+
+\b \cf0 Directory\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 File\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 Description\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth12260\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clshdrawnil \clwWidth4360\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx2880
+\clvertalc \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx5760
+\clvertalc \clshdrawnil \clwWidth5100\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\sa240\qc
+
+\b0 \cf0 REGEXPvalidate\\doc\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 readme.html\cell 
+\pard\intbl\itap1\pardeftab720\sa240
+\cf0 This file\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth12260\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clshdrawnil \clwWidth4360\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx2880
+\clvertalc \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx5760
+\clvertalc \clshdrawnil \clwWidth5100\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 REGEXPvalidate\\src\\oracle\\otnsamples\\plsql\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 *.java\cell 
+\pard\intbl\itap1\pardeftab720\ql\qnatural
+\cf0 Java source files used in this sample application\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth12260\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clshdrawnil \clwWidth4360\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx2880
+\clvertalc \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx5760
+\clvertalc \clshdrawnil \clwWidth5100\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 REGEXPvalidate\\config\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 Connection.properties\cell 
+\pard\intbl\itap1\pardeftab720\ql\qnatural
+\cf0 The properties file that holds the database details\cell \row
+
+\itap1\trowd \taflags0 \trgaph108\trleft-108 \trwWidth12260\trftsWidth3 \trbrdrl\brdrs\brdrw20\brdrcf4 \trbrdrb\brdrs\brdrw20\brdrcf4 \trbrdrr\brdrs\brdrw20\brdrcf4 
+\clvertalc \clshdrawnil \clwWidth4360\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx2880
+\clvertalc \clshdrawnil \clwWidth2080\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx5760
+\clvertalc \clshdrawnil \clwWidth5100\clftsWidth3 \clbrdrt\brdrs\brdrw20\brdrcf4 \clbrdrl\brdrs\brdrw20\brdrcf4 \clbrdrb\brdrs\brdrw20\brdrcf4 \clbrdrr\brdrs\brdrw20\brdrcf4 \clpadt200 \clpadl200 \clpadb200 \clpadr200 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 REGEXPvalidate\\config\cell 
+\pard\intbl\itap1\pardeftab720\qc
+\cf0 RegExp.sql\cell 
+\pard\intbl\itap1\pardeftab720\ql\qnatural
+\cf0 SQL file, used to create necessary tables and procedures to run this sample application.\cell \lastrow\row
+}

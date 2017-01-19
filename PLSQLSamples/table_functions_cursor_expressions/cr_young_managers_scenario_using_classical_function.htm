@@ -1,0 +1,69 @@
+<html>
+
+<head>
+
+  <title>YOUNG MANAGERS Scenario - Using Classical Function Where Clause</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3>-- Sample To Illustrate Table Functions And Cursor Expressions</h3>
+
+  <h4><i>-- &#147;YOUNG MANAGERS&#148; SCENARIO</i></h4>
+  <p>-- Find those managers in the employees table, the majority of whose direct 
+    reports were hired<br>
+    -- before the manager</p>
+  <p class="Updated"> -- USING CLASSICAL FUNCTION IN WHERE CLAUSE</p>
+
+  <p class="Updated"><br>
+    -- This scenario needs the <b>hr</b> sample schema that comes along with Oracle9i 
+    database <br>
+  </p>
+  <pre>-- Connect hr/hr@9i<br>set serveroutput on</pre>
+  <pre>
+
+drop function <span class="Code_Emphasize">Most_Reports_Before_Manager;</span>
+drop view <span class="Code_Emphasize">young_managers</span>;
+ 
+create or replace <span class="Code_Emphasize">function Most_Reports_Before_Manager</span>    (
+  p_manager_id in number,
+  p_manager_hire_date in date )
+  return number
+
+is
+  report_hire_date date;
+  before integer:=0;
+  after integer:=0;
+begin
+  for report in (
+    select hire_date, employee_id from employees where manager_id = p_manager_id )
+  loop
+
+    case report.hire_date &lt;= p_manager_hire_date
+      when true  then before := before + 1;
+      when false then after  := after + 1;
+    end case;
+  end loop;
+   
+  case ( before &gt; after ) and ( before+after &gt; 0 )
+    when true  then return 1;
+    when false then return 0;
+
+  end case;
+end Most_Reports_Before_Manager;
+/
+Show Errors
+   
+create or replace <span class="Code_Emphasize">view young_managers</span> as
+  select employee_id manager_employee_id
+    from employees managers
+    where Most_Reports_Before_Manager ( employee_id, hire_date ) = 1;</pre>
+</div>
+
+<p>&nbsp;</p></body></html>
+

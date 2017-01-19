@@ -1,0 +1,66 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" >
+
+
+
+  <h2>Benefiting from the cost-saving paradigm implicitly<br>
+    by using PL/SQL static SQL</h2>
+
+Compile the package
+
+<a href="Cr_Employees_Cur_Static_Sql.htm">
+<tt>Employees_Cur_Static_Sql</tt></a>
+which exposes just this API:
+<tt>Fetch_All_Rows</tt>.
+<p>
+Compare this with 
+
+<a href="Cr_Employees_Cur_Dbms_Sql.htm">
+<tt>Employees_Cur_Dbms_Sql</tt></a>.
+The API has been simplified
+and the implementation is much simpler.
+<p>
+Create the procedure
+<a href="Cr_Show_Rows_For_Dept_Static_Sql.htm">
+
+<tt>Show_Rows_For_Dept_Static_Sql</tt></a>.
+And as above, use two concurrent sessions connected as
+<tt>programmer</tt> and
+<tt>observer</tt>
+and step through this
+<a href="Test_Employees_Cur_Static_Sql.htm">test</a>.
+<p>
+The key to understanding the behavior is that the PL/SQL
+
+<tt>close</tt>
+statement for a static SQL cursor (as distinct from cursor variable)
+does not cause the same actions behind the scenes as does
+<tt>Dbms_Sql.Close_Cursor</tt>.
+Rather, it does a <b><i>soft close</i></b>, merely marking
+the cursor as a candidate for closing should that be necessary.
+This represents an optimistic approach: we expect a cursor to be used
+several times during a program's execution with different values
+for the in-bind variables.
+
+And so it's held in the <b><i>PL/SQL cursor cache</i></b> for potential re-use
+subject to usual LRU behavior.
+The size of the PL/SQL cursor cache is exactly equal to the
+system parameter
+<tt>open_cursors</tt>
+The details are explained in the comments in
+<a href="Cr_Employees_Cur_Static_Sql.htm">
+<tt>Employees_Cur_Static_Sql</tt></a>.
+</div></body></html>
+

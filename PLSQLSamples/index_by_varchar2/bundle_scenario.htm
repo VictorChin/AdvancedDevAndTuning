@@ -1,0 +1,79 @@
+<html>
+
+<head>
+
+  <title>Associative Arrays</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="width: 450pt; height: 734px" > 
+  <h2><i>Scenario:</i> bundles of items (<i>m:m</i>).<br>
+
+    List the duplicate bundles</h2>
+
+  <p>Consider an application which maintains items and allows users to create 
+    bundles of these items. Each item has various attributes (cost, no. in stock, 
+    etc). Each bundle has various attributes (customer, order date, etc). Each 
+
+    bundle may contain one or many items. Each item may be in one or many bundles. 
+  <p>The relational implementation has an <span class="Code_Emphasize">items</span> 
+    table and a <span class="Code_Emphasize">bundles</span> table. The <i>m:m</i> 
+    relatioship is implemented as the classical <span class="Code_Emphasize">intersections</span> 
+    table with columns <span class="Code_Emphasize">bundle_id</span> and <span class="Code_Emphasize">item_id</span>. 
+  <p>The bundle composition for a given <span class="Code_Emphasize">bundle_id</span> 
+
+    is the set of <span class="Code_Emphasize">item_id</span>'s it contains. 
+  <p>Do many bundles have the same composition? (Exactly the same <span class="Code_Emphasize">item_id</span>'s 
+    but in any order.)
+  <p>Generate a list of bundle compositions for each distinct composition that 
+    is contained in two or more bundles. For each, list the <span class="Code_Emphasize">bundle_id</span>'s 
+    that contain it. 
+  <ul class="Ul_1">
+
+    <li><a href="Cr_Bundles_Items_Tab.htm">Create the table</a>. (We need only 
+      the <span class="Code_Emphasize">intersections</span> table for this exercise.)
+With so little data, you can see the solution by eye...
+      <pre><span class="Code_Comment">Bundle composition  bundle_id list</span>
+<span class="Code_Emphasize">1+2                 4, 5, 7
+1+2+3               1, 2, 6</span></pre>
+    </li>
+    <li><a href="Cr_Bundles_Items_P1.htm">Naive PL/SQL implementation</a>. For 
+
+      each distinct <span class="Code_Emphasize">bundle_id</span> (outer cursor 
+      loop), get the list of <span class="Code_Emphasize">item_id</span>'s in 
+      order (inner cursor loop with <span class="Code_Emphasize">where</span> 
+      for this <span class="Code_Emphasize">bundle_id</span>). Concatenate the 
+      <span class="Code_Emphasize">item_id</span>'s into a string (the bundle 
+      composition), and store the <span class="Code_Emphasize">bundle_id</span> 
+      in an <i>associative array</i> indexed by bundle composition. As two or 
+      more <span class="Code_Emphasize">bundle_id</span>'s are found for the same 
+      bundle composition, concatenate them into a list at that array index. When 
+
+      done, report only those array elements whose <span class="Code_Emphasize">bundle_id</span> 
+      list has two or more members.<br>
+      &nbsp;</li>
+    <li><a href="Cr_Bundles_Items_P2.htm">Refined PL/SQL implementation</a>. Scan 
+      the <span class="Code_Emphasize">intersections</span> table just once, <span class="Code_Emphasize">order 
+      by bundle_id, item_id</span>. Detect when the <span class="Code_Emphasize">bundle_id</span> 
+      changes to get the <span class="Code_Emphasize">item_id</span>'s for each 
+      <span class="Code_Emphasize">bundle_id</span>. Else, same logic. The advantage 
+      is a single table scan rather than umpteen individual index lookup selects 
+      for each <span class="Code_Emphasize">bundle_id</span>. The control logic 
+
+      is a little bit more elaborate than in the naive implementation, but the 
+      logic for populating the associate array and for reporting is unchanged.<br>
+      &nbsp;</li>
+    <li>This scenario 
+      provides an example of a requirement which is very difficult to implement 
+      in pure SQL, and where the solution - if you do manage to debug it - can 
+      have dramatically worse performance characteristics than the PL/SQL solution.
+Completing it is left as an exercise.
+<a href="Cr_Bundles_Items_Sql.htm">Here's a start</a>.</li>
+  </ul>
+</div></body></html>
+

@@ -1,0 +1,113 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <h2>PL/SQL REF CURSORs don't (up to Oracle9<i>i</i>)<br>
+    implement the cost-saving paradigm</h2>
+
+
+Compile the package
+<a href="Cr_Employees_Cur_Ref_Cursor.htm">
+<tt>Employees_Cur_Ref_Cursor</tt></a>
+which again exposes just
+
+<tt>Fetch_All_Rows</tt>.
+<p>
+Compare this with 
+<a href="Cr_Employees_Cur_Static_Sql.htm">
+<tt>Employees_Cur_Static_Sql</tt></a>.
+The API is the same
+
+and the implementation is rather similar.
+However, the cursor is now a variable of type
+<tt>ref cursor</tt>
+rather than a regular cursor.
+<p>
+As the text of
+<tt>Employees_Cur_Ref_Cursor</tt>
+
+stands, there's no reason for using the
+<tt>ref cursor</tt>
+construct.
+You should imagine that the
+<tt>fetch</tt>
+statement is replaced with a call to a function
+with formal in-parameter of type
+<tt>ref cursor</tt>
+
+which returns
+<tt>Last_Names_Tab_t</tt>
+and which is invoked with the actual parameter
+<tt>c_employees</tt>.
+This function would encapsulate a re-usable
+transformation on rows with a given
+record signature which might be applied
+to data from two or more different actual tables.
+(To reinforce this, the formal in-parameter
+
+would be declared to be of a <i>strong</i> cursor type.)
+The select statement in question is known at compile time
+for the calling program,
+so there's no need for dynamic SQL,
+but it's not known at compile time for the generic transformation function.
+<p>
+Create the procedure
+<a href="Cr_Show_Rows_For_Dept_Ref_Cursor.htm">
+<tt>Show_Rows_For_Dept_Ref_Cursor</tt></a>.
+And as above, use two concurrent sessions connected as
+
+<tt>programmer</tt> and
+<tt>observer</tt>
+and step through this
+<a href="Test_Employees_Cur_Ref_Cursor.htm">test</a>.
+This shows that the PL/SQL
+<tt>close</tt>
+statement
+when its argument is a
+<tt>ref cursor</tt>
+does a <b><i>hard-close</i></b> (<i>ie</i> does the
+actions corresponding to
+
+<tt>Dbms_Sql.Close_Cursor</tt>.
+You can see this in &quot;slow motion&quot; by compiling
+the package
+<a href="Cr_Wait.htm">
+<tt>Wait</tt></a>
+and by activating the line
+<tt>Wait.Go</tt>
+in
+<a href="Cr_Employees_Cur_Ref_Cursor.htm">
+<tt>Employees_Cur_Ref_Cursor</tt></a>
+and running the test again.
+When
+
+<tt>Show_Rows_For_Dept_Ref_Cursor</tt>
+&quot;hangs&quot;, query
+<tt>open_cursor_sql_text</tt>
+from the session connected as
+<tt>observer</tt>.
+Then do...
+  <pre class="Code_Emphasize">
+begin programmer.Wait.Finish; end;</pre>
+...from the from the session connected as <tt>observer</tt>. and query <tt>open_cursor_sql_text</tt> 
+    again. You'll see that the PL/SQL cursor cache has a cursor for <tt>select 
+    last_name from employees...</tt> after the <tt>fetch</tt> statement completes, 
+    and that this vanishes as soon as the <tt>close</tt> statement completes. 
+  <p>
+
+<i>Note:</i> The compiler does have enough information
+to implement the cost-saving pardigm for a
+<tt>ref cursor</tt>
+opened with static SQL. However, up Oracle9<i>i</i>, this
+optimization has not been implemented.
+</div></body></html>
+

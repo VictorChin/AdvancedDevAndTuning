@@ -1,0 +1,35 @@
+<html>
+
+<head>
+
+  <title>Populating The Nested Table </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1> Populating The Nested Table </h1>
+
+
+  <p>The <a href="Cr_Procedure_To_Populate_Nested_Table.htm">sample script</a> 
+    illustrates the complete procedure to populate the Nested Table</p>
+  <p> The code has this general shape&#133;</p>
+  <pre>v_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );
+v_training_log(1) := weeks_running_t ( 
+
+                                       run_t ( 1, 6 ),
+                                       run_t ( 7, 7 ),
+                                       ...
+                                       run_t ( 18, 10 )
+                                     );
+v_training_log.extend;
+
+...
+insert into nested_training_logs ( first_name, training_log ) values
+  ( 'fred', v_training_log );</pre>
+  </div>
+</body></html>
+

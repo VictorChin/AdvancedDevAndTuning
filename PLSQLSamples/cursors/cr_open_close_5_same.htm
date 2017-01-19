@@ -1,0 +1,45 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+
+create or replace <span class="Code_Emphasize">procedure Open_Close_5_Same</span> is
+    <font color=red class="Code_Comment">-- This code subverts the benefit of the PL/SQL cursor cache
+    -- 'cos there's many cursors for one SQL statement</font>
+    cursor cur001 is select 'same' from dual;
+    cursor cur002 is select 'same' from dual;
+
+    cursor cur003 is select 'same' from dual;
+    cursor cur004 is select 'same' from dual;
+    cursor cur005 is select 'same' from dual;
+  begin
+    open  cur001;
+    close cur001;
+
+    open  cur002;
+    close cur002;
+    open  cur003;
+    close cur003;
+    open  cur004;
+    close cur004;
+    open  cur005;
+
+    close cur005;
+    <span class="Code_Comment">-- Good: opened cursors ARE closed.</span>
+end Open_Close_5_Same;
+/
+Show Errors
+</pre>
+</div></body></html>
+

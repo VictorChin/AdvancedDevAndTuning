@@ -1,0 +1,149 @@
+<html>
+
+<head>
+
+  <title>Table Function to "View" the Contents of the Relational Table as a Nested Table</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div"> 
+  <h3>-- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<br>
+
+    -- THE &quot;RUNNER'S TRAINING LOGS&quot; EXAMPLE SCENARIO</h3>
+  <h3><span class="Updated"><i>-- TABLE FUNCTION TO &quot;VIEW&quot; THE CONTENTS 
+    OF THE RELATIONAL <br>
+    -- TABLE AS A NESTED TABLE </i></span></h3>
+  <pre>-- Connect programmer/p@9i
+
+set serveroutput on
+
+create or replace <span class="Code_Emphasize">function Nested_Training_Logs_Fn</span>
+  ( p_reln_training_logs My_Types.cur_t )
+  return My_Types.nested_training_logs_tab_t
+  <font color="#FF0000">/* 
+
+    The algorithm depends on assuming that it receives rows ordered by
+    first_name, week, then run, and that all the rows for
+    a particular runner go consecutively to the same slave.
+    These declarations ensure this and remove the need for an
+    ORDER BY clause in the SELECT that's used to invoke this fucntion.
+  */</font>
+  order p_reln_training_logs by ( first_name, week, run )
+
+  parallel_enable ( partition p_reln_training_logs by range ( first_name ) )
+  pipelined
+is
+  g_in_row My_Types.reln_training_log_row_t;
+  g_out_row My_Types.nested_training_log_row_t;
+  g_weeks_running weeks_running_t;
+  g_training_log training_log_t;
+  g_first_time boolean := true;
+
+  g_got_a_row boolean;
+  g_new_week boolean;
+  g_new_runner boolean;
+  g_current_first_name reln_training_logs.first_name%type;
+  g_prev_first_name reln_training_logs.first_name%type;
+  g_current_week reln_training_logs.week%type;
+  g_prev_week reln_training_logs.week%type;</pre>
+  <pre>  <span class="Code_Emphasize">procedure Get_Next_Row</span> is begin
+    fetch p_reln_training_logs into g_in_row;
+
+    g_got_a_row := not p_reln_training_logs%notfound;
+    if g_got_a_row
+    then
+      case g_first_time
+        when true then
+          g_first_time := false;
+          g_new_runner := false;
+          g_new_week := false;
+        else
+          g_new_runner := g_prev_first_name &lt;&gt; g_in_row.first_name;
+
+          g_new_week := case g_new_runner
+          when true then true
+          else g_prev_week &lt;&gt; g_in_row.week
+          end;
+      end case;
+      g_prev_first_name := g_in_row.first_name;
+      g_prev_week := g_in_row.week;
+    end if;
+    return;
+  end Get_Next_Row;</pre>
+  <pre>  <span class="Code_Emphasize">function Got_Next_Runner</span> return boolean is begin
+
+    g_current_first_name := g_in_row.first_name;
+    g_new_runner := false;
+    return g_got_a_row;
+  end Got_Next_Runner;</pre>
+  <pre>  <span class="Code_Emphasize">function Got_Next_Week</span> return boolean is begin
+    g_current_week := g_in_row.week;
+    g_new_week := false;
+    return ( not g_new_runner ) and g_got_a_row;
+  end Got_Next_Week;</pre>
+  <pre>  <span class="Code_Emphasize">function Got_Next_Run</span> return boolean is begin
+    return ( not g_new_week ) and g_got_a_row;
+  end Got_Next_Run;</pre>
+
+  <pre>  <span class="Code_Emphasize">procedure New_Training_Log</span> is begin
+    g_training_log := null;
+  end New_Training_Log;</pre>
+  <pre>  <span class="Code_Emphasize">procedure New_Weeks_Running</span> is begin
+    g_weeks_running := null;
+  end New_Weeks_Running;</pre>
+  <pre>  <span class="Code_Emphasize">procedure Store_This_Run</span> is begin
+    if g_weeks_running is null
+    then
+      g_weeks_running := weeks_running_t ( run_t ( 0, 0 ) );
+    else
+      g_weeks_running.extend;
+    end if;
+
+    g_weeks_running ( g_in_row.run ):=
+    run_t ( g_in_row.distance, g_in_row.pace );
+  end Store_This_Run;</pre>
+  <pre>  <span class="Code_Emphasize">procedure Store_This_Weeks_Running</span> is begin
+    if g_training_log is null
+    then
+      g_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );
+    else
+      g_training_log.extend;
+    end if;
+    g_training_log ( g_current_week ):= g_weeks_running;
+  end Store_This_Weeks_Running;</pre>
+  <pre>  <span class="Code_Emphasize">procedure OutPut_This_Runner</span> is begin
+    g_out_row.first_name := g_current_first_name;
+
+    g_out_row.training_log := g_training_log;
+  end OutPut_This_Runner;</pre>
+  <pre>begin
+  Get_Next_Row();
+  while Got_Next_Runner()
+  loop
+    New_Training_Log;
+    while Got_Next_Week()
+    loop
+      New_Weeks_Running;
+      while Got_Next_Run()
+      loop
+        Store_This_Run;
+        Get_Next_Row();
+      end loop;
+
+      Store_This_Weeks_Running;
+    end loop;
+    OutPut_This_Runner; pipe row ( g_out_row ); 
+  end loop;
+  close p_reln_training_logs;
+  return;
+end Nested_Training_Logs_Fn;
+/
+Show Errors</pre>
+</div>
+<p>&nbsp;</p></body></html>
+

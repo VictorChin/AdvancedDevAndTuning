@@ -1,0 +1,89 @@
+<html>
+
+<head>
+
+  <title>Enhancements to the Utl_Http Package </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1>Enhancements to the Utl_Http Package </h1>
+  <h2>Overview</h2>
+
+  <p>The B2B component of eBusiness depends on automatic communication between 
+    business sites across the public internet. The HTTP transport mechanism is 
+    used to send the request and to receive the reply. Though partners in a particular 
+    B2B relationship could define standards for their protocols from scratch, 
+    the<i> de facto </i>standard is emerging to use XML for both request and reply. 
+
+    Of course we can expect increasing standardization in future, extending to 
+    cover the specifics of the XML encoding.<br>
+    <br>
+    Oracle has technology to allow both the sender and the receiver straightforwardly 
+    to implement their services backed by an Oracle9i database, and using only 
+    PL/SQL on top of productized APIs. The simplest way to code the receiver is 
+
+    to use <b>mod_plsql</b>, either directly via the HTTP listener component of 
+    the Oracle9i database or via Oracle9iAS and to write a PL/SQL database procedure 
+    which is exposed as the URL representing the request. The XML document expressing 
+    the request is decoded, the database is accessed to supply the reply information 
+    and is updated appropriately, and the reply is encoded and sent using <b>Htp.Print</b> 
+    or similar. This end of the dialogue is beyond the scope of this documentation.<br>
+    <br>
+
+    The request is typically sent (or more likely queued and then sent later) 
+    in the body of a database trigger which fires on an event like a stock level 
+    falling below the defined threshold for reordering. The XML document expressing 
+    the request is encoded by accessing current database values and sent, typically 
+    using the &quot;POST&quot; method to ensure that an arbitrarily large XML 
+    request can be sent piecewise. Authentication information (<i>e.g. </i>username 
+    and password) is likely to be required as part of the request. And possibly 
+    the request header will need to be explicitly set to reflect an agreed protocol. 
+
+    Then the response is (started to be) fetched and its status code is checked 
+    for errors and its header is checked for protocol compliance. Then the arbitrarily 
+    large XML document expressing the response itself is fetched piecewise, decoded, 
+    and the information is used to update the database. A robust implementation 
+    is likely to have a component which automatically sends a generated email 
+    to a system administrator in the event of an error. Oracle has features for 
+    encoding and decoding XML, and for sending email from the database, but these 
+    are beyond the scope of this documentation.<br>
+    <br>
+
+    Depending on the design of the workflow, state may need to be represented. 
+    For example, a customer might request a price and delivery date for a given 
+    quantity of items from several vendors. Each vendor would reply with price 
+    and delivery date and with an &quot;offer good to&quot; date. When the customer 
+    site sends a request to the selected vendor to place a definite order, it 
+    will need to refer to the specific offer. If such a scheme is used within 
+    a single organization, for example to communicate between databases at local 
+    offices in different countries, then the communication protocol can be designed 
+    from scratch, and most likely an offer reference number will be exchanged 
+    as part of the XML encoding. However, if the partners in the B2B relationship 
+
+    are completely independent, and especially if the relationship is casual, 
+    then the requestor will have to follow whatever protocol the receiver has 
+    defined. It might be that the receiver has implemented the state which represents 
+    an ongoing dialogue using cookies. In this case the sender will need to handle 
+    these programmatically.</p>
+  <h3>Oracle9<i>i</i> Enhancements</h3>
+  <ul>
+    <li><a href="General_Enhancements.htm">General</a><br>
+    </li>
+    <li><a href="Encoding_Character_Data_Enhancements.htm">Encoding of Character 
+      Data </a></li>
+
+  </ul>
+  <h2>Business Benefits</h2>
+  <ul>
+    <li>Substantially increased functionality allowing implementation of fully 
+      functional B2B applications<br>
+    </li>
+  </ul>
+</div>
+</body></html>
+

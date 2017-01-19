@@ -1,0 +1,42 @@
+<html>
+
+<head>
+
+  <title>End-To-End Test</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1> End-To-End Test </h1>
+
+
+  <p>The<a href="Cr_End_To_End.htm"> sample script</a> illustrates the complete 
+    procedure for End-To-End Test. <br>
+  </p>
+  <p>We started with data persistently stored in the nested representation, <b>n</b>. 
+    In this test, we populate a table for the relational representation,<b> r</b>, 
+
+    by&#133;</p>
+  <pre>insert into r ( select * from &lt; N_to_R_Tab_Fn selecting from n &gt; )</pre>
+  <p>The we populate a second table for the nested representation,<b> n2</b> by&#133;</p>
+  <pre>insert into n2 ( select * from &lt; R_to_N_Tab_Fn selecting from r &gt; )</pre>
+  <p>&#133;and then populate a second table for the relational representation, 
+    <b>r2</b> by running <b>N_to_R_Tab_Fn</b> on <b>n2</b>, leveraging the fact 
+
+    that <b>N_to_R_Tab_Fn</b> has a <b>ref cursor</b> input parameter. Then we 
+    do&#133;</p>
+  <pre>select * from r2 minus select * from r;
+     select * from r minus select * from r2;</pre>
+  <p>&#133;and confirm that the two tables<b> r </b>and <b>r2</b> are identical.</p>
+  <p></p>
+  <p><br>
+
+  </p>
+  <p>&nbsp; </p>
+  </div>
+</body></html>
+

@@ -1,0 +1,97 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body><div class="Content_Div"><pre>Connect programmer/p@9i
+
+create or replace <span class="Code_Emphasize">procedure Generate_Open_Many_Cursors</span> ( 
+
+  p_number in pls_integer,
+  p_close in boolean,
+  p_same_sql in boolean )
+is
+  v_proc_name varchar2(30);
+
+  v_sqlstr varchar2 (32767);
+
+  procedure Add_line ( p_line in varchar2 ) is begin
+    v_sqlstr := v_sqlstr || chr(10) || p_line;
+  end Add_line;
+
+
+  function Padded_To_Char ( p_n in pls_integer ) return varchar2 is begin    
+    case
+      when p_n <  10 then return '00' || To_Char(p_n);
+      when p_n < 100 then return  '0' || To_Char(p_n);
+      else                return         To_Char(p_n);
+    end case;
+  end Padded_To_Char;
+
+
+begin
+  v_proc_name := 'Open_' || To_Char(p_number);
+  if p_close then
+    v_proc_name := Replace ( v_proc_name, 'Open_', 'Open_Close_' ); end if;
+  case p_same_sql
+    when true then v_proc_name := v_proc_name || '_Same';
+    else           v_proc_name := v_proc_name || '_Different';
+
+  end case;
+  v_sqlstr :=
+    'create or replace procedure ' || v_proc_name || ' is';
+
+  if p_same_sql then
+    Add_line ( '    -- This code subverts the benefit of the PL/SQL cursor cache' );
+    Add_line ( '    -- ''cos there''s many cursors for one SQL statement' ); end if;
+
+  for indx in 1 .. p_number
+
+  loop
+    case p_same_sql
+      when false then
+        Add_line (
+          '    cursor cur' || Padded_To_Char(indx) || ' is select ''' || Padded_To_Char(indx) || ''' from dual;' );
+      else
+        Add_line (
+          '    cursor cur' || Padded_To_Char(indx) || ' is select ''same'' from dual;' );
+    end case;
+  end loop;
+
+
+  Add_line ( 'begin' );
+
+  for indx in 1 .. p_number
+  loop
+    Add_line (
+      '    open cur' || Padded_To_Char(indx) || ';' );
+    if p_close then
+      Add_line (
+        '    close cur' || Padded_To_Char(indx) || ';' ); end if;
+  end loop;
+
+
+  case p_close
+    when false then
+      Add_line ( '    -- Bad: opened cursors are NOT closed.' );
+    else
+      Add_line ( '    -- Good: opened cursors ARE closed.' );
+  end case;
+
+  Add_line ( 'end ' || v_proc_name || ';' );
+
+  execute immediate v_sqlstr;
+end Generate_Open_Many_Cursors;
+
+/
+Show Errors
+</pre>
+</div></body></html>
+

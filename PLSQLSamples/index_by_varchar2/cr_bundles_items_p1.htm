@@ -1,0 +1,90 @@
+<html>
+
+<head>
+
+  <title>Associative Arrays</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div">
+  <pre>procedure P1 is
+
+  v_bundle varchar2(4000)
+    <span class="Code_Comment">/* the composition of a bundle */</span>;
+  type bundle_tab_t is table of varchar2(4000)
+    index by v_bundle%type;
+  v_bundle_tab bundle_tab_t
+
+    <span class="Code_Comment">/* each element stores the list of bundle_id's
+       for a given bundle composition */</span>;
+
+  v_first boolean;
+  v_null_element boolean;
+  t varchar2(4000);
+
+
+  Procedure Record_Bundle_Id (
+    p_bundle in v_bundle%type,
+    p_bundle_id in intersections.bundle_id%type )is
+  begin
+    begin
+      t := v_bundle_tab(p_bundle);
+
+      v_null_element := false;
+    exception when no_data_found
+      then v_null_element := true;
+    end;
+
+    <span class="Code_Comment">-- start or add to the comma-separated list of bundle_id's</span>
+    if v_null_element
+    then
+
+      v_bundle_tab(p_bundle) := To_Char(p_bundle_id);
+    else
+      v_bundle_tab(p_bundle) := 
+        v_bundle_tab(p_bundle) || ', ' || To_Char(p_bundle_id);
+    end if;
+  end Record_Bundle_Id;
+begin
+  for j in ( select distinct bundle_id from intersections )
+  loop
+
+    v_first := true;
+    for k in ( select item_id from intersections
+                 where bundle_id = j.bundle_id
+                 order by item_id )
+    loop
+      if v_first
+      then
+        v_bundle := To_Char(k.item_id);
+        v_first := false;
+      else
+
+        v_bundle:=
+          v_bundle || '+' || To_Char(k.item_id);
+      end if;
+    end loop;
+
+    Record_Bundle_Id ( v_bundle, j.bundle_id );
+  end loop;
+
+  <span class="Code_Comment">-- Report---------------------------------------------------------------------</span>
+  Dbms_Output.Put_Line ( Rpad('Bundle composition',20) || Rpad('bundle_id list',20) );
+  v_bundle := v_bundle_tab.First;
+
+  while v_bundle is not null
+  loop
+    if Instr(v_bundle_tab(v_bundle), ',', 1 ) > 0
+    then
+      Dbms_Output.Put_Line ( Rpad(v_bundle,20) || Rpad(v_bundle_tab(v_bundle),20) );
+    end if;
+    v_bundle := v_bundle_tab.Next(v_bundle);
+  end loop;
+end P1;</pre>
+</div></body></html>
+

@@ -1,0 +1,115 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- INSERT one row
+
+  -- static SQL
+  -- fails at 9.0.1 with ORA-00906:
+  -- missing left parenthesis</span>
+  v_emprec employees%rowtype := Emp_Util.Get_One_Row;
+begin
+
+  Emp_Util.Initialize_Count ( 'employees_2' );
+  insert into employees_2 values v_emprec;
+  Emp_Util.Show_Count_Change;
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- Note: <b>YOU CAN'T BIND AN EXPLICIT COLUMN LIST TO A RECDORD</b>
+  --
+  -- fails at 9.2.0 with PL/SQL: ORA-00947:
+  -- not enough values</span>
+  v_emprec employees%rowtype := Emp_Util.Get_One_Row;
+begin
+  insert into employees_2 (
+
+      employee_id,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      hire_date,
+      job_id,
+      salary,
+      commission_pct,
+
+      manager_id,
+      department_id )
+    values v_emprec;
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+
+begin
+  <span class="Code_Comment">-- Note: <b>YOU CAN'T USE A FUNCTION RETURNING A RECORD AS A BIND</b>
+  --
+  -- fails at 9.2.0 with PL/SQL: ORA-00904: invalid column name</span>
+  insert into employees_2 values Emp_Util.Get_One_Row();
+end;
+/
+<span class="Code_Comment">-- ERROR at line N:</span>
+
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- INSERT many rows, single row syntax
+  -- static SQL
+  -- fails at 9.0.1 with ORA-00906:
+  -- missing left parenthesis
+
+  --
+  -- Actaully, this illustrates no more than the &quot;INSERT one row&quot; case
+  -- there's no DML analogy to the different is SELECT
+  -- between an implicit one-row cursor and a cursor loop</span>
+  v_emprecs Emp_Util.emprec_tab_t  := Emp_Util.Get_Many_Rows;
+begin
+  Emp_Util.Initialize_Count ( 'employees_2' );
+  for j in v_emprecs.First..v_emprecs.Last
+  loop
+    v_emprecs(j).salary := v_emprecs(j).salary * 1.1 /* add realism */;
+    insert into employees_2 values v_emprecs(j);
+  end loop;
+  Emp_Util.Show_Count_Change;
+
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

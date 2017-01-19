@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML><HEAD><TITLE>Table Function to "View" the Contents of the Nested Table as a Relational Table</TITLE>
+
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="Bryn Llewellyn" name=Author><LINK
+
+href="../Content.css" rel=stylesheet
+type=text/css>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+
+<BODY>
+<DIV class=Content_Div>
+  <H3>-- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<br>
+    -- THE &quot;RUNNER'S TRAINING LOGS&quot; EXAMPLE SCENARIO</H3>
+
+  <H3><SPAN class=Updated><I>-- TABLE FUNCTION TO &quot;VIEW&quot; THE CONTENTS 
+    OF THE NESTED TABLE<br>
+    -- AS A RELATIONAL TABLE <br>
+    </I></SPAN></H3>
+  <PRE>-- Connect programmer/p@9i
+
+set serveroutput on
+
+<span class="Code_Emphasize">create or replace function Reln_Training_Logs_Fn</span>
+  ( p_nested_training_logs in sys_refcursor )
+  return My_Types.reln_training_logs_tab_t 
+<span class="Updated">  /* The algorithm handles each row in isolation and thus
+
+     is amenable to the simplest form of parallelism  */</span>
+  parallel_enable ( partition p_nested_training_logs by any )  pipelined
+is
+  v_in_row  My_Types.nested_training_log_row_t;
+  v_out_row My_Types.reln_training_log_row_t;
+begin
+  loop
+
+    fetch p_nested_training_logs into v_in_row;
+    exit when p_nested_training_logs%notfound;
+    for week in v_in_row.training_log.first..
+                v_in_row.training_log.last
+    loop
+      for run in v_in_row.training_log(week).first..
+                 v_in_row.training_log(week).last
+      loop
+
+        v_out_row.first_name := v_in_row.first_name;
+        v_out_row.week := week;
+        v_out_row.run := run;
+        v_out_row.distance := v_in_row.training_log(week)(run).distance;
+        v_out_row.pace := v_in_row.training_log(week)(run).pace;
+        pipe row ( v_out_row );
+      end loop;
+    end loop;
+  end loop;
+
+  close p_nested_training_logs;
+  return;
+end Reln_Training_Logs_Fn;
+/</pre>
+</DIV>
+<p>&nbsp;</p><P>&nbsp;</P></BODY></HTML>
+

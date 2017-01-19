@@ -1,0 +1,52 @@
+<html>
+
+<head>
+
+  <title>Writing A Table Function To Output A Nested &quot;View&quot; From The Relational Representation </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1> Writing A Table Function To Output A Nested &quot;View&quot; From The Relational 
+    Representation </h1>
+
+
+  <p>The <a href="Cr_Writing_A_Table_Function_To_View_Contents_As_Nested_Table.htm">sample 
+    script</a> illustrates the complete procedure for Table Function To &quot;View&quot; 
+    The Contents Of The Relational Table As A Nested Table. <br>
+  </p>
+
+  <p>Suppose it had been decided to implement the persistent storage as a relational 
+    representation. It is still possible to view it as if it were the nested table 
+    representation by using a table function. The simplest design would use nested 
+    PL/SQL cursor loops thus: for each distinct runner&#133; ; for each distinct 
+    week for that runner&#133; ; for each run for that week for that runner add 
+    the object to represent the run to the column in the collection for that week; 
+
+    when done with that week add the column for the whole week to the &quot;plane&quot; 
+    of the collection for that runner's log; when done with that runner, pipe 
+    the record representing the name and the training log collection.<br>
+    <br>
+    To make the table function more general, it needs to have a <b>ref cursor 
+    </b>input parameter to be invoked with a SELECT having two levels of nested 
+    CURSOR subqueries corresponding to the above nested PL/SQL loops. An alternative 
+
+    is to design the function to accept a &quot;flat&quot; SELECT. The latter 
+    approach requires slightly more elaborate coding of the function logic (to 
+    explicitly detect the next week and the next runner) but makes the resulting 
+    function substantially more user-friendly, and so it was selected for implementation 
+    in this illustration. To make the example richer <i>w.r.t</i>. understanding 
+    table functions, parallelization decalations are added to ensure that all 
+    the rows for a particular runner go consecutively to the same slave, and that 
+    for that runner the input rows are ordered by week and then run. (The algorithm 
+
+    depends on these assumptions.)<br>
+  </p>
+  <p>&nbsp; </p>
+  </div>
+</body></html>
+

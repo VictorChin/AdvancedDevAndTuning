@@ -1,0 +1,90 @@
+<html>
+
+<head>
+
+  <title>&quot;YOUNG MANAGERS&quot; Scenario</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>&quot;YOUNG MANAGERS&quot; Scenario</h1>
+
+
+  <p>Consider the requirement to find those managers in the employees table, the 
+    majority of whose direct reports were hired before the manager. The algorithm 
+    depends on finding the direct reports for each manager and comparing the number 
+    who were hired before him with the number who were hired after him. This can 
+    be programmed straightforwardly in PL/SQL using classical techniques. See 
+
+    code <a href="Cr_Young_Managers_Scenario_Classical_Approach.htm">sample-1</a>. 
+    (Note that, seeking to use enhanced Oracle9<i>i</i> functionality, this is 
+    implemented using a single SQL SELECT which has a cursor subquery for the 
+    reports of a given manager.) This approach allows the production of a report, 
+    or as is illustrated, populating a table with the results.</p>
+  <p>But suppose the requirement is more subtle: to create a VIEW to represent 
+
+    managers as specified, so that it can be leveraged in ad hoc queries representing 
+    the current state of the underlying data. In fact, the requirement in this 
+    scenario can be implemented in pure SQL using only SQL functions such as SUM 
+    and DECODE. See code <a href="Cr_Young_Managers_Scenario_Pure_SQL_Approach.htm">sample-2</a> 
+    . There are some rules that are too complex to implement by DECODE, in which 
+    case the user could write his own fucntion.</p>
+  <p>But the approach in <a href="Cr_Young_Managers_Scenario_Pure_SQL_Approach.htm">sample-2</a>, 
+
+    thought it works, feels back to front! Unlike <a href="Cr_Young_Managers_Scenario_Classical_Approach.htm">sample-1</a>, 
+    it does not model the simple statement of the algorithm, and is therefore 
+    hard to write and to proof read. A more comfortable approach is to define 
+    a view thus&#133;</p>
+  <pre>create view young_managers as
+  select ...
+    from employees managers
+    where Most_Reports_Before_Manager( &lt; stuff for this manager &gt; ) = 1;</pre>
+
+  <p>We can do this classically (see <a href="Cr_Young_Managers_Scenario_Using_Classical_Function.htm">sample-3</a>) 
+    thus&#133;</p>
+  <pre>create view young_managers as
+  select ...
+    from employees managers
+    where Most_Reports_Before_Manager
+     (
+       managers.employee_id, managers.hire_date
+     ) = 1;</pre>
+
+  <p>&#133;or by passing a cursor expression as the actual parameter to a function 
+    whose formal parameter is of type <span class="Code_Emphasize">ref 
+    cursor</span> (see <a href="Cr_Young_Managers_Scenario_Using_Functions_With_Ref_Cursor.htm">sample-4</a>) 
+    thus&#133;</p>
+  <pre>create view young_managers as
+  select ...
+    from employees managers
+    where Most_Reports_Before_Manager
+     (
+       <span class="Code_Emphasize">cursor</span> ( &lt; select hire date stuff for this manager&#146;s reports &gt;      ),
+
+       managers.hire_date
+     ) = 1;</pre>
+  <p>The <a href="Cr_Young_Managers_Scenario_Using_Functions_With_Ref_Cursor.htm">sample-4</a> 
+    approach is not possible before Oracle9<i>i</i>. Its advantage over the <a href="Cr_Young_Managers_Scenario_Using_Classical_Function.htm">sample-3</a> 
+    approach is marginal rather than dramatic: it offers greater potential for 
+    reuse in that its logic is expressed in terms of, and depends only on, the 
+    select list for an arbitrary SELECT whereas the <a href="Cr_Young_Managers_Scenario_Using_Classical_Function.htm">sample-3 
+    </a>approach hard-codes the SELECT; and, since there is only one SQL statement, 
+    this can be optimized more effectively than (what the SQL engine sees as) 
+    two unconnected SQL statements (as discussed above).</p>
+  <p>The dramatic benefit of the new Oracle9<i>i</i> feature allowing a cursor 
+
+    expression as an actual parameter to a PL/SQL function comes in connection 
+    with table functions, shown in <a href="Cr_Young_Managers_Scenario_Using_Table_Function_With_Ref_Cursor_Input_Parameter.htm">sample-6</a>. 
+    (You have to understand the sections <a href="Table_Functions_Recap.htm">Table 
+    Functions - Recap</a>, <a href="Pipelined_Table_Functions.htm">Pipelined Table 
+    Functions - New in Oracle9i</a>, and <a href="Piping_Data_From_One_Table_Function_To_The_Next.htm">Piping 
+    data from one Table Function to the next - New in Oracle9i</a> to understand 
+    this sample.) </p>
+  <p>&nbsp;</p>
+  </div>
+</body></html>
+

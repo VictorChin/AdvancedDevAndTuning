@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML><HEAD><TITLE>Procedure to populate the Nested Table</TITLE>
+
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="Bryn Llewellyn" name=Author><LINK 
+
+href="../Content.css" rel=stylesheet 
+type=text/css>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+
+<BODY>
+<DIV class=Content_Div> 
+  <H3>-- SAMPLES TO ILLUSTRATE MULTILEVEL COLLECTIONS<br>
+    -- THE &quot;RUNNER'S TRAINING LOGS&quot; EXAMPLE SCENARIO</H3>
+
+  <H3><SPAN class=Updated><I>-- PROCEDURE TO POPULATE THE NESTED TABLE<br>
+    </I></SPAN></H3>
+  <PRE>-- Connect programmer/p@9i
+set serveroutput on
+
+
+
+create or replace <span class="Code_Emphasize">procedure Populate_Nested_Training_Logs</span> is<br>  v_training_log   training_log_t;<br>begin<br>  v_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );</PRE>
+  <pre>  v_training_log(1) :=
+    weeks_running_t
+      ( 
+        run_t ( 1, 6 ), 
+
+        run_t ( 7, 7 ),
+        run_t ( 3, 6 ),
+        run_t ( 9, 9 ),
+        run_t ( 3, 6 ),
+        run_t ( 18, 10 )
+      );</pre>
+  <pre>  v_training_log.extend;
+
+  v_training_log(2) :=
+    weeks_running_t
+      ( 
+        run_t ( 5, 7 ), 
+        run_t ( 9, 8 ),
+        run_t ( 3, 7 ),
+        run_t ( 9, 9 ),
+        run_t ( 3, 7 )
+
+      );</pre>
+  <pre>  v_training_log.extend;
+  v_training_log(3) :=
+    weeks_running_t
+      ( 
+        run_t ( 5, 7 ), 
+        run_t ( 9, 8 ),
+        run_t ( 3, 7 ),
+        run_t ( 9, 9 ),
+
+        run_t ( 3, 7 )
+       ) ;</pre>
+  <pre>  insert into nested_training_logs ( first_name, training_log ) values
+    ( 'fred', v_training_log );</pre>
+  <pre>  v_training_log := training_log_t ( weeks_running_t ( run_t ( 0, 0 ) ) );</pre>
+  <pre>  v_training_log(1) :=
+    weeks_running_t
+      ( 
+        run_t ( 2, 10 ), 
+        run_t ( 3, 11 ),
+
+        run_t ( 3, 11 ),
+        run_t ( 4, 12 )
+      );</pre>
+  <pre>  v_training_log.extend;
+  v_training_log(2) :=
+    weeks_running_t
+      ( 
+        run_t ( 1, 10 ), 
+        run_t ( 2, 11 ),
+        run_t ( 3, 12 ),
+        run_t ( 2, 10 ),
+
+        run_t ( 1, 9 ),
+        run_t ( 4, 12 )
+      );
+</pre>
+  <pre>insert into nested_training_logs ( first_name, training_log ) values
+    ( 'sid', v_training_log );
+
+end Populate_Nested_Training_Logs;
+/</pre>
+</DIV>
+<P>&nbsp;</P></BODY></HTML>
+

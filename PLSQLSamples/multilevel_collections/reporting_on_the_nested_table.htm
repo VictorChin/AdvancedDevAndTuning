@@ -1,0 +1,79 @@
+<html>
+
+<head>
+
+  <title>Reporting On The Nested Table </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1> Reporting On The Nested Table </h1>
+
+
+  <p>The <a href="Cr_Report_The_Content.htm">sample script</a> illustrates the 
+    complete procedure to report on the contents of the Nested Table.</p>
+  <p>The code has this general shape&#133;</p>
+  <pre>for v_row in
+  ( select first_name, training_log from nested_training_logs )
+
+loop
+  Dbms_Output.Put_Line ( v_row.first_name );
+  <b>for week in v_row.training_log.first..v_row.training_log.last</b>
+  loop
+    Dbms_Output.Put_Line ( week );
+    <b>for run in v_row.training_log(week).first..v_row.training_log(week)</b>.last
+
+    loop
+      Dbms_Output.Put_Line ( run );
+      Dbms_Output.Put_Line ( <b>v_row.training_log(week)(run).distance</b> );
+      Dbms_Output.Put_Line ( <b>v_row.training_log(week)(run).pace</b> );
+    end loop;
+  end loop;
+end loop;</pre>
+
+  <p>&#133;where we see that appending each successive subscript to the variable 
+    representing the multilevel collection instance drills down each successive 
+    layer in its structure.<br>
+    <br>
+    If appropriate, this could be re-written using <i>bulk collect into local 
+    multilevel collection</i> (with one extra level) thus&#133;</p>
+  <pre>declare
+  type first_name_tab_t is table of nested_training_logs.first_name%type
+
+  index by binary_integer;
+  <b>v_first_name_tab</b> first_name_tab_t;</pre>
+  <pre>  type training_logs_tab_t is table of training_log_t
+                             index by binary_integer;
+  <b>v_training_logs_tab</b> training_logs_tab_t;
+begin
+  select first_name, training_log
+   <b> bulk collect into v_first_name_tab, v_training_logs_tab</b>
+    from nested_training_logs; </pre>
+
+  <pre>  <b>for j in v_first_name_tab.first..v_first_name_tab.last</b>
+  loop
+    Dbms_Output.Put_Line ( <b>v_first_name_tab(j)</b> );
+    <b>for week in v_training_logs_tab(j).first..
+                v_training_logs_tab(j).last</b>
+    loop
+      Dbms_Output.Put_Line ( week );
+  <b>    for run in v_training_logs_tab(j)(week).first..
+                 v_training_logs_tab(j)(week).last</b>
+      loop
+
+        Dbms_Output.Put_Line ( run );
+        Dbms_Output.Put_Line ( <b>v_training_logs_tab(j)(week)(run).distance</b> );
+        Dbms_Output.Put_Line ( <b>v_training_logs_tab(j)(week)(run).pace</b> );
+      end loop;
+    end loop;
+  end loop;
+end;
+/
+</pre>
+  </div>
+</body></html>
+

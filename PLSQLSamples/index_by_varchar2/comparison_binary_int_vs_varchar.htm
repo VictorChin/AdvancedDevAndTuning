@@ -1,0 +1,65 @@
+<html>
+
+<head>
+
+  <title>Associative Array</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" > 
+<h2>Brief comparison between lookup on a varchar2 key<br>
+
+via an index by binary_integer table<br>
+and via an index by varchar2 table</h2>
+Without the associative array, you need to code some hashing by hand...<pre>  ...
+  <span class="Code_Comment">/* using create table t ( idx varchar2(2000), val integer ) */</span>
+  type my_lookups_t is table of t.val%type <span class="Code_Emphasize">index by binary_integer</span>;
+
+  my_lookups my_lookups_t;
+  my_val t.val%type;
+  <span class="Code_Emphasize">hash_value binary_integer</span>;
+  ...
+begin
+  for j in ( select idx, val from t )
+
+  loop
+    hash_value := <span class="Code_Comment">/* implicit cast to binary_integer */</span>
+      <span class="Code_Emphasize">Dbms_Utility.Get_Hash_Value</span> (
+        name      => j.idx,
+        base      => 1000,
+        hash_size => 2048 );
+    <span class="Code_Emphasize">my_lookups ( hash_value )</span> := j.val;
+
+  end loop;
+  ...
+  hash_value :=
+    <span class="Code_Emphasize">Dbms_Utility.Get_Hash_Value</span> (
+      name      => 'my current index of interest',
+      base      => 1000,
+      hash_size => 2048 );
+  my_val := <span class="Code_Emphasize">my_lookups ( hash_value )</span>;
+
+  ...</pre>
+This fragment can now be simplified thus...<pre>  ...
+  type my_lookups_t is table of t.val%type <span class="Code_Emphasize">index by varchar2(2000)</span>;
+  my_lookups my_lookups_t;
+  my_val t.val%type;
+  ...
+begin
+  for j in ( select idx, val from t )
+  loop
+
+    <span class="Code_Emphasize">my_lookups ( j.idx )</span> := j.val;
+  end loop;
+  ...  
+  my_val := <span class="Code_Emphasize">my_lookups ( 'my current index of interest' )</span>;
+  ...</pre>
+Not only is the coding simpler, it's more efficient.
+</div>
+</body></html>
+

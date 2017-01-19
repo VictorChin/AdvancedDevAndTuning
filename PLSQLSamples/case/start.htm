@@ -1,0 +1,115 @@
+<html>
+
+<head>
+
+  <title>Use of CASE Statements in PL/SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1><font color=red>Using CASE Statements in PL/SQL programs</font></h1>
+
+
+  <p>While CASE constructs don't offer any fundamentally new semantics, they do 
+    allow a more compact notation and some elimination of repetition with respect 
+    to what otherwise would be expressed with an IF construct. Consider the implementation 
+    of a decision table whose predicate is the value of a particular expression. 
+    These two fragments&#133; </p>
+
+  <pre><span class="Code_Emphasize">case</span> n<br>  <span class="Code_Emphasize">when</span> 1&nbsp;<span class="Code_Emphasize">then</span> Action1;
+  <span class="Code_Emphasize">when</span> 2&nbsp;<span class="Code_Emphasize">then</span> Action2;
+  <span class="Code_Emphasize">when</span> 3<span class="Code_Emphasize"> then</span> Action3;
+  <span class="Code_Emphasize">else</span>        ActionOther;<br><span class="Code_Emphasize">end case;</span></pre>
+  <p>&#133;and&#133;</p>
+  <pre><span class="Code_Emphasize">if</span>
+
+          n = 1 <span class="Code_Emphasize">then</span>&nbsp;Action1;<br>    <span class="Code_Emphasize">elsif </span>n = 2 <span class="Code_Emphasize">then</span> Action2;<br>    <span class="Code_Emphasize">elsif</span> n = 3 <span class="Code_Emphasize">then</span> Action2;<br><span class="Code_Emphasize">    else </span>            ActionOther;<br><span class="Code_Emphasize">end if;</span></pre>
+  <p>&#133;are semantically <i>almost</i> identical. But coding best practice 
+    gurus generally recommend the CASE formulation because it more directly models 
+    the idea. By pulling out the decision expression <tt>n</tt> to the start and 
+    by mentioning it only once the programmer's intention is clearer. This is 
+    significant both to the proof reader and to the compiler, which therefore 
+    has better information from while to generate efficient code. For example, 
+
+    the compiler knows immediately that the decision expression needs to be evaluated 
+    just once. And, since the IF formulation repeats the decision expression for 
+    each leg, there's a greater risk of typographical error which can be difficult 
+    to spot.</p>
+  <p>Moreover, the CASE formulation makes it explicit that the coded cases are 
+    the <i>only</i> ones that need handling (see the discussion of the <span class="Code_Emphasize">case_not_found</span> 
+    exception below).</p>
+  <p>CASE constructs are available in most programming languages. Oracle9<i>i</i> 
+
+    introduces them in PL/SQL (and in SQL).<br>
+  </p>
+  <h2>CASE Expressions</h2>
+  <p>A CASE expression selects a result and returns it. To select the result, 
+    the CASE expression uses a selector, an expression whose value is used to 
+    select one of several alternatives. Consider these two semantically <i>almost</i> 
+    identical fragments 
+  <pre>text := <span class="Code_Emphasize">case</span> n<br>          <span class="Code_Emphasize">when</span> 1<span class="Code_Emphasize"> then </span>one
+<span class="Code_Emphasize">          when</span> 2 <span class="Code_Emphasize">then</span> two
+
+<span class="Code_Emphasize">          when</span> 3 <span class="Code_Emphasize">then</span> three
+<span class="Code_Emphasize">          else</span>        other
+        <span class="Code_Emphasize">end case;</span></pre>
+  <p>&#133;and</p>
+  <pre><span class="Code_Emphasize">if</span>
+          n = 1 <span class="Code_Emphasize">then</span> text := one;
+<span class="Code_Emphasize">    elsif</span> n = 2 <span class="Code_Emphasize">then</span> text := two;
+<span class="Code_Emphasize">    elsif</span> n = 3 <span class="Code_Emphasize">then</span> text := three;
+    <span class="Code_Emphasize">else</span>             text := other;<br><span class="Code_Emphasize">end if;</span></pre>
+  <p>The CASE formulation makes it explicit that the intention of the fragment 
+
+    is to provide a value for text. <a href="Cr_Case_Expression.htm">This sample</a> 
+    illustrates using a CASE expression in PL/SQL. </p>
+  <p>An alternative to the CASE expression is the CASE statement, where each WHEN 
+    clause can be an entire PL/SQL block.</p>
+  <h2>Searched CASE Statement AND Searched CASE Expression</h2>
+  <p>For both the CASE statement and the CASE expression, the searched variant 
+    tests each leg on an arbitrary boolean expression, rather than on equality 
+    on a single expression common for all legs, thus
+  <pre><span class="Code_Emphasize">case</span><br>  <span class="Code_Emphasize">when</span> n = 1 <span class="Code_Emphasize">              then</span> Action1;<br>  <span class="Code_Emphasize">when</span> n = 2 <span class="Code_Emphasize">              then</span> Action2;<br>  <span class="Code_Emphasize">when</span> n = 3 <span class="Code_Emphasize">              then</span> Action3;<br>  <span class="Code_Emphasize">when</span> ( n &gt; 3 and n &lt; 8 ) <span class="Code_Emphasize">then</span> Action4through7;<br>  <span class="Code_Emphasize">else</span>                          ActionOther;<br><span class="Code_Emphasize">end case;</span></pre>
+  <p>&#133;and&#133;</p>
+  <pre>text := <span class="Code_Emphasize">case</span><br><span class="Code_Emphasize">          when</span> n = 1<span class="Code_Emphasize">               then</span> one
+
+<span class="Code_Emphasize">          when</span> n = 2 <span class="Code_Emphasize">              then</span> two
+          <span class="Code_Emphasize">when</span> n = 3<span class="Code_Emphasize">               then</span> three
+<span class="Code_Emphasize">          when</span> ( n &gt; 3 and n &lt; 8 )<span class="Code_Emphasize"> then</span> four_through_seven
+<span class="Code_Emphasize">          else</span>&nbsp;                         other
+        <span class="Code_Emphasize">end;</span></pre>
+  <p><i>Note:</i> With the CASE formulation as with the IF formulation, the leg 
+    which is selected for particular data values will in general depend on the 
+    order in which the legs are written. Consider&#133;</p>
+  <pre><span class="Code_Emphasize">case</span>
+  <span class="Code_Emphasize">when</span> this_patient.pregnant = 'Y'     <span class="Code_Emphasize">then</span> Action1;
+  <span class="Code_Emphasize">when</span> this_patient.unconscious = 'Y'  <span class="Code_Emphasize">then</span> Action2;
+  <span class="Code_Emphasize">when</span> this_patient.age &lt; 5            <span class="Code_Emphasize">then</span> Action3;
+
+  <span class="Code_Emphasize">when</span> this_patient.gender = 'F'       <span class="Code_Emphasize">then</span> Action4;
+  <span class="Code_Emphasize">else</span>                                      ActionOther;
+<span class="Code_Emphasize">end case;</span></pre>
+  <p>An unconscious pregnant woman will receive Action1. <a href="Cr_Searched_Case.htm">This 
+    sample</a> illustrates using the Searched CASE constructs in PL/SQL. <br>
+  </p>
+  <h2> CASE_NOT_FOUND Exception</h2>
+  A subtle difference between the CASE construct and the corresponding IF construct 
+  occurs when the ELSE leg is omitted. With the IF consruct, if none of the legs 
+  is selected then there is no action. But with the CASE construct, if none of 
+  the legs is selected then the <span class="Code_Emphasize">case_not_found</span> 
+  exception (<i>ORA-06592: CASE not found while executing CASE statement</i>) 
+  is raised, thus&#133; 
+
+  <pre>  ...<br>  p:=0; q:=0; r:=0;<br><span class="Code_Emphasize">  case</span><br>    when p = 1 <span class="Code_Emphasize">then</span> Action1;<br>    when r = 2 <span class="Code_Emphasize">then</span> Action2;<br>    when q &gt; 1 <span class="Code_Emphasize">then</span> Action3;<br>  <span class="Code_Emphasize">end case;</span><br>exception<br>  when <span class="Code_Emphasize">case_not_found</span><br>    then Dbms_Output.Put_Line ( 'Trapped: case_not_found' );<br>    ...</pre>
+  <p><a href="Cr_Case_Not_Found.htm">This sample</a> illustrates trapping the 
+    exception in PL/SQL.<br>
+  </p>
+  <p><span class="Author">Bryn Llewellyn, PL/SQL Product Manager, Oracle Corp</span><br>
+    <span class="Updated">last updated 7-Jan-2003</span><br>&nbsp;
+  </div>
+</body></html>
+

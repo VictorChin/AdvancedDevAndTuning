@@ -1,0 +1,79 @@
+<html>
+
+<head>
+
+  <title>YOUNG MANAGERS Scenario - Classical Procedural Approach</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3>-- Sample To Illustrate Table Functions And Cursor Expressions</h3>
+
+  <h4><i>-- &#147;YOUNG MANAGERS&#148; SCENARIO</i></h4>
+  <p>-- Find those managers in the employees table, the majority of whose direct 
+    reports were hired<br>
+    -- before the manager</p>
+  <p> <span class="Updated">-- CLASSICAL PROCEDURAL APPROACH</span></p>
+
+  <span class="Updated">-- This scenario needs the <b>hr</b> sample schema that 
+  comes along with Oracle9i database </span> 
+  <pre>-- Connect hr/hr@9i
+
+drop table <span class="Code_Emphasize">young_managers_classical</span>;
+
+
+create table <span class="Code_Emphasize">young_managers_classical</span> as
+  select employee_id from employees where 1=2;
+
+declare
+  cursor managers is
+    select
+      employee_id, hire_date,
+
+      <span class="Code_Emphasize">cursor (
+              select hire_date
+                from employees reports
+                where reports.manager_id = managers.employee_id
+             )</span>
+      from employees managers;
+  manager_employee_id employees.employee_id%type;
+  manager_hire_date employees.hire_date%type;
+
+  <span class="Code_Emphasize">reports sys_refcursor</span>;
+  type report_hire_dates_t is table of employees.hire_date%type
+                              index by binary_integer;
+  report_hire_dates report_hire_dates_t;
+  before integer; after integer;
+begin
+  open managers;
+  loop
+    before:=0; after:=0;
+
+    fetch managers into manager_employee_id, manager_hire_date, reports;
+    exit when managers%notfound;
+    <span class="Code_Emphasize">fetch reports bulk collect into report_hire_dates</span>;
+    if report_hire_dates.count > 0
+    then
+      for j in report_hire_dates.first..report_hire_dates.last
+      loop
+        case report_hire_dates(j) <= manager_hire_date
+          when true  then before := before + 1;
+          when false then after  := after + 1;
+
+        end case;
+      end loop;
+    end if;
+    if before > after then
+      insert into young_managers_classical values ( manager_employee_id ); end if;
+  end loop;
+  close managers;
+end;
+/</pre>
+</div>
+<p>&nbsp;</p></body></html>
+

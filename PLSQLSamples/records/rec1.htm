@@ -1,0 +1,64 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- SELECT returns one row
+
+  -- static SQL
+  -- OK at 9.0.1</span>
+  v_employee_id employees.employee_id%type := 100;
+  v_emprec employees%rowtype;
+begin
+
+  select * into v_emprec from employees where employee_id = v_employee_id;
+  Emp_Util.Show_One ( v_emprec );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- alternative syntax, binding explicit column list
+  -- to RECORD with corresponding structure
+
+  -- OK at 9.0.1</span>
+  v_employee_id employees.employee_id%type := 100;
+  v_emprec employees%rowtype;
+begin
+  select
+    employee_id,
+    first_name,
+    last_name,
+
+    email,
+    phone_number,
+    hire_date,
+    job_id,
+    salary,
+    commission_pct,
+    manager_id,
+    department_id
+    into v_emprec from employees where employee_id = v_employee_id;
+
+  Emp_Util.Show_One ( v_emprec );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+</pre>
+</div>
+</body></html>
+

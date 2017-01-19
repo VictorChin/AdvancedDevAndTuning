@@ -1,0 +1,118 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>create or replace package Emp_Util is
+  type emprec_tab_t is table of employees%rowtype index by binary_integer;
+
+  procedure Show_One ( p_emprec employees%rowtype );
+  procedure Show_All ( p_emprecs emprec_tab_t );
+  function Get_One_Row return employees%rowtype;
+  function Get_Many_Rows return emprec_tab_t;
+  procedure Initialize_Count ( p_table_name varchar2 );
+
+  procedure Show_Count_Change;
+end Emp_Util;
+/
+Show Errors
+
+create or replace package body Emp_Util is
+
+  g_table_name    varchar2(30);
+  g_initial_count integer;
+  g_current_count integer;
+
+  procedure Show_Header
+  is
+  begin
+
+    Dbms_Output.Put_Line (
+      Lpad ( 'employee_id',        15, ' ' ) ||
+      Lpad ( 'first_name',         15, ' ' ) ||
+      Lpad ( 'last_name',          15, ' ' ) ||
+      Lpad ( 'salary',             15, ' ' ) );
+  end Show_Header;
+
+  procedure Show_One ( p_emprec in employees%rowtype )
+
+  is
+  begin
+    Show_Header;
+    Dbms_Output.Put_Line (
+      Lpad ( p_emprec.employee_id, 15, ' ' ) ||
+      Lpad ( p_emprec.first_name,  15, ' ' ) ||
+      Lpad ( p_emprec.last_name,   15, ' ' ) ||
+      Lpad ( p_emprec.salary,      15, ' ' ) );
+  end Show_One;
+
+
+  procedure Show_All ( p_emprecs in emprec_tab_t )
+  is
+  begin
+    Show_Header;
+    for j in p_emprecs.First..p_emprecs.Last
+    loop
+    Dbms_Output.Put_Line (
+      Lpad ( p_emprecs(j).employee_id, 15, ' ' ) ||
+      Lpad ( p_emprecs(j).first_name,  15, ' ' ) ||
+
+      Lpad ( p_emprecs(j).last_name,   15, ' ' ) ||
+      Lpad ( p_emprecs(j).salary,      15, ' ' ) );
+    end loop;
+  end Show_All;
+
+  function Get_One_Row return employees%rowtype is
+    v_emprec employees%rowtype;
+  begin
+    select * into v_emprec from employees where employee_id=100;
+    return v_emprec;
+  end Get_One_Row;
+
+
+  function Get_Many_Rows return emprec_tab_t is
+    n binary_integer := 0;
+    v_avg_hire_date employees.hire_date%type := '25-JUN-97';
+    v_emprecs emprec_tab_t;
+  begin
+    for j in ( select * from employees where hire_date >= v_avg_hire_date )
+      loop n:=n+1; v_emprecs(n) := j; end loop;
+    return v_emprecs;
+  end Get_Many_Rows;
+
+  procedure Initialize_Count ( p_table_name varchar2 )is
+
+  begin
+    g_table_name := p_table_name;
+    execute immediate '
+      select count(*) from ' || g_table_name
+       into g_initial_count;
+  end Initialize_Count;
+
+  procedure Show_Count_Change is
+  begin
+    execute immediate '
+      select count(*) from ' || g_table_name
+       into g_current_count;
+    Dbms_Output.Put_Line ( 'Change in no.of rows is ' ||
+
+      To_Char ( g_current_count - g_initial_count ) );
+  end Show_Count_Change;
+end Emp_Util;
+/
+Show Errors
+
+begin Emp_Util.Show_All ( Emp_Util.Get_Many_Rows ); end;
+/
+</pre>
+</div>
+</body></html>
+

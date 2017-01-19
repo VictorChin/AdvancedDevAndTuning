@@ -1,0 +1,324 @@
+<html>
+<head>
+<title>Regular Expression Sample Application - 
+ User Registration</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="/technology/content/stylesheets/otn_new.css" type="text/css">
+<link rel="stylesheet" href="otn_new.css" type="text/css">
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+<span class="topstoryhead"><font size="4"> Regular Expression Sample Application - 
+ User Registration</font></span><br>
+<hr noshade>
+<span class="parahead1"><font size="2"><br>
+Date: 28-Sept-2004</font></span> <br>
+<br>
+<span class="topstoryhead"><font size="3">Table of Contents</font></span> 
+<p><a href="#intro" class="bodylink">Introduction</a><br>
+  <a href="#over" class="bodylink">Application Overview</a><br>
+  <a href="#reqn" class="bodylink">Software Requirements</a><br>
+  <a href="#terms" class="bodylink">Terminology</a><br>
+  <a href="#configure" class="bodylink">Configuring the Application</a><br>
+  <a href="#deploy" class="bodylink">Deploying and Running the Application</a><br>
+  <a href="#files" class="bodylink">Sample Application Files</a><br>
+  <a href="#addref" class="bodylink">Additional References</a><br>
+</p>
+<p class="topstoryhead"><a NAME="intro"></a><font size="3">Introduction</font> 
+<ul class="list">
+  <li><a href="#pre" class="bodylink">Prerequisite</a><font color="#FF0000"><br>
+    <br>
+    </font></li>
+  <li><a href="#tech" class="bodylink">Technical Overview</a></li>
+</ul>
+<p class="topstoryhead"> <a NAME="pre"></a><font size="2">Prerequisite</font></p>
+<span class="bodycopy">To understand this sample application the user is expected 
+to have knowledge in the following area, </span> 
+<ul  class=bodycopy>
+  <li> <a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink">PL/SQL</a><br>
+    <br>
+  </li>
+</ul>
+<p></p>
+<p class="topstoryhead"> <a NAME="tech"></a><font size="2">Technical Overview</font></p>
+<p class=bodycopy>Regular expressions represent a powerful tool for describing 
+  and manipulating text data. These are supported by a wide variety of programming 
+  and scripting languages, text editors, and now by Oracle Database 10<i>g</i> 
+  SQL and PL/SQL.<br>
+  It is a method for simple and complex patterns for searching and manipulating 
+  a text. The regular expression APIs facilitate to search, extract, format, and 
+  manipulate a text in the database.<br>
+  <br>
+  The newest Oracle Database release, Oracle Database 10g, implements regular 
+  expression support in the form of the following four new functions, which work 
+  equally well in SQL and PL/SQL:</p>
+<ul>
+  <li class="bodycopy"> REGEXP_LIKE - This is similar to the LIKE operator. Returns 
+    true if the first argument matches an expression </li>
+  <li class="bodycopy">REGEXP_REPLACE - This replaces a string with the given 
+    matching substring pattern </li>
+  <li class="bodycopy">REGEXP_INSTR - Returns the starting position of the first 
+    substring within a string that matches a regular expression</li>
+  <li><span class="bodycopy">REGEXP_SUBSTR - Returns the substring that matches 
+    a regular expression</span>
+  </li>
+</ul>
+<p class="bodycopy">Regular expressions are extremely useful, because they allow 
+  programmers to work with text in terms of patterns. They are considered the 
+  most sophisticated means of performing operations such as string searching, 
+  manipulation, validation, and formatting in all applications that deal with 
+  text data. Also they are used in bioinformatics to assist with identifying DNA 
+  and protein sequences. Linguists use regular expressions to aid research of 
+  natural languages. The introduction of native regular expression support to 
+  SQL and PL/SQL in the Oracle Database revolutionizes the ability to search for 
+  and manipulate text within the database by providing expressive power in queries, 
+  data definitions and string manipulations. </p>
+<p class="topstoryhead"> <a NAME="over"></a><font size="3">Application Overview</font> 
+<p class=bodycopy> In this sample application, we implement the usage of REGEXP_LIKE 
+  regular expression function with the scenario of user registration. When the 
+  application runs, it displays a form where the user can enter his details. Two 
+  stored procedures CHECK_EMAIL and CHECK_PHONE created in the database, use the 
+  REGEXP_LIKE function to evaluate the correctness of e-mail and phone number 
+  entered by the user. When the user submits the form, the DBManager class connects 
+  to the database and executes the two user define procedures by passing the required 
+  data. If the given data is not valid then the stored procedure throws a SQL 
+  error. This error is displayed to the user in the message field. If both email 
+  and phone are valid then the user data is inserted into the database. <br>
+  <br>
+</p>
+<p class="topstoryhead"><a NAME="reqn"></a><font size="3">Software Requirements</font> 
+<p class=bodycopy> List the softwares required for configuring and running this 
+  sample application. </p>
+<ul class="list">
+  <li><a href="http://www.oracle.com/technology/products/jdev/content.html" class="bodylink" target="_blank">Oracle 
+    JDeveloper 10<i>g</i></a> <span class="bodycopy">or</span> <a href="http://java.sun.com/products" target="_blank" class="bodylink">J2ESDK1.4.x</a> 
+    <a href="http://java.sun.com/products" target="_blank" class="bodylink"></a></li>
+  <li><a href="http://www.oracle.com/technology/software/content.html" class="bodylink" target="_blank">Oracle 
+    Database 10<i>g</i> </a></li>
+  <li><a href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html" class="bodylink" target="_blank">Oracle 
+    Database 10<i>g</i> JDBC Driver</a> <br>
+  </li>
+</ul>
+<p> <span class="topstoryhead"> <a NAME="terms"></a><font size="3">Terminology</font></span> 
+  <br>
+  <br>
+<table border="1" cellpadding="5" cellspacing="0" width="559">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" width="204" height="24">Term</th>
+    <th class="boldbodycopy" width="687" height="24">Definition</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="204"> 
+      <div align="center">&lt;SAMPLE_HOME&gt;</div>
+    </td>
+    <td class="bodycopy" width="687"> 
+      <p> The directory where the sample is extracted<code></code></p>
+    </td>
+  </tr>
+  <tr valign="top"> 
+    <td width="19%" height="29" class="navhead" align="center"> &lt;JAVA_HOME&gt; 
+    </td>
+    <td width="81%" height="29" class="bodycopy"> 
+      <p>Directory where JAVA is installed</p>
+    </td>
+  </tr>
+  <tr valign="top"> 
+    <td width="19%" height="29" class="navhead" align="center">&lt;ORACLE_HOME&gt; 
+    </td>
+    <td width="81%" height="29" class="bodycopy">The directory where Oracle Database 
+      is installed</td>
+  </tr>
+</table>
+<br>
+<p class="topstoryhead"> <a NAME="configure"></a><font size="3">Configuring the 
+  Application </font> 
+<ul>
+  <li><span class="bodycopy"> Unzip the downloaded&nbsp;<a href="regexpvalidate.zip" class="bodylink">RegExpValidate.zip</a>. 
+    Extract the file contents into &lt;SAMPLE_HOME&gt; directory. <br>
+    This creates <span class="bodycopy">REGEXPValidate folder</span> with all 
+    the source files.<br>
+    </span></li>
+  <li> <span class="bodycopy">Open SQL prompt. Connect as scott/tiger and run 
+    the RegExp.sql script from &lt;SAMPLE_HOME&gt;/<span class="bodycopy">REGEXPValidate</span>/config 
+    folder. This will create the necessary table and procedures used by this application. 
+    </span><br>
+  </li>
+  <li><span class="bodycopy"> Edit <span class="bodycopy">REGEXPvalidate</span>/config/Connection.properties 
+    file in your favorite editor. Change the <i>HostName</i>, <i>Port, SID, UserName</i> 
+    and&nbsp;<i>Password</i> to connect to your own database Example,<br>
+    <br>
+    </span> 
+    <table border="0" width="47%" align="center">
+      <tbody> 
+      <tr valign="top"> 
+        <td width="17%" class="bodycopy"> 
+          <p class="bodycopy">HostName</p>
+        </td>
+        <td width="4%" class="bodycopy"><span class="bodycopy">=</span></td>
+        <td width="79%" class="bodycopy"> 
+          <p class="bodycopy">localhost (or name of the server where database 
+            is installed) </p>
+        </td>
+      </tr>
+      <tr valign="top"> 
+        <td width="17%" class="bodycopy"> 
+          <p class="bodycopy">SID</p>
+        </td>
+        <td width="4%" class="bodycopy"><span class="bodycopy">=</span></td>
+        <td width="79%" class="bodycopy"> 
+          <p class="bodycopy">ORCL</p>
+        </td>
+      </tr>
+      <tr valign="top"> 
+        <td width="17%" class="bodycopy"> 
+          <p class="bodycopy">Port</p>
+        </td>
+        <td width="4%" class="bodycopy"><span class="bodycopy">=</span></td>
+        <td width="79%" class="bodycopy"> 
+          <p class="bodycopy">1521</p>
+        </td>
+      </tr>
+      <tr valign="top"> 
+        <td width="17%" class="bodycopy"> 
+          <p class="bodycopy">UserName</p>
+        </td>
+        <td width="4%" class="bodycopy"><span class="bodycopy">=</span></td>
+        <td width="79%" class="bodycopy"> 
+          <p class="bodycopy">Scott</p>
+        </td>
+      </tr>
+      <tr valign="top"> 
+        <td width="17%" class="bodycopy"> 
+          <p class="bodycopy">Password</p>
+        </td>
+        <td width="4%" class="bodycopy"><span class="bodycopy">=</span></td>
+        <td width="79%" class="bodycopy"> 
+          <p class="bodycopy">tiger</p>
+        </td>
+      </tr>
+      </tbody> 
+    </table>
+  </li>
+</ul>
+<p class=bodycopy>&nbsp;</p>
+<p class="topstoryhead"> <a NAME="deploy"></a><font size="3">Deploying and Running 
+  the Application</font> 
+<p class=bodycopy> The application can be deployed and run in either of the following 
+  ways:</p>
+<ul class="list">
+  <li><a href="#jdev" class="bodylink">Run the Application using Oracle JDeveloper 
+    10<i>g</i></a><font color="#FF0000"><br>
+    <br>
+    </font></li>
+  <li><a href="#jdk" class="bodylink">Run the Application using JDK</a></li>
+</ul>
+<p> 
+<p class="topstoryhead"> <a NAME="jdev"></a><font size="2">Run the Application 
+  using JDeveloper 10<i>g</i></font></p>
+<p class="paragraph"><span class="bodycopy">This section describes the steps required 
+  in running this application using Oracle JDeveloper 10<i>g</i>.</span></p>
+<ul class="list">
+  <li class="bodycopy"> Open Oracle JDeveloper 10<i>g</i> and use <i class="code">File/Open</i> 
+    option to select the <span class="bodycopy">RegExpValidate</span>.jws from 
+    the <span class="bodycopy">&lt;SAMPLE_HOME&gt;/RegExpValidate</span> directory<br>
+    <br>
+  </li>
+  <li class="bodycopy"> Next, select <i>Project/Make <span class="bodycopy">RegExpValidate</span>.jpr</i> 
+    from main menu<br>
+    <br>
+  </li>
+  <li class="bodycopy"> Now, select <i class="code">Run/Run </i><i><span class="bodycopy">RegExpValidate</span>.jpr</i> 
+    from main menu. This opens up the Registration Form frame. </li>
+</ul>
+<p class="topstoryhead"> <a NAME="jdk"></a><font size="2">Run the Application 
+  using JDK</font></p>
+<blockquote> 
+  <p class="paragraph"><span class="bodycopy">This section describes the steps 
+    involved in running this sample application. </span></p>
+</blockquote>
+<blockquote> 
+  <ul>
+    <li class="bodycopy">Open the command prompt and change the working directory 
+      to &lt;SAMPLE_HOME&gt;/RegExpValidate/src</li>
+    <li class="bodycopy">Set the classpath to include JDBC driver library ( i;e 
+      classes12.jar or ojdbc14.jar ), Connection.properties, and the present working 
+      directory. For example, <br>
+      set CLASSPATH=d:\&lt;ORACLE_HOME&gt;\jdbc\lib\classes12.jar;&lt;SAMPLE_HOME&gt;/<span class="bodycopy"><span class="bodycopy">REGEXPValidate</span></span>/config;. 
+      ;<br>
+    </li>
+    <li class="bodycopy">Compile the classes using the following command <br>
+      javac oracle/otnsamples/plsql/*.java <br>
+    </li>
+    <li class="bodycopy">Run the sample by issuing the following command<br>
+      Java oracle.otnsamples.plsql.Registration <br>
+    </li>
+    <li><span class="bodycopy">This brings up the Registration Form frame. Enter 
+      the required values and &quot;Submit&quot; the form. </span><br>
+    </li>
+  </ul>
+</blockquote>
+<p class="topstoryhead"> <a NAME="files"></a><font size="3">Sample Application 
+  Files&nbsp;</font> 
+<p class="bodycopy">This section will provide a tabular listing of the sample 
+  application files, along with their respective directory locations and a description 
+  of what they do in the overall scheme of the application.
+<p> 
+<table border="1" cellpadding="5" cellspacing="0" width="80%">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" height="33" width="38%">Directory</th>
+    <th class="boldbodycopy" height="33" width="13%">File</th>
+    <th class="boldbodycopy" height="33" width="49%">Description</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%" > 
+      <p align="center"><span class="bodycopy">REGEXPvalidate</span>\doc</p>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">readme.html </div>
+    </td>
+    <td class="bodycopy" width="49%"> 
+      <p align="left"> This file</p>
+    </td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center"><span class="bodycopy">REGEXPvalidate</span>\src\oracle\otnsamples\plsql</div>
+    </td>
+    <td class="bodycopy" width="13%" align="center">*.java</td>
+    <td class="bodycopy" width="49%">Java source files used in this sample application</td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center"><span class="bodycopy">REGEXPvalidate</span>\config</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">Connection.properties</div>
+    </td>
+    <td class="bodycopy" width="49%">The properties file that holds the database 
+      details </td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center"><span class="bodycopy">REGEXPvalidate</span>\config</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">RegExp.sql</div>
+    </td>
+    <td class="bodycopy" width="49%">SQL file, used to create necessary tables 
+      and procedures to run this sample application. </td>
+  </tr>
+</table>
+<p class="topstoryhead"> <br>
+  <a NAME="addref"> </a><font size="3">Additional References&nbsp;</font>  
+<ul>
+  <li><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/oracle/03-sep/o53sql.html" class="bodylink" target="_blank">First 
+    Expressions </a></span></li>
+  <li><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/webcolumns/2003/techarticles/rischert_regexp_pt1.html" class="bodylink" target="_blank">Writing 
+    Better SQL Using Regular Expressions</a></span><br>
+  </li>
+</ul>
+<hr noshade>
+<p class="boldbodycopy"> Please enter your comments about this sample application 
+  <a href="http://www.oracle.com/technology/forums/sample_code.html" class="bodylink" target="_blank">here</a>. 
+<p class="boldbodycopy">&nbsp; 
+</body>
+</html>

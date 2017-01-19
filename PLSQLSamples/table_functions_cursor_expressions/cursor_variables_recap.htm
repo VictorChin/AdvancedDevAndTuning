@@ -1,0 +1,74 @@
+<html>
+
+<head>
+
+  <title>Cursor Variables - Recap</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Cursor Variables - Recap</h1>
+
+
+  <p>This PL/SQL language feature was available pre-Oracle9<i>i</i>. A cursor 
+    variable is a <i>pointer</i> (declared as type <span class="Code_Emphasize">ref 
+    cursor</span>) to an actual cursor. Code which is written to manipulate a 
+    cursor variable can be reused for successive assignments to different actual 
+    cursors. The understanding of the PL/SQL features introduced in Oracle9<i>i</i> 
+
+    for cursor expressions and table functions depends on understanding cursor 
+    variables.</p>
+  <p>Consider this procedure&#133;</p>
+  <pre>create or replace procedure Fetch_From_Cursor
+  ( p_cursor in <span class="Code_Emphasize">sys_refcursor</span> )
+is
+
+  the_name varchar2(4000);
+begin
+  loop
+    fetch p_cursor into the_name;
+    exit when p_cursor%notfound;
+    Dbms_Output.Put_Line ( the_name );
+  end loop;
+
+end Fetch_From_Cursor;
+/</pre>
+  <p><br>
+    It can be invoked with a cursor variable which has been assigned to any SELECT 
+    statement against any table whose select list is a single VARCHAR2, for example&#133;</p>
+  <pre>declare
+  the_cursor <span class="Code_Emphasize">sys_refcursor</span>;
+begin
+
+  <span class="Code_Emphasize">open the_cursor for</span>
+    select last_name from employees order by last_name;
+  Fetch_From_Cursor ( the_cursor );
+  close the_cursor;
+
+
+  <span class="Code_Emphasize">open the_cursor for</span>
+    select department_name from departments order by department_name;
+  Fetch_From_Cursor ( the_cursor );
+
+  close the_cursor;
+end;
+/</pre>
+  <p><i>Note</i>: the available type <span class="Code_Emphasize">sys_refcursor</span>, 
+    defining a generic weak cursor, is a usability enhancement, new at Oracle9<i>i</i>. 
+    Pre-Oracle9<i>i</i> it would be necessary to define at type, for example&#133;</p>
+  <pre>create or replace package My_Types is
+  type Weak_Cursor is <span class="Code_Emphasize">ref cursor</span>;
+  ...
+end My_Types;
+
+/</pre>
+  <p>&#133;and then to declare <span class="Code_Emphasize">p_cursor in My_Types.Weak_Cursor</span> 
+    and <span class="Code_Emphasize">the_cursor My_Types.Weak_Cursor</span>. </p>
+  <p>&nbsp;</p>
+</div>
+</body></html>
+

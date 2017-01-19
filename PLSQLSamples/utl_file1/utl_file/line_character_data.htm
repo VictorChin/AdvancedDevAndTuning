@@ -1,0 +1,87 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<pre>Set ServerOutput On
+declare
+
+  v_line           varchar2(32767);
+  c_location       constant varchar2(80) := 'UTL_FILE_TEST'
+                                            <span class="Code_Comment">/* new in 9.2.0 - use a DIRECTORY */</span>;
+  c_filename       constant varchar2(80) := 'test.txt';
+  v_handle         <span class="Code_Emphasize">Utl_File.File_Type</span>;
+
+
+  procedure Put_Line ( p_buffer in varchar2 ) is begin
+    <span class="Code_Emphasize">Utl_File.Put_Line (
+      file     =&gt; v_handle,
+      buffer   =&gt; p_buffer,
+      autoflush =&gt; true ) </span><span class="Code_Comment">/* repeat with &quot;autoflush =&gt; false&quot; and notice the difference */</span>;
+
+  end Put_Line;
+
+begin
+  v_handle := <span class="Code_Emphasize">Utl_File.Fopen (
+    location    =&gt; c_location,
+    filename    =&gt; c_filename,
+    open_mode   =&gt; 'w'</span>,
+
+    <span class="Code_Emphasize">max_linesize =&gt; 32767 )</span>;
+
+  <span class="Code_Emphasize">Utl_File.Put (
+      file     =&gt; v_handle,
+</span><span class="Code_Emphasize">      buffer   =&gt; '1st line. Using Put' );
+</span>
+  <span class="Code_Emphasize">Utl_File.New_Line (
+    file     =&gt; v_handle,
+
+</span><span class="Code_Emphasize">    lines    =&gt; 3 );
+</span>
+  <span class="Code_Emphasize">Utl_File.Putf (<br>    file     =&gt; v_handle,<br>    format   =&gt; 'Error in %s due to %s.\nCall %s',<br>    arg1     =&gt; 'something',<br>    arg2     =&gt; 'something else',<br>    arg3     =&gt; 'somebody' )</span>;
+<br>  <span class="Code_Emphasize">Utl_File.New_Line (
+    file     =&gt; v_handle );
+</span>
+  <span class="Code_Emphasize">Utl_File.Fflush ( file =&gt; v_handle  )</span> <span class="Code_Comment">/* Comment out to see that Put, New_Line don't autoflush */</span>;
+  Wait.Go <span class="Code_Comment">/* observe test.txt with &quot;tail -f&quot; and execute Wait.Finish from another session */</span>;
+
+
+  for j in 3..10
+  loop
+    Put_Line ( To_Char(j) || 'th line. It''s not too long' );
+    Wait.Go;
+  end loop;
+
+<span class="Code_Emphasize">  Utl_File.Fclose ( file =&gt; v_handle )</span>;
+
+  v_handle := <span class="Code_Emphasize">Utl_File.Fopen (
+    location    =&gt; c_location,
+
+    filename    =&gt; c_filename,
+    open_mode   =&gt; 'r'</span>,
+    <span class="Code_Emphasize">max_linesize =&gt; 32767 )</span>;
+
+  begin
+    loop
+      <span class="Code_Comment">-- when len is smaller than the current line, the next Get_Line carries on
+      -- where the previous one left off in the same line</span>
+      <span class="Code_Emphasize">Utl_File.Get_Line (<br>      file    =&gt; v_handle,<br>      buffer  =&gt; v_line );<br></span><span class="Code_Comment">--    len     =&gt; 11 /* uncomment to see the effect */</span><span class="Code_Emphasize"> )</span>;<br>      Dbms_Output.Put_Line ( v_line || '--' );
+    end loop;
+  exception when no_data_found then null; end;
+
+
+<span class="Code_Emphasize">  Utl_File.Fclose ( file =&gt; v_handle )</span>;
+end;
+/
+</pre>
+</body>
+</html>
+

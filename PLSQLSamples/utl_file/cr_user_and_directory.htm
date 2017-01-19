@@ -1,0 +1,66 @@
+<html>
+
+<head>
+
+  <title>Utl_File</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<pre>-- <span class="Code_Comment">Get yor DBA to do this for you before you start
+-- It's necessary to connect as SYS to grant SELECT on the
+
+-- [tables underlying] the V$ views
+--
+-- It's assumed that the shipped HR schema has been installed,
+-- that SELECT has been granted on EMPLOYEES to PUBLIC and
+-- that a public synonym has been created for EMPLOYEES</span>
+
+
+Connect sys/p@9i as sysdba
+
+grant
+  resource,
+  connect
+
+  to programmer identified by p
+/
+grant select on v_$parameter to programmer
+/
+grant execute on Dbms_Pipe to programmer
+/
+declare v_stmt varchar2(4000);
+
+begin
+  <span class="Code_Comment">-- use the udump dir for convenience</span>
+  select value
+    into v_stmt
+    from v$parameter where name = 'user_dump_dest';
+  v_stmt :=
+    'create or replace directory UTL_FILE_TEST as ''' || v_stmt || '''';
+  execute immediate v_stmt;
+
+end;  
+/
+
+grant read on directory UTL_FILE_TEST to programmer
+/
+
+connect programmer/p@9i
+
+select directory_path from all_directories
+
+  where directory_name = 'UTL_FILE_TEST'
+/
+<span class="Code_Comment">/*
+DIRECTORY_PATH
+----------------------------------
+.../oracle/admin/[mysid]/udump
+*/</span></pre>
+</body>
+</html>
+

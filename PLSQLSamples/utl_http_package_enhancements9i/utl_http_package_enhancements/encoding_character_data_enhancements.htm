@@ -1,0 +1,112 @@
+<html>
+
+<head>
+
+  <title>Utl-Http Package - Encoding of Character Data</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1>Encoding of Character Data</h1>
+  <p>In the classical client/server architecture, the database and the client 
+
+    may use different encoding schemes to represent character data. For example 
+    in a Japanese application, the database might use (a variety of) EUC character 
+    set and the client might use (a variety of) SJIS character set. Thus character 
+    encoding conversion is required. The solution is well known and long established: 
+    Oracle Net transparently handles the conversion (as specified by the database 
+
+    character set and the <i>NLS_LANG</i> client environment variable). A corresponding 
+    issue exists for <b>Utl_Http</b>. When a request is sent it might need to 
+    be encoded differently than the <i>database character set</i> (because the 
+    sender knows that the target URL requires this). And when a response is received, 
+    it may again be encoded differently from the database character set (because 
+    that's the non-negotiable behavior of the target URL).<br>
+
+    <br>
+    There are two areas of concern when sending a request: the URL and the request 
+    body. When sending by the &quot;GET&quot; method, all request parameterization 
+    is via the URL itself, typically after the <b>?</b> delimiter. Search terms 
+    for example are normally handled this way. HTTP defines no convention for 
+    specifying different character sets for the URL and expects that everything 
+    is 7-bit ASCII. Other character encoding schemes should be represented as 
+
+    the hex codes of their bytes using the<b> %nn</b> notation. (The sender of 
+    the request must know from documentation what character set the URL expects 
+    to decode from the hex representation.) Oracle9<i>i</i> introduces the <b>Utl_Url</b> 
+    package which has functions to convert from the database character set to 
+    a hex coded representation of a specified character set, and vice versa. In 
+    addition, these functions handle the conversion of the reserved symbols: percent 
+    (%), semi-colon (;) slash (/), question mark (?), colon (:), at sign (@), 
+    ampersand (&amp;), equals sign (=), plus sign (+), dollar sign ($), and comma 
+
+    (,).<br>
+    <br>
+    When sending by the &quot;PUT&quot; method, the character set of the request 
+    body should be set via the <b>charset </b>attribute of the Content-Type in 
+    the request header, using the new<b> Utl_Http.Set_Header</b> procedure. If 
+    this is done, it gives Oracle sufficient information to transform appropriately 
+    when sending a character request body (by using <b>Utl_Http.Write_Text</b>). 
+    If the<b> charset</b> attribute is not set in the request header, then no 
+    character set conversion takes place unless the user has catered for it via 
+
+    the overloaded procedure <b>Utl_Http.Set_Body_Charset</b>. The variant <b>Set_Body_Charset(charset 
+    varchar2)</b> - a.k.a. the <i>global variant</i> - allows the user to set 
+    a fallback character set, to be assumed, if no other information is provided, 
+    for both requests and responses for the session. The variant <b>Set_Body_Charset(r 
+    Utl_Http.Req, charset varchar2)</b> - a.k.a the <i>request variant</i>, allows 
+    the user to insist on a character set for the body for this request. (A record 
+    of PL/SQL type <b>Utl_Http.Req</b> is returned when the HTTP request is begun 
+    with <b>Utl_Http.Begin_Request</b>.) The choice made via the request variant 
+    will not only override that made via the global variant but will also override 
+    that made via the <b>charset</b> attribute of the request header. For this 
+
+    reason, the recommended way to specify the character set conversion for the 
+    request body is via the <b>charset</b> attribute of the header. Only if the 
+    user has a special reason for leaving this unspecified in the request header 
+    would he use the request variant of <b>Set_Body_Charset</b>.<br>
+    <br>
+    There is just one area of concern when receiving the response: the response 
+    body. If the implementation of the URL is well-mannered, then the character 
+    set of the response body will be specified correctly in the <b>charset </b>attribute 
+    of the Content-Type in the response header, accessible to the user via the 
+    procedure <b>Utl_Http.Get_Header</b>. Oracle will implicitly perform the appropriate 
+    conversion in connection with calling <b>Utl_Http.Read_Text</b>. However, 
+
+    this is often not set. In this case the user can use the global variant of 
+    <b>Set_Body_Charset</b> to determine the character set conversion. However, 
+    the <b>charset</b> attribute of the response header is sometimes set <i>wrong</i>. 
+    (This is likely when pages in different character sets are served up as files 
+    from the filesystem seen by the webserver, since the Content-Type header information 
+    will often be set globally for the server with no mechanism to make it file 
+    specific.) For this reason a third overloaded variant <b>Set_Body_Charset(r 
+    Utl_Http.Resp,charset varchar2)</b> is provided - a.k.a. the <i>response variant</i>. 
+    (A record of PL/SQL type <b>Utl_Http.Resp</b> is returned when the HTTP response 
+    is got with <b>Utl_Http.Get_Response</b>.) The choice made via the response 
+    variant will override that made via the global variant and that expressed 
+    via the <b>charset</b> attribute of the response header.<br>
+
+    <br>
+    <i>Note</i>: from Oracle8i v8.1.6 and pre-Oracle9<i>i</i>, Oracle detected 
+    the <b>charset</b> of the response body (if this was specified) and used the 
+    information to do the character set conversion. And if the <b>charset</b> 
+    attribute of the response body was not specified then no conversion took place 
+    and no overriding or fallback mechanism was provided. Under special circumstances 
+    (eg fetching a SJIS Japanese response where the <b>charset</b> attribute is 
+    not specified into a EUC database) problems arose pre-Orcale9<i>i</i>.<br>
+    <br>
+    Thus the user now has full control over all character set conversion issues. 
+    In an extreme case, where the response body is Content-Type text/html and 
+    where the HTML <b>&lt;meta&gt;</b> tag is used to specify the character set, 
+    the user can retrieve the response body into a PL/SQL RAW with <b>Utl_Http.Read_Raw</b> 
+
+    and then write custom code to parse the HTML and to convert to the database 
+    character set in a PL/SQL VARCHAR2 once the response character set is discovered.</p>
+  <p>&nbsp;</p>
+</div>
+</body></html>
+

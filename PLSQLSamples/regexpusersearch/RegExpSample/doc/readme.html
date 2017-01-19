@@ -1,0 +1,230 @@
+<html>
+<head>
+<title>Regular Expression Sample Application - 
+ User Search</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="otn_new.css" type="text/css">
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+<span class="topstoryhead"><font size="4"> Regular Expression Sample Application 
+- User Search</font></span><br>
+<hr noshade>
+<span class="parahead1"><font size="2"><br>
+Date: 13-Dec-2004</font></span> <br>
+<br>
+<span class="topstoryhead"><font size="3">Table of Contents</font></span> 
+<p><a href="#intro" class="bodylink">Introduction</a><br>
+  <a href="#over" class="bodylink">Application Overview</a><br>
+  <a href="#reqn" class="bodylink">Software Requirements</a><br>
+  <a href="#terms" class="bodylink">Terminology</a><br>
+  <a href="#configure" class="bodylink">Configuring the Application</a><br>
+  <a href="#deploy" class="bodylink">Running the Application</a><br>
+  <a href="#files" class="bodylink">Sample Application Files</a><br>
+  <a href="#addref" class="bodylink">Additional References</a><br>
+</p>
+<p class="topstoryhead"><a NAME="intro"></a><font size="3">Introduction</font> 
+<ul class="list">
+  <li><a href="#pre" class="bodylink">Prerequisite</a><font color="#FF0000"><br>
+    <br>
+    </font></li>
+  <li><a href="#tech" class="bodylink">Technical Overview</a></li>
+</ul>
+<p class="topstoryhead"> <a NAME="pre"></a><font size="2">Prerequisite</font></p>
+<span class="bodycopy">To understand this sample application the user is expected 
+to have knowledge in the following area, </span> 
+<ul  class=bodycopy>
+  <li> <a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink" target="_blank">PL/SQL</a><br>
+    <br>
+  </li>
+</ul>
+<p></p>
+<p class="topstoryhead"> <a NAME="tech"></a><font size="2">Technical Overview</font></p>
+<p class=bodycopy>Regular expressions specify patterns to search for in string 
+  data using standardized syntax conventions. A regular expression can specify 
+  complex patterns of character sequences. For example, the following regular 
+  expression:<br>
+  <code>a(b|c)d</code><br>
+  searches for the pattern: 'a', followed by either 'b' or 'c', then followed 
+  by 'd'. This regular expression matches both 'abd' and 'acd'.<br>
+  <br>
+  In addition to specifying character literal expressions as in the above example, 
+  Oracle's regular expression implementation also supports the POSIX (Portable 
+  Operating System Interface) character classes. This means that you can be very 
+  specific about the type of character you are looking for. The POSIX character 
+  class must be enclosed by a character list indicated by square brackets<code>([])</code>. 
+  For example, the regular expression <code>[[:space:]]</code> matches a space 
+  character and <code>[[:space:]]{1,}</code> matches one or more consecutive space 
+  characters. <br>
+  <br>
+  Regular expressions provide a powerful method of identifying patterns of strings 
+  within a body of text. Usage ranges from a simple search for a string such as 
+  'Oracle Database' to the more complex task of extracting all URLs to a task 
+  like finding all words whose every second character is a vowel. SQL and PL/SQL 
+  support regular expressions in Oracle Database 10<i>g</i>. One can make use 
+  of the Regular Expression API's from simple searching to complex data validation. 
+  They can be used in PROCEDUREs, FUNCTIONs, TRIGGERs, CURSORs, for defining constraints 
+  on tables etc. <br>
+  <br>
+</p>
+<p class="topstoryhead"> <a NAME="over"></a><font size="3">Application Overview</font> 
+<p class=bodycopy> This sample application demonstrates how regular expression 
+  APIs can be used to validate, search, and extract information in TRIGGERs, PROCEDUREs, 
+  CURSORs and in CHECK conditions. The sample application uses variety of patterns 
+  to search and extract user information such as hobbies and interest, location 
+  information etc stored in a database table. <br>
+  The procedure EMAIL_CHECK uses regular expression REGEXP_LIKE function to validate 
+  the user email id. This accepts email ids of format abc123@xyz.com format only. 
+  This procedure is called from the VALIDATEUSER trigger which gets fired whenever 
+  a new row is inserted or when an existing row is updated. Also the trigger does 
+  a validation on the users phone number. The accepted phone number format is 
+  123-123-1234. If these validations fail appropriate error message is displayed 
+  to the user. <br>
+  Also the CHECK_PASSWORD constraint, which uses Regular Expressions makes sure 
+  that the PASSWORD field is of alpha-numeric type. In addition this sample also 
+  shows how Regular Expressions can be used with Cursors These cursors are defined 
+  in the search.sql file, which uses different regular expression functions to 
+  extract the information from the USERINFO table. <br>
+</p>
+<p class="topstoryhead"><a NAME="reqn"></a><font size="3">Software Requirements</font> 
+<p class=bodycopy> List the softwares required for configuring and running this 
+  sample application. </p>
+<ul class="list">
+  <li> <a href="http://www.oracle.com/technology/software/products/database/oracle10g/index.html" class="bodylink" target="_blank">Oracle 
+    Database 10<i>g</i> Release 1 (10.1.0.2)</a> <br>
+  </li>
+</ul>
+<p> <span class="topstoryhead"> <a NAME="terms"></a><font size="3">Terminology</font></span> 
+  <br>
+  <br>
+<table border="1" cellpadding="5" cellspacing="0" width="559">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" width="204" height="24">Term</th>
+    <th class="boldbodycopy" width="687" height="24">Definition</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="204" height="26"> 
+      <div align="center">&lt;SAMPLE_HOME&gt;</div>
+    </td>
+    <td class="bodycopy" width="687" height="26"> 
+      <p> The directory where the sample is extracted<code></code></p>
+    </td>
+  </tr>
+</table>
+<br>
+<p class="topstoryhead"> <a NAME="configure"></a><font size="3">Configuring the 
+  Application </font> <br>
+  <font size="3"></font> 
+<ul>
+  <li class="bodycopy"><span class="bodycopy"> Unzip the downloaded <a href="regexpusersearch.zip" class="bodylink">RegExpUserSearch.zip</a>. 
+    Extract the file contents into <code>&lt;SAMPLE_HOME&gt;</code> directory. 
+    <br>
+    This creates <span class="bodycopy">RegExpSample folder</span> with all the 
+    files and folders. <br>
+    <br>
+    </span></li>
+  <li class="bodycopy"><span class="bodycopy">Open the command prompt and move 
+    to <code>&lt;SAMPLE_HOME&gt;/RegExpSample/src</code> </span> folder by executing 
+    the following command, <br>
+    <code><br>
+    cd &lt;SAMPLE_HOME&gt;/RegExpSample/src</code> <br>
+    <br>
+  </li>
+  <li> <span class="bodycopy">Open SQL prompt. Connect as SCOTT/TIGER and run 
+    the config.sql script from <code>&lt;SAMPLE_HOME&gt;/RegExpSample/src</code> 
+    folder. This will create the necessary database objects ( table, trigger, 
+    procedure) used by this application. <br>
+    Example,<br>
+    <br>
+    <code>SQL&gt;@config.sql </code><br>
+    </span><span class="bodycopy"> </span> </li>
+</ul>
+<p class="topstoryhead"> <a NAME="deploy"></a><font size="3">Running the Application</font> 
+<p class=bodycopy> Follow the steps give below to run this application. <br>
+</p>
+<ul>
+  <li class="bodycopy"><span class="bodycopy"> From the SQL command prompt run 
+    the search.sql file. Example, <br>
+    <br>
+    <code>SQL&gt;@search.sql </code><br>
+    <br>
+    This will prompt for you to enter your choice from the menu. Enter any integer 
+    value. e.g, 1,2 or 3.<br>
+    <br>
+    </span><span class="bodycopy"><br>
+    </span></li>
+  <li> <span class="bodycopy">Run the update.sql and observe the functioning of 
+    'validateUser' trigger and 'check_mail' procedure. <br>
+    <br>
+    <code>SQL&gt;@update.sql </code><br>
+    <br>
+    <b>Note:</b> Edit update.sql and enter values for email and phone fields as 
+    accepted by the application. </span><br>
+  </li>
+</ul>
+<p class="topstoryhead"> <a NAME="files"></a><font size="3">Sample Application 
+  Files&nbsp;</font> 
+<p class="bodycopy">This section provides a tabular listing of the sample application 
+  files and their descriptions.
+<p> 
+<table border="1" cellpadding="5" cellspacing="0" width="80%">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" height="33" width="38%">Directory</th>
+    <th class="boldbodycopy" height="33" width="13%">File</th>
+    <th class="boldbodycopy" height="33" width="49%">Description</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%" > 
+      <p align="center">RegExpSample\doc</p>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">readme.html </div>
+    </td>
+    <td class="bodycopy" width="49%"> 
+      <p align="left"> This file</p>
+    </td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center">RegExpSample\src</div>
+    </td>
+    <td class="bodycopy" width="13%" align="center">config.sql</td>
+    <td class="bodycopy" width="49%">SQL file that creates necessary database 
+      objects</td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center">RegExpSample\src</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">search.sql</div>
+    </td>
+    <td class="bodycopy" width="49%">Used for searching and extracting information 
+      from the table</td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center">RegExpSample\src</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">update.sql</div>
+    </td>
+    <td class="bodycopy" width="49%">This file is used to update the rows in the 
+      table</td>
+  </tr>
+</table>
+<p class="topstoryhead"> <br>
+  <a NAME="addref"> </a><font size="3">Additional References&nbsp;</font>  
+<ul>
+  <li><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/oracle/03-sep/o53sql.html" class="bodylink" target="_blank">First 
+    Expressions </a></span></li>
+  <li><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/webcolumns/2003/techarticles/rischert_regexp_pt1.html" class="bodylink" target="_blank">Writing 
+    Better SQL Using Regular Expressions</a></span></li>
+  <li><a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink" target="_blank">Regular 
+    Expression Sample on OTN</a><br>
+  </li>
+</ul>
+<hr noshade>
+<p class="boldbodycopy"> Please enter your comments about this sample application 
+  <a href="http://www.oracle.com/technology/forums/sample_code.html" class="bodylink" target="_blank">here</a>.
+</body>
+</html>

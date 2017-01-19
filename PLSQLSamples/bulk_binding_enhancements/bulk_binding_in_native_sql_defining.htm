@@ -1,0 +1,67 @@
+<html>
+
+<head>
+
+  <title>Bulk Binding in Native Dynamic SQL - Defining</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" >
+  <h1>Defining</h1>
+
+
+  <p>Consider a program to populate elements of a PL/SQL collection from a SELECT
+    query thus&#133;</p>
+  <pre>declare
+  type employee_ids_t is table of employees.employee_id%type
+    index by binary_integer;
+
+  employee_ids employee_ids_t; n integer:=0;
+begin
+  for j in ( select employee_id from employees where salary &lt; 3000 )
+  loop
+    n := n+1; employee_ids(n) := j.employee_id;
+  end loop;
+
+end;</pre>
+  <p>Each explicit row by row assignment of the collection element to the cursor
+    component causes a context switch between the PL/SQL engine and the SQL engine
+    resulting in performance overhead. The following formulation (one of a family
+    of constructs generically referred to as bulk binding and available pre-Oracle9<i>i</i>)&#133;</p>
+  <pre>declare
+  type employee_ids_t is table of employees.employee_id%type
+
+    index by binary_integer;
+  employee_ids employee_ids_t; n integer:=0;
+begin
+  select employee_id
+    <span class="Code_Emphasize">bulk collect into</span> employee_ids
+    from employees where salary &lt; 3000;
+end;</pre>
+  <p>&#133;substantially improves performance by minimizing the number of context
+
+    switches required to execute the block. (The above fragments work pre-Oracle
+    9<i>i</i>.)</p>
+  <p>There are many application implementation situations that require dynamic
+    SQL. Native dynamic SQL (<b>execute immediate</b> and related constructs)
+    is usually preferred over <b>Dbms_Sql</b> because it's easier to write and
+    proof read and executes faster. However, pre-Oracle9i, only <b>Dbms_Sql</b>
+    could be used for dynamic bulk binding. Oracle9i introduces the following
+    syntax for bulk binding in native dynamic SQL &#133;</p>
+  <pre>declare
+
+  type employee_ids_t is table of employees.employee_id%type
+    index by binary_integer;
+  employee_ids employee_ids_t; n integer:=0;
+begin <span class="Code_Comment">/* new at 9i */</span>
+  execute immediate 'select employee_id from employees where salary &lt; 3000'
+    <span class="Code_Emphasize">bulk collect into employee_ids;</span>
+end;</pre>
+  <p>&nbsp;</p>
+</div>
+</body></html>
+

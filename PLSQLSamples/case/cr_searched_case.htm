@@ -1,0 +1,85 @@
+<html>
+
+<head>
+
+  <title>Using Searched CASE Statements and Expressions in PL/SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div"> 
+  <pre>-- Connect programmer/p@9i
+
+set serveroutput on
+
+drop function <span class="Code_Emphasize">Get_Grade1</span>;
+drop function <span class="Code_Emphasize">Get_Grade2;</span>
+
+
+create or replace <span class="Code_Emphasize">function Get_Grade1(score IN NUMBER) </span>RETURN VARCHAR2 is
+begin
+<span class="Code_Comment">  -- use a Searched CASE Statement to find the Grade for the 
+  -- score passed in as a parameter</span>
+  CASE 
+    WHEN score BETWEEN 80 AND 100 THEN
+
+      dbms_output.put_line('Between 80 and 100');
+      return 'A';
+    WHEN score BETWEEN 65 AND 79  THEN
+      dbms_output.put_line('Between 65 and 79');
+      return 'B';
+    WHEN score BETWEEN 50 AND 64  THEN
+      dbms_output.put_line('Between 50 and 64');
+
+      return 'C';
+    WHEN score BETWEEN 40 AND 49  THEN
+      dbms_output.put_line('Between 40 and 49');
+      return 'D';
+    WHEN score BETWEEN 0  AND 39  THEN
+      dbms_output.put_line('Between 0 and 39');
+      return 'F';
+    ELSE
+
+      return 'Invalid score';
+  END CASE;
+end Get_Grade1;
+/
+Show Errors
+
+begin
+  dbms_output.put_line(<span class="Code_Emphasize">Get_Grade1(75)</span>);
+end;
+
+/
+
+create or replace <span class="Code_Emphasize">function Get_Grade2(score IN NUMBER) </span>RETURN VARCHAR2 is
+  grade VARCHAR2(15);
+begin
+<span class="Code_Comment">  -- use a Searched CASE Expression to return the grade for
+  -- the score value passed in </span>
+  grade := CASE 
+             WHEN score BETWEEN 80 AND 100 THEN 'A'
+             WHEN score BETWEEN 65 AND 79  THEN 'B'
+
+             WHEN score BETWEEN 50 AND 64  THEN 'C'
+             WHEN score BETWEEN 40 AND 49  THEN 'D'
+             WHEN score BETWEEN 0  AND 39  THEN 'F'
+             ELSE 'Invalid score'
+           END;
+  return grade;
+end Get_Grade2;
+/
+Show Errors
+
+select <span class="Code_Emphasize">Get_Grade2(90)</span> from dual
+
+/
+
+</pre>
+</div>
+</body></html>
+

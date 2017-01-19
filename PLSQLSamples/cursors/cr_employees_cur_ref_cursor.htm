@@ -1,0 +1,60 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div">
+  <pre>Connect programmer/p@9i
+
+
+create or replace <span class="Code_Emphasize">package Employees_Cur_Ref_Cursor</span> is
+  <span class="Code_Emphasize">type Last_Names_Tab_t</span> is table of employees.last_name%type
+    index by binary_integer;
+
+
+  function Fetch_All_Rows ( p_department_id in employees.department_id%type )
+    return Last_Names_Tab_t;
+end Employees_Cur_Ref_Cursor;
+/
+Show Errors
+
+
+create or replace <span class="Code_Emphasize">package body Employees_Cur_Ref_Cursor</span> is
+
+  <span class="Code_Emphasize">function Fetch_All_Rows</span> ( p_department_id in employees.department_id%type )
+     return Last_Names_Tab_t
+  is
+    v_last_names_tab Last_Names_Tab_t;
+    c_employees sys_refcursor;
+
+  begin
+    <span class="Code_Emphasize">open</span> c_employees for
+      select last_name from employees where department_id = p_department_id;
+
+    <span class="Code_Emphasize">fetch</span> c_employees bulk collect into v_last_names_tab;
+
+    <span class="Code_Comment">-- Activate the next statement for more refined observations...
+    /*
+
+    <b>Wait.Go</b>;
+    */</span>
+
+    <span class="Code_Emphasize">close</span> c_employees;
+    return v_last_names_tab;
+  end Fetch_All_Rows;
+
+end Employees_Cur_Ref_Cursor;
+/
+
+Show Errors
+</pre>
+</div></body></html>
+

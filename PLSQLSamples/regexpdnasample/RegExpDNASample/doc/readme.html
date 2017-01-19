@@ -1,0 +1,312 @@
+<html>
+<head>
+<title>Regular Expression Sample Application - 
+ DNA Analysis</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="/technology/content/stylesheets/otn_new.css" type="text/css">
+<link rel="stylesheet" href="otn_new.css" type="text/css">
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+<span class="topstoryhead"><font size="4"> Regular Expression Sample Application 
+- DNA Analysis</font></span><br>
+<hr noshade>
+<span class="parahead1"><font size="2"><br>
+Date: 01-Dec-2004</font></span> <br>
+<br>
+<span class="topstoryhead"><font size="3">Table of Contents</font></span> 
+<p><a href="#intro" class="bodylink">Introduction</a><br>
+  <a href="#over" class="bodylink">Application Overview</a><br>
+  <a href="#reqn" class="bodylink">Software Requirements</a><br>
+  <a href="#terms" class="bodylink">Terminology</a><br>
+  <a href="#configure" class="bodylink">Configuring the Application</a><br>
+  <a href="#deploy" class="bodylink"> Running the Application</a><br>
+  <a href="#files" class="bodylink">Sample Application Files</a><br>
+  <a href="#tshoot" class="bodylink">TroubleShooting</a> <a href="#addref" class="bodylink"><br>
+  Additional References</a><br>
+  <br>
+</p>
+<p class="topstoryhead"><a NAME="intro"></a><font size="3">Introduction</font> 
+<ul class="list">
+  <li><a href="#pre" class="bodylink">Prerequisite</a><font color="#FF0000"><br>
+    <br>
+    </font></li>
+  <li><a href="#tech" class="bodylink">Technical Overview</a></li>
+</ul>
+<p class="topstoryhead"> <a NAME="pre"></a><font size="2">Prerequisite</font></p>
+<span class="bodycopy">To understand this sample application the user is expected 
+to have knowledge in the following area, </span> 
+<ul  class=bodycopy>
+  <li> <a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink" target="_blank">PL/SQL</a><br>
+    <br>
+  </li>
+</ul>
+<p></p>
+<p class="topstoryhead"> <a NAME="tech"></a><font size="2">Technical Overview</font></p>
+<p class=bodycopy>Regular expressions represent a powerful tool for describing 
+  and manipulating text data. These are supported by a wide variety of programming 
+  and scripting languages, text editors, and now by Oracle Database 10g SQL and 
+  PL/SQL.<br>
+  <span class="bodycopy">Regular expressions are extremely useful, because they 
+  allow programmers to work with text in terms of patterns. They are considered 
+  the most sophisticated means of performing operations such as string searching, 
+  manipulation, validation, and formatting in all applications that deal with 
+  text data. Also they are used in bioinformatics to assist with identifying DNA 
+  and protein sequences. Linguists use regular expressions to aid research of 
+  natural languages. The introduction of native regular expression support to 
+  SQL and PL/SQL in the Oracle Database revolutionizes the ability to search for 
+  and manipulate text within the database by providing expressive power in queries, 
+  data definitions and string manipulations.</span><br>
+</p>
+<p class="topstoryhead"> <a NAME="over"></a><font size="3">Application Overview</font> 
+<p class=bodycopy> This application uses Regular Expression for extracting and 
+  analyzing DNA data from SGD database. SGD(Saccharomyces Genome Database) is 
+  a scientific database of the molecular biology and genetics of the yeast Saccharomyces 
+  cerevisiae, which is commonly known as baker's or budding yeast. Given a region 
+  you can query the database to get the yeast genome sequence from this site. 
+  This sample uses the regular expressions to parse the output from the raw HTTP 
+  data and store the DNA sequence in the database. Further you can run the regular 
+  expression queries to identify specific patterns from the database. <br>
+  <br>
+  A &quot;regular expression&quot; is a set of character that represents one or 
+  more strings. To find if a certain pattern is present within a given record 
+  such as DNA or protein we construct a regular expression that represents that 
+  pattern. For example, the pattern &quot;GGATGA&quot; represents the DNA sequence 
+  &quot;GGATGA&quot; and no other sequence. The regular expression &quot; GAA[ACGT]{4}TTC&quot; 
+  represents GAAACGTTTC , GAAAAAATTC etc. Here [ACGT]{4} means that the sequence 
+  may contain any combination of these characters or even all four can be of same 
+  character. You can observe from these examples that some regular expressions 
+  characters match only one character (i.e. G represents only Guanine) while others 
+  can match much more than one character. Here within lays the power of regular 
+  expression searches. Using relatively small number of symbols one can specify 
+  many different patterns to search for in one single search. </p>
+<p class=bodycopy>The sample application uses the DNASEQ function to connect to 
+  the SGD database and retrieve the HTTP stream data. This stream is then parsed 
+  using Regular Expressions, to extract only the DNA sequence by eliminating the 
+  control characters. The DNA sequence is further processed, to check whether 
+  the given sequence possesses any of the enzyme patterns and list their first 
+  occurrence position within the sequence. <br>
+  <br>
+</p>
+<p class="topstoryhead"><a NAME="reqn"></a><font size="3">Software Requirements</font> 
+<p class=bodycopy> List the softwares required for configuring and running this 
+  sample application. </p>
+<ul class="list">
+  <li><a href="http://www.oracle.com/technology/software/products/database/oracle10g/index.html" class="bodylink" target="_blank">Oracle 
+    Database 10<i>g</i> Release 1 (10.1.0.2)</a><br>
+  </li>
+</ul>
+<p> <span class="topstoryhead"> <a NAME="terms"></a><font size="3">Terminology</font></span> 
+  <br>
+  <br>
+<table border="1" cellpadding="5" cellspacing="0" width="559">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" width="204" height="24">Term</th>
+    <th class="boldbodycopy" width="687" height="24">Definition</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="204" height="26"> 
+      <div align="center">&lt;SAMPLE_HOME&gt;</div>
+    </td>
+    <td class="bodycopy" width="687" height="26"> 
+      <p> The directory where the sample is extracted<code></code></p>
+    </td>
+  </tr>
+</table>
+<br>
+<p class="topstoryhead"> <a NAME="configure"></a><font size="3">Configuring the 
+  Application </font> 
+<ul>
+  <li class="bodycopy"><span class="bodycopy"> Unzip the downloaded&nbsp;<a href="regexpdnasample.zip" class="bodylink">RegExpDNASample.zip</a>. 
+    Extract the file contents into &lt;SAMPLE_HOME&gt; directory. <br>
+    This creates <span class="bodycopy">RegExpDNASample folder</span> with all 
+    the files and folders. <br>
+    <br>
+    </span></li>
+  <li class="bodycopy"><span class="bodycopy">Open the command prompt and move 
+    to &lt;SAMPLE_HOME&gt;/<span class="bodycopy">REGEXPDNASample</span>/src folder 
+    by executing the following command, <br>
+    cd &lt;SAMPLE_HOME&gt;/<span class="bodycopy">REGEXPDNASample</span>/src<br>
+    <br>
+    </span></li>
+  <li> <span class="bodycopy">Open SQL prompt. Connect as SCOTT/TIGER and run 
+    the config.sql script from &lt;SAMPLE_HOME&gt;/<span class="bodycopy">REGEXPDNASample</span>/src 
+    folder. This will create the necessary database objects ( table, function) 
+    for this application. <br>
+    Example,<br>
+    SQL&gt; @config.sql <br>
+    </span></li>
+</ul>
+<p class="topstoryhead"> <br>
+  <a NAME="deploy"></a><font size="3">Running the Application</font> 
+<p class=bodycopy> The application can be run as below. <font color="#FF0000"><br>
+  </font><br>
+</p>
+<ul class="list">
+  <li class="bodycopy">From the SQL prompt, run the dna_analysis.sql file by issueing 
+    the following command,<br>
+    <span class="bodycopy">SQL&gt;</span>@dna_analysis.sql <br>
+    <br>
+    Enter the value for the 'region' (Refer the table below for the sample regions). 
+    This PL/SQL block executes the DNASEQ function which connects to the http://www.yeastgenome.org 
+    website and extracts the DNA sequence. The sequence is then stored in the 
+    DNA_DB table. Also this PL/SQL block searches for certain enzyme patterns 
+    and prints their first occurrence position within the extracted DNA sequence. 
+    <br>
+    <br>
+    <b class="italicbodycopy">Note:</b><br>
+    <span class="bodycopy">You may input any of the following regions for analysis. 
+    <br>
+    </span> 
+    <table width="16%" border="1" align="center" cellspacing="0">
+      <tr> 
+        <td class="bodycopy" align="center">YMR317W</td>
+      </tr>
+      <tr> 
+        <td class="bodycopy" align="center">YMR010W</td>
+      </tr>
+      <tr> 
+        <td class="bodycopy" align="center">YBL016W</td>
+      </tr>
+      <tr> 
+        <td class="bodycopy" align="center">YBR077C</td>
+      </tr>
+      <tr> 
+        <td class="bodycopy" align="center">YAL004W</td>
+      </tr>
+    </table>
+    <br>
+    <span class="bodycopy">Following are the few enzyme names used in the analysis 
+    and their recognition patterns</span><br>
+    <table width="696" border="1" cellspacing="0" align="center">
+      <tr valign="middle" align="center"> 
+        <td height="21" width="113" class="boldbodycopy">Enzyme Name</td>
+        <td width="234" class="boldbodycopy">Recognition Pattern</td>
+        <td width="234" class="boldbodycopy">Equivalent Oracle Regular Expression 
+          Pattern</td>
+      </tr>
+      <tr valign="middle" align="center"> 
+        <td height="21" width="113" class="bodycopy">EcoRI</td>
+        <td width="234" class="bodycopy">GAATTC</td>
+        <td width="234" class="bodycopy">GAATTC</td>
+      </tr>
+      <tr valign="middle" align="center"> 
+        <td height="21" width="113" class="bodycopy">BamHI</td>
+        <td width="234" class="bodycopy">GGATCC</td>
+        <td width="234" class="bodycopy">GGATCC</td>
+      </tr>
+      <tr valign="middle" align="center"> 
+        <td height="21" width="113" class="bodycopy">HindII</td>
+        <td width="234" class="bodycopy">GTYRAC</td>
+        <td width="234" class="bodycopy">GT[CT]{1}[GA]{1}AC</td>
+      </tr>
+      <tr valign="middle" align="center"> 
+        <td height="21" width="113" class="bodycopy">Ama87I</td>
+        <td width="234" class="bodycopy">CYCGRG</td>
+        <td width="234" class="bodycopy">C[CT]{1}CG[GA]{1}G</td>
+      </tr>
+      <tr valign="middle" align="center"> 
+        <td height="21" width="113" class="bodycopy">Asp700I</td>
+        <td width="234" class="bodycopy">GAANNNNTTC</td>
+        <td width="234" class="bodycopy">GAA[ACGT]{4}TTC</td>
+      </tr>
+    </table>
+    <br>
+  </li>
+  <li><span class="bodycopy">Refer to the <a href="#tshoot" class="bodylink">TroubelShooting</a> 
+    section if you encounter any problems.</span> <br>
+    <br>
+  </li>
+  <li class="bodycopy"> Alternatively, you can run the search_localdb.sql, if 
+    you encounter problems connecting to the website. This searches for the enzyme 
+    sites in the locally stored database.<br>
+    Example,<br>
+    <span class="bodycopy">SQL&gt;@</span>search_localdb.sql </li>
+</ul>
+<p class="topstoryhead"><a NAME="files"></a><font size="3">Sample Application 
+  Files&nbsp;</font> </p>
+<p class="bodycopy">This section will provide a tabular listing of the sample 
+  application files, along with their respective directory locations and a description 
+  of what they do in the overall scheme of the application.
+<p> 
+<table border="1" cellpadding="5" cellspacing="0" width="80%">
+  <tr align="center" bgcolor="#CCCCCC"> 
+    <th class="boldbodycopy" height="33" width="38%">Directory</th>
+    <th class="boldbodycopy" height="33" width="13%">File</th>
+    <th class="boldbodycopy" height="33" width="49%">Description</th>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%" > 
+      <p align="center"><span class="bodycopy">RegExpDNASample</span>\doc</p>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">readme.html </div>
+    </td>
+    <td class="bodycopy" width="49%"> 
+      <p align="left"> This file</p>
+    </td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center"><span class="bodycopy">RegExpDNASample</span>\src</div>
+    </td>
+    <td class="bodycopy" width="13%" align="center">config.sql</td>
+    <td class="bodycopy" width="49%">This SQL file is used to configure the sample. 
+      This creates the necessary table and function</td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center"><span class="bodycopy">RegExpDNA</span>Sample\src</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">dnaseq.sql</div>
+    </td>
+    <td class="bodycopy" width="49%">The file that creates DNASEQ function</td>
+  </tr>
+  <tr> 
+    <td class="navhead" width="38%"> 
+      <div align="center"><span class="bodycopy">RegExpDNA</span>Sample\src</div>
+    </td>
+    <td class="bodycopy" width="13%"> 
+      <div align="center">dna_analysis.sql</div>
+    </td>
+    <td class="bodycopy" width="49%">This PL/SQL code executes the DNASEQ stored 
+      procedure and runs the Regular Expression search on the retrieved sequence.</td>
+  </tr>
+  <tr>
+    <td class="navhead" width="38%">
+      <div align="center"><span class="bodycopy">RegExpDNA</span>Sample\src</div>
+    </td>
+    <td class="bodycopy" width="13%">search_localdb.sql</td>
+    <td class="bodycopy" width="49%">The file runs the SQL script to search patterns 
+      in the locally stored database. </td>
+  </tr>
+</table>
+<p class="topstoryhead"> <a name="tshoot"> </a><font size="3">TroubleShooting&nbsp;</font> 
+</p>
+  
+<span class="bodycopy">You may enocunter &quot;ORA-29273: HTTP request failed&quot; 
+error while running the dna_analysis.sql file if you are behind a firewall. <br>
+To solve this problem, open the dnaseq.sql file, search for UTL_HTTP.SET_PROXY, 
+uncomment the line containing UTL_HTTP.SET_PROXY and edit the settings and replace 
+'www.yourproxy.com' with the correct proxy server address. </span><br>
+<br><p class="topstoryhead">
+<a NAME="addref"> </a><font size="3">Additional References&nbsp;</font> </p>
+<ul>
+  <li class="bodylink"><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/oracle/03-sep/o53sql.html" class="bodylink" target="_blank">First 
+    Expressions </a></span></li>
+  <li class="bodylink"><span class="bodylink"><a href="http://www.oracle.com/technology/oramag/webcolumns/2003/techarticles/rischert_regexp_pt1.html" class="bodylink" target="_blank">Writing 
+    Better SQL Using Regular Expressions</a> </span></li>
+  <li><a href="http://www.oracle.com/technology/sample_code/tech/pl_sql/index.html" class="bodylink" target="_blank">Regular 
+    Expression Sample on OTN</a></li>
+  <li><a href="http://www.oracle.com/technology/industries/life_sciences/index.html" class="bodylink" target="_blank">Oracle 
+    Life Sciences Platform</a> </li>
+  <li><a href="http://www.yeastgenome.org/" target="_blank" class="bodylink"> 
+    Saccharomyces Genome Database </a><br>
+  </li>
+</ul>
+<hr noshade>
+<p class="boldbodycopy"> Please enter your comments about this sample application 
+  <a href="http://www.oracle.com/technology/forums/sample_code.html" class="bodylink" target="_blank">here</a>. 
+<p class="boldbodycopy">&nbsp; 
+</body>
+</html>

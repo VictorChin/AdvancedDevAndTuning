@@ -1,0 +1,79 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <pre>declare
+  <span class="Code_Comment">-- UPDATE RETURNs one row
+
+  -- static SQL
+  -- fails at 9.2.0 with PL/SQL: ORA-00936:
+  -- missing expression
+  --
+  -- <b>CANNOT AVOID NAMING COLUMNS YET</b>
+
+  --</span>
+  v_employee_id employees_0.employee_id%type := 100;
+  v_emprec employees_0%rowtype;
+begin
+  update employees_0 set salary = salary * 1.1
+    where employee_id = v_employee_id
+
+    returning * into v_emprec
+    /* this may or may not be the syntax that is supported in a later realease */;
+end;
+/
+-- ERROR at line N:
+rollback /* prepare for repeat or for next sample */;
+-- Rollback complete.
+
+
+
+
+
+
+declare
+  <span class="Code_Comment">-- <b>WORKAROUND</b>
+  -- List all the columns for RETURNING in the SQL
+
+  -- target out-bind CAN be a RECORD
+  -- fails at 9.0.1 with ORA-00600:
+  -- internal error ...</span>
+  v_employee_id employees_0.employee_id%type := 100;
+  v_emprec employees_0%rowtype;
+begin
+  update employees_0 set salary = salary * 1.1
+    where employee_id = v_employee_id
+    returning
+
+      employee_id,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      hire_date,
+      job_id,
+      salary,
+      commission_pct,
+      manager_id,
+
+      department_id
+    into v_emprec;
+  Emp_Util.Show_One ( v_emprec );
+end;
+/
+<span class="Code_Comment">-- PL/SQL procedure successfully completed.</span>
+rollback <span class="Code_Comment">/* prepare for repeat or for next sample */</span>;
+<span class="Code_Comment">-- Rollback complete.</span>
+</pre>
+</div>
+</body></html>
+

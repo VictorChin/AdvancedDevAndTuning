@@ -1,0 +1,72 @@
+<html>
+
+<head>
+
+  <title>Associative Arrays</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" > 
+  <h1>Associative arrays</h1>
+
+  <h2>New in Oracle9<i>i</i> Database Version 9.2.0</h2>
+  <i>Associative array</i> is the new name for <i>index-by table</i> (even earlier 
+  known as <i>PL/SQL table</i>). These have been available for some time, but 
+  before Version 9.2.0 the only possible declaration was... 
+  <pre>type my_tab_t is table of number <span class="Code_Emphasize">index by binary_integer</span>;</pre>
+
+  Version 9.2.0 introduces two new possibilities... 
+  <pre>type my_tab_t is table of number <span class="Code_Emphasize">index by pls_integer</span>;
+type my_tab_t is table of number <span class="Code_Emphasize">index by varchar2(4000)</span>;</pre>
+  <p>The datatype for <span class="Code_Emphasize">of</span> is not remarkable 
+    in the above, but the datatype for <span class="Code_Emphasize">index by</span> 
+    is. The size of the varchar2 may be anything up to the legal limit of 32767.</p>
+
+  <p><i>Note:</i> A declaration other than with <span class="Code_Emphasize">index 
+    by pls_integer</span> or <span class="Code_Emphasize">index by varchar2(<i>n</i>)</span> 
+    still fails, thus...</p>
+  <pre><span class="Code_Emphasize">PLS-00315</span>: Implementation restriction: unsupported table index type</pre>
+  <p>...so if, say, it is required to index by date, then a <span class="Code_Emphasize">To_Char</span> 
+    conversion must be used. </p>
+  <p>The new ability for <span class="Code_Emphasize">index by pls_integer</span> 
+
+    removes the need to use the older <span class="Code_Emphasize">binary_integer</span> 
+    in <i>any</i> new coding exercise.</p>
+  <p>The new ability for <span class="Code_Emphasize">index by varchar2</span> 
+    allows many new exciting coding possibilities, and is responsible for the 
+    name change for the feature to associative arrays, also in keeping with general 
+    terminology use when discussing 3GLs.</p>
+  <p>For example, index-by tables are often used to cache table values to give 
+    a performance boost in special situations, especially where very frequent 
+
+    lookup is called for. It has previously been necessary to code this explictly. 
+    <a href="Comparison_Binary_Int_Vs_Varchar.htm">This comparison</a> shows how 
+    an index by varchar2 table simplifies the coding. And not only is the coding 
+    simpler, it's more efficient! </p>
+  <p>For completeness, <a href="Comparison_Plstable_Vs_Dbtable.htm">this comparison</a>
+allows you to time populating 
+    an index by varchar2 table with one million tuples, and to time 
+    populating a database table with the same data. The PL/SQL table is about 
+    20 times faster. It also shows the paradigm for stepping through the elements of an
+
+index by varchar2 table...
+  <pre><span class="Code_Emphasize">idx := the_table.First</span>;
+<span class="Code_Emphasize">while idx is not null</span>
+loop
+  <span class="Code_Comment">-- do something</span>
+  <span class="Code_Emphasize">idx := the_table.Next(idx)</span>;
+end loop;</pre>
+<a href="Bundle_Scenario.htm">This scenario</a> provides an illustration of the power of an index by varchar2 table
+to deliver a uniquely elegant and efficient solution.
+
+
+  <p><span class="Author">Bryn Llewellyn, PL/SQL Product Manager, Oracle Corp</span><br>
+    <span class="Updated">last updated 13-May-2002</span><br>&nbsp;
+</div>
+</body></html>
+

@@ -1,0 +1,121 @@
+<HTML lang="en">
+<HEAD>
+<TITLE>Example 2 -- diff 1-2</TITLE>
+</HEAD>
+<BODY>
+
+<H1>Example 2 <i>-- diff 1-2</i></H1>
+This analysis finds a net <B>improvement</B> of <B>432726</B> microsecs (elapsed time) or <B> 87%</B> (<B>497110</B> versus <B>64384</B>).<BR>
+Here is a summary of the 6 most important individual function regressions and improvements:
+
+<TABLE BORDER=1>
+<TR><TH ID="regress"><A HREF = Diff_1_2_fr.html>Regressions</A>: 58 microsecs (elapsed time)</TH>
+<TH ID="improve"><A HREF = Diff_1_2_fr.html>Improvements</A>: 432784 microsecs (elapsed time)</TH>
+</TR>
+<TR ALIGN=RIGHT><TD ID="rr" HEADERS="regress">
+<TABLE BORDER=1>
+<TR ALIGN=RIGHT><TH ID="tdrh1">Function</TH>
+<TH ID="tdrh2">Rel%</TH>
+<TH ID="tdrh3">Ind%</TH>
+<TH ID="tdrh4">Calls</TH>
+<TH ID="tdrh5">Rel%</TH>
+<TH ID="tdrh6" ALIGN=LEFT>Function Name</TH>
+</TR>
+<TR ALIGN=RIGHT><TD ID="r1" HEADERS="tdrh1"><B>58</B></TD>
+<TD HEADERS="r1 tdrh2"><B> +0.3%</B></TD>
+<TD HEADERS="r1 tdrh3"><B> 100%</B></TD>
+<TD HEADERS="r1 tdrh4">0</TD>
+<TD HEADERS="r1 tdrh5"></TD>
+<TD HEADERS="r1 tdrh6"><A HREF = Diff_1_2_pc.html#PLSQL."F4"::8."F4"#9689ba467a19cd19 (Line 1)>F4.F4 (Line 1)</A> </TD></TR>
+</TABLE>
+</TD>
+<TD ID="ri" HEADERS="improve">
+<TABLE BORDER=1>
+<TR ALIGN=RIGHT><TH ID="tdih1">Function</TH>
+<TH ID="tdih2">Rel%</TH>
+<TH ID="tdih3">Ind%</TH>
+<TH ID="tdih4">Calls</TH>
+<TH ID="tdih5">Rel%</TH>
+<TH ID="tdih6" ALIGN=LEFT>Function Name</TH>
+</TR>
+<TR ALIGN=RIGHT><TD ID="r2" HEADERS="tdih1"><B>-218782</B></TD>
+<TD HEADERS="r2 tdih2"><B>-84.3%</B></TD>
+<TD HEADERS="r2 tdih3"><B>50.6%</B></TD>
+<TD HEADERS="r2 tdih4">0</TD>
+<TD HEADERS="r2 tdih5"></TD>
+<TD HEADERS="r2 tdih6"><A HREF = Diff_1_2_pc.html#PLSQL."Main"::7."Main"#980980e97e42f8ec (Line 1)>Main.Main (Line 1)</A> </TD></TR>
+<TR ALIGN=RIGHT><TD ID="r3" HEADERS="tdih1"><B>-213972</B></TD>
+<TD HEADERS="r3 tdih2"><B></B></TD>
+<TD HEADERS="r3 tdih3"><B>49.4%</B></TD>
+<TD HEADERS="r3 tdih4">-100000</TD>
+<TD HEADERS="r3 tdih5"></TD>
+<TD HEADERS="r3 tdih6"><A HREF = Diff_1_2_pc.html#PLSQL."F5"::8."F5"#9689ba467a19cd19 (Line 1)>F5.F5 (Line 1)</A>#</TD></TR>
+<TR ALIGN=RIGHT><TD ID="r4" HEADERS="tdih1"><B>-25</B></TD>
+<TD HEADERS="r4 tdih2"><B> -1.1%</B></TD>
+<TD HEADERS="r4 tdih3"><B> 0.0%</B></TD>
+<TD HEADERS="r4 tdih4">0</TD>
+<TD HEADERS="r4 tdih5"></TD>
+<TD HEADERS="r4 tdih6"><A HREF = Diff_1_2_pc.html#PLSQL."F3"::8."F3"#9689ba467a19cd19 (Line 1)>F3.F3 (Line 1)</A> </TD></TR>
+<TR ALIGN=RIGHT><TD ID="r5" HEADERS="tdih1"><B>-5</B></TD>
+<TD HEADERS="r5 tdih2"><B> -2.2%</B></TD>
+<TD HEADERS="r5 tdih3"><B> 0.0%</B></TD>
+<TD HEADERS="r5 tdih4">0</TD>
+<TD HEADERS="r5 tdih5"></TD>
+<TD HEADERS="r5 tdih6"><A HREF = Diff_1_2_pc.html#PLSQL."F2"::8."F2"#9689ba467a19cd19 (Line 1)>F2.F2 (Line 1)</A> </TD></TR>
+</TABLE>
+</TD>
+</TR>
+</TABLE>
+<H3>The PL/SQL Hierarchical Profiler produces a collection of reports that
+present information derived from the profiler's output logs in a variety
+of formats.  The following reports have been found to be the most generally
+useful as starting points for browsing:</H3>
+<UL>
+<LI> <A HREF = Diff_1_2_fr.html>
+     Function Elapsed Time (microsecs) Data for Performance Regressions
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_fi.html>
+     Function Elapsed Time (microsecs) Data for Performance Improvements
+     </A> </LI>
+</UL>
+<H3>In addition, the following reports are also available:</H3>
+<UL>
+<LI> <A HREF = Diff_1_2_nn.html>
+     Function Elapsed Time (microsecs) Data sorted by Function Name
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_ns.html>
+     Function Elapsed Time (microsecs) Data sorted by Total Subtree Elapsed Time (microsecs) Delta
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_nf.html>
+     Function Elapsed Time (microsecs) Data sorted by Total Function Elapsed Time (microsecs) Delta
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_nd.html>
+     Function Elapsed Time (microsecs) Data sorted by Total Descendants Elapsed Time (microsecs) Delta
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_nc.html>
+     Function Elapsed Time (microsecs) Data sorted by Total Function Call Count Delta
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_2n.html>
+     Module Elapsed Time (microsecs) Data sorted by Module Name
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_2f.html>
+     Module Elapsed Time (microsecs) Data sorted by Total Function Elapsed Time (microsecs) Delta
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_2c.html>
+     Module Elapsed Time (microsecs) Data sorted by Total Function Call Count Delta
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_nsp.html>
+     Namespace Elapsed Time (microsecs) Data sorted by Namespace
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_nsf.html>
+     Namespace Elapsed Time (microsecs) Data sorted by Total Function Elapsed Time (microsecs)
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_nsc.html>
+     Namespace Elapsed Time (microsecs) Data sorted by Total Function Call Count
+     </A> </LI>
+<LI> <A HREF = Diff_1_2_pc.html>
+     File Elapsed Time (microsecs) Data Comparison with Parents and Children
+     </A> </LI>
+</UL>
+</BODY>
+</HTML>

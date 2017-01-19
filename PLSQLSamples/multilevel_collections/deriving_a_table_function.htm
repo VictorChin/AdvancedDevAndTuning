@@ -1,0 +1,63 @@
+<html>
+
+<head>
+
+  <title>Deriving A Table Function From The Reporting Logic To Output A Relational &quot;View&quot; </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+  <h1> Deriving A Table Function From The Reporting Logic To Output A Relational 
+    &quot;View&quot; </h1>
+
+
+  <p>The <a href="Cr_Deriving_A_Table_Function.htm">sample script</a> illustrates 
+    the complete procedure for Table Function to &quot;View&quot; the contents 
+    of the Nested Table as a Relational Table. <br>
+  </p>
+
+  <p>At the heart of the innermost loop above we have the required information 
+    to populate a record corresponding to one row of the relational representation. 
+    (Writing a program to generate a report is a convenient way to test the logic 
+    before converting the code to a table function.) The conversion is relatively 
+    routine: (1) surround the block with a <b>create function</b> statement and 
+    declare a <b>ref cursor</b> input parameter; (2) define types for a record, 
+
+    and table of such records, according to the requirement and add a<b> return</b> 
+    declaration for the record type; (3) add the <b>pipelined</b> keyword; (4) 
+    declare local variables <b>v_in_row</b> and <b>v_out_row</b> as records of 
+    the appropriate types; (5) (if it's not already coded this way) reformulate 
+    the cursor loop to use <b>fetch p_in_cursor into v_in_row</b> with the corresponding 
+    exit condition (don't open it - this is done by the system when the table 
+    function is invoked); (6) replace the <b>Show</b> invocations with assignments 
+
+    for the elements of the target record; (7) deliver the record as the actual 
+    parameter to <b>pipe row()</b>; (8) add <b>close p_in_cursor</b> and<b> return</b> 
+    as the last executable statements.</p>
+  <p>We can now conveniently perform <i>ad hoc</i> queries, for example&#133;</p>
+  <pre>select first_name, avg ( distance ) d, avg ( pace ) p
+  from
+    (
+      select first_name, distance, pace
+
+        from table
+          (
+            Reln_Training_Logs_Fn 
+              (
+                cursor
+                  (
+                    select first_name, training_log from nested_training_logs
+                  )
+              )
+
+          )
+    )
+  group by first_name;
+   </pre>
+</div>
+</body></html>
+

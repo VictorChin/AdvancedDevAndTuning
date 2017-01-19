@@ -1,0 +1,124 @@
+<html>
+
+<head>
+
+  <title>Multilevel Collections</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+
+  <h1> Multilevel Collections</h1>
+
+
+  <h2>Overview</h2>
+  <p>There are two schema-level collection prototypes: VARRAY and (<i>nested</i>) 
+    TABLE. Both define <i>one-dimensional ordered arrays</i> of elements of a 
+    specified type, and can be leveraged in the creation of user-defined schema-level 
+
+    types thus&#133; </p>
+  <pre>create type Arr_t is <b>varray(255)</b> of number;
+/
+</pre>
+  <p>&#133;or&#133;</p>
+  <pre>create type Tab_t is <b>table</b> of varchar2(2000);
+
+/</pre>
+  <p>If appropriate, the element type can be an object type thus&#133;</p>
+  <pre>create type Obj_t is object ( a number, b varchar2(4000), c date );
+/</pre>
+  <p>Instances of schema-level types based on VARRAY or TABLE can be stored as 
+    fields of a column in a relational database table thus&#133;</p>
+  <pre>create type Arr_t is <b>varray(255)</b> of Obj_t;
+
+/
+create table t (id number, arr Arr_t);
+/
+insert into t ( id, arr ) values
+  ( 1, Arr_t ( Obj_t ( 1, 'one', '1-Jan-01' ), Obj_t ( 2, 'two', '2-Jan-01' ) ) );
+insert into t ( id, arr ) values
+  ( 5, Arr_t ( Obj_t ( 5, 'five', '5-Jan-01' ), Obj_t ( 6, 'six', '6-Jan-01' ) ) );</pre>
+  <p>The main differences between VARRAY and TABLE are:
+
+
+<ul class="Ul_1">
+<li>TABLE is unordered but VARRAY preserves order</li>
+<li>VARRAY has a defined upper bound whereas the TABLE is unbounded.</li>
+<li>A VARRAY field is stored inline 
+    for small sizes (&lt;= 4000 bytes) and in an opaque system-managed LOB within 
+    the given relational table for larger sizes, while a TABLE field is stored 
+    as several rows in a separate opaque system managed relational table.</li>
+</ul>
+
+ This 
+    impacts the efficiency of access, leading to a generically familiar trade-off: 
+    non-negotiable maximum collection size with faster access<i> versus</i> unlimited 
+    collection size with slower access.<br>
+    <br>
+    PL/SQL allows variables of user-defined types and provides mechanisms for 
+    passing data stored in schema-level collections to and from the corresponding 
+    PL/SQL structures thus&#133;</p>
+  <pre>declare
+  cursor c is select id, arr from t;
+
+  v_id number;
+  v_arr Arr_t;
+begin
+  open c;
+  loop
+    fetch c into v_id, v_arr; exit when c%notfound;
+    Dbms_Output.Put_Line ( v_id );
+    for j in v_arr.first..v_arr.last
+    loop
+      Dbms_Output.Put_Line ( v_arr(j).a, v_arr(j).b, v_arr(j).c );
+    end loop;
+
+  end loop;
+  close c;
+end;
+/
+</pre>
+  <p>PL/SQL also allows types based on VARRAY or TABLE to be declared within library 
+    units. This will typically be in a package for reuse across several library 
+    units. In addition, PL/SQL allows the<i> index-by</i> variant of TABLE. (This 
+    variant is not allowed as the basis of a schema-level type.) All the above 
+    is supported pre-Oracle9<i>i</i>.</p>
+  <h3>Oracle9<i>i</i> Enhancements</h3>
+  <ul>
+
+    <li><a href="Collections_Of_Collections.htm">Collections of Collections - 
+      New in Orcale9i</a></li>
+    <li><a href="Runner_Training_Logs_Example_Scenario.htm">&quot;Runner's Training 
+      Logs&quot; Example Scenario</a></li>
+  </ul>
+  <h2>Business Benefits of Multilevel Collections</h2>
+  <h1></h1>
+  <p>Storing data as collection instances in a column of a database table is a 
+    pre-optimization to favor certain access paths (typically accessing all the 
+    elements of the collection for each selected row). PL/SQL is needed to populate 
+    and query such collection instances. Modeling data as a collection in a PL/SQL 
+    program is essential for the implementation of certain algorithms (see for 
+    example the perfect triangles algorithm in <a href="../Native_Complilation/Cr_Computational_Intensive_Algorithm.htm">code 
+
+    sample</a> ). A collection can be used as the target of a bulk bind improve 
+    the performance of data transfer between the database and the PL/SQL processing.</p>
+  <ul>
+    <li>Previously only one-dimensional phenomena could leverage the above benefits. 
+      Multilevel collections now offer them for an arbitrarily enlarged set of 
+      real-world problems.<br>
+    </li>
+  </ul>
+  <blockquote> 
+    <p>&nbsp;</p>
+  </blockquote>
+  <p><br>
+  </p>
+  <blockquote>&nbsp;</blockquote>
+
+</div>
+</body></html>
+

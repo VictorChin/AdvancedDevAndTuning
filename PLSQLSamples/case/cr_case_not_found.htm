@@ -1,0 +1,51 @@
+<html>
+
+<head>
+
+  <title>Catching CASE_NOT_FOUND Exception</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div"> 
+  <pre>-- Connect programmer/p@9i
+
+set serveroutput on
+
+Drop function <span class="Code_Emphasize">Get_Grade3</span>;
+
+create or replace <span class="Code_Emphasize">function Get_Grade3(score IN NUMBER) </span>RETURN VARCHAR2 is
+
+begin
+<span class="Code_Comment">  -- use a Searched CASE Statement to find the Grade for the 
+  -- score passed in as a parameter</span>
+  CASE 
+    WHEN score BETWEEN 80 AND 100 THEN return 'A';
+    WHEN score BETWEEN 65 AND 79  THEN return 'B';
+
+    WHEN score BETWEEN 50 AND 64  THEN return 'C';
+    WHEN score BETWEEN 40 AND 49  THEN return 'D';
+    WHEN score BETWEEN 0  AND 39  THEN return 'F';
+<span class="Code_Comment">    --Comment the ELSE leg to generate the exception
+    --ELSE return 'Invalid score';
+</span>  END CASE;
+exception
+
+  when CASE_NOT_FOUND then
+    return 'Exception - Case Not Found for score - '|| score;
+end Get_Grade3;
+/
+Show Errors
+
+select <span class="Code_Emphasize">Get_Grade3(-1)</span> from dual
+/
+
+
+</pre>
+</div>
+</body></html>
+

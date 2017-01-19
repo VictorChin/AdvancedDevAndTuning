@@ -1,0 +1,120 @@
+<html>
+
+<head>
+
+  <title>Table Functions and Cursor Expressions</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+
+  <h1>Table Functions and Cursor Expressions</h1>
+
+
+  <h2>Overview</h2>
+
+  <p>Cursor expressions (sometimes known as cursor subqueries) are an element 
+    of the SQL language and pre-Oracle9<i>i</i> were supported in SQL and by certain 
+
+    programming environments but<i> not</i> by PL/SQL. Oracle9<i>i </i>introduces 
+    PL/SQL support for cursor expressions. For example, a cursor expression can 
+    be used in the SELECT statement used to open a PL/SQL cursor, and manipulated 
+    appropriately thereafter. It can also be used as an actual parameter to a 
+    PL/SQL procedure or function, which has great significance in connection with 
+    table functions.</p>
+
+  <p>Table functions were also supported (in rudimentary form) in pre-Oracle9i, 
+    but a number of major enhancements have been made at Oracle9<i>i</i>. A table 
+    function can now be written to deliver rows pipeline fashion as soon as they 
+    are computed, dramatically improving response time in a &#147;first rows&#148; 
+    scenario. It can now be written to accept a SELECT statement as input, allowing 
+    an indefinite number of transformations to be daisy-chained, avoiding the 
+    need for storage of intermediate results. And it can now be written so that 
+
+    its computation can be parallelized to leverage Oracle&#146;s parallel query 
+    mechanism.</p>
+  <p>The enabling of parallel execution of a table function means that it&#146;s 
+    now possible to leverage the power of PL/SQL in the <i>Extract,Transform and 
+    Load</i> (<i>aka</i> ETL) phase of data warehouse applications without serialization.</p>
+  <ul>
+    <li><a href="Cursor_Variables_Recap.htm">Cursor Variables - Recap</a></li>
+    <li><a href="Bulk_Fetch_From_Cursor_Variable.htm">Oracle9<i>i</i> enhancement 
+
+      for bulk fetch from cursor variable assigned by native dynamic SQL</a></li>
+    <li><a href="Manipulating_Cursor_Expressions.htm">Manipulating Cursor Expressions 
+      in PL/SQL</a></li>
+    <li><a href="Using_Cursor_Expression_As_Parameter.htm">Using a Cursor Expression 
+      as an actual parameter to a PL/SQL function</a></li>
+    <li><a href="Young_Managers_Scenario.htm">&quot;YOUNG MANAGERS&quot; Scenario</a></li>
+    <li><a href="Table_Functions_Recap.htm">Table Functions - Recap </a></li>
+    <li><a href="Pipelined_Table_Functions.htm">Pipelined Table Functions - New 
+      in Oracle9<i>i</i></a></li>
+
+    <li><a href="Piping_Data_From_One_Table_Function_To_The_Next.htm">Piping data 
+      from one Table Function to the next - New in Oracle9<i>i</i></a></li>
+    <li><a href="Young_Managers_Scenario_Table_Function_Approach.htm">The &quot;Young 
+      Managers&quot; Scenario revisited - Table Function approach </a> </li>
+    <li><a href="Using_Table_Functions_With_Side_Effects.htm">Fanout: Using Table 
+      Functions with side effects </a></li>
+    <li><a href="Parallelizing_Table_Function_Execution.htm">Parallelizing Table 
+      Function execution - New in Oracle9<i>i</i></a></li>
+  </ul>
+  <h3>Syntax for Table Function based on Schema-Level Type </h3>
+
+  <p>When a table function is written to return a schema-level type, the syntax 
+    required to invoke it is somewhat verbose. For completeness it is illustrated 
+    in <a href="Cr_Parallelizing_Table_Function_Execution_Functions_Rewritten.htm">code 
+    sample</a>.</p>
+  <h2>Business benefits of Table Functions and Cursor Expressions </h2>
+  <h1></h1>
+  <ul>
+    <li>Cursor expressions allow encapsulation of logic for re-use in compatible 
+      query situations, giving increased developer productivity and application 
+      reliability.</li>
+    <li>Table functions give increased functionality by allowing sets of tuples 
+
+      from arbitrary external data sources and sets of tuples synthesized from 
+      arbitrary computations to be invoked (as if they were a table) in the FROM 
+      list of a SELECT clause. For convenience they can be used to define a VIEW, 
+      giving new functionality.</li>
+    <li>Table functions can be used to deliver the rows from an arbitrarily complex 
+      PL/SQL transformation sourced from Oracle tables (including therefore other 
+      table functions) as a VIEW, without storage of the calculated rows. This 
+      gives increased speed and scalability. And increased developer productivity 
+      and application reliability.</li>
+    <li>Taking the VIEW metaphor a step further, the input parameters to the table 
+      function allow the VIEW to be parameterizable, increasing code re-usability 
+      and therefore increasing developer productivity and application reliability.</li>
+
+    <li>A table function with a <b>ref cursor</b> input parameter can be invoked 
+      with another table function as the data source. Thus table functions can 
+      be daisy-chained allowing modular program design and hence increased ease 
+      of programming, re-use and application robustness.</li>
+    <li>Table function execution can be parallelized giving improved speed and 
+      scalability. This, combined with the daisy-chaining feature, makes table 
+      functions particularly suitable in datawarehouse applications for implementing 
+      <i>Extraction, Transformation and Load</i> operations.</li>
+    <li>Fanout (DML from an autonomous transaction in the table function) adds 
+      functionality of particular interest in datawarehouse applications.</li>
+    <li>A table function allows data stored in nested tables to be queried as 
+      if it were stored relationally, and data stored relationally to be queried 
+      as if it were stored as nested tables. 
+
+     (This is illustrated in the
+      <a href="../Multilevel_Collections/Runner_Training_Logs_Example_Scenario.htm">Runner's Training Logs</a>
+      example scenario presented in the code sample for
+      <a href="../Multilevel_Collections/start.htm">Multilevel Collections</a>.)
+      This allows genuine independence between 
+      the format for the persistent storage of data and the design of the applications 
+      which access it. (A VIEW can be defined on a table function, and INSTEAD 
+      OF triggers can be created on the VIEW to complete the picture.) 
+      <p>&nbsp;</p>
+    </li>
+  </ul>
+</div>
+</body></html>
+

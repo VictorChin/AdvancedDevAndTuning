@@ -1,0 +1,71 @@
+<html>
+
+<head>
+
+  <title>Cursor reuse in PL/SQL static SQL</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+
+<table border=1 cellpadding=5>
+
+<tr><td class="Programmer">
+<pre>Connect programmer/p@9i
+Set ServerOutput On Size 10000</pre>
+</td>
+</tr>
+
+
+<tr><td class="Observer">
+        <pre>Connect observer/p@9i
+select * from open_cursor_sql_text
+  order by sql_text
+/
+
+<span class="Code_Comment">/*
+BEGIN DBMS_OUTPUT.ENABLE(10000); END;
+*/</span></pre>
+</td></tr>
+
+<tr><td class="Programmer">
+        <pre><span class="Code_Comment">-- use values for department_id from
+
+-- ( 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110 )
+-- for example...</span>
+begin Show_Rows_For_Dept_Static_Sql ( 10 ); end;
+/
+<span class="Code_Comment">/*
+Whalen
+*/</span>
+
+
+begin Show_Rows_For_Dept_Static_Sql ( 90 ); end;
+/
+<span class="Code_Comment">/*
+King
+Kochhar
+De Haan
+*/</span>
+</pre>
+</td></tr>
+
+
+<tr><td class="Observer">
+        <pre><span class="Code_Comment">-- repeat the query after each successive Show_Rows_For_Dept_Static_Sql</span>
+/
+<span class="Code_Comment">/*
+BEGIN DBMS_OUTPUT.GET_LINES(:LINES, :NUMLINES); END;
+<b>SELECT last_name from employees where department_id = :b1</b>
+begin Show_Rows_For_Dept_Static_Sql ( 90 ); end;
+*/</span></pre>
+</td></tr>
+
+
+</table>
+</div></body></html>
+

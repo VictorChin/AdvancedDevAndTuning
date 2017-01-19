@@ -1,0 +1,38 @@
+P#V PLSHPROF Internal Version 1.0
+P#! PL/SQL Timer Started
+P#C PLSQL."Main"::7."Main"#980980e97e42f8ec #1
+P#X 13
+P#C PLSQL."Pkg"::11."P1"#980980e97e42f8ec #44
+P#X 41418
+P#R
+P#X 4
+P#C PLSQL."Pkg"::11."P2"#980980e97e42f8ec #50
+P#X 3
+P#C PLSQL."Pkg"::11."Helper"#34ca7ad889ae0101 #26
+P#X 3
+P#R
+P#X 123945
+P#R
+P#X 4
+P#C PLSQL."Pkg"::11."P3"#980980e97e42f8ec #56
+P#X 3
+P#C PLSQL."Pkg"::11."Helper"#34ca7ad889ae0101 #26
+P#X 2
+P#R
+P#X 4393035
+P#R
+P#X 10
+P#C PLSQL."Pkg"::11."P4"#980980e97e42f8ec #62
+P#X 8
+P#C PLSQL."Pkg"::11."Helper"#34ca7ad889ae0101 #26
+P#X 2
+P#R
+P#X 1296980
+P#R
+P#X 9
+P#C PLSQL."Pkg"::11."P5"#980980e97e42f8ec #68
+P#X 3906488
+P#R
+P#X 3
+P#R
+P#! PL/SQL Timer Stopped

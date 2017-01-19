@@ -1,0 +1,219 @@
+<html>
+
+<head>
+
+  <title>RECORDs in SQL-PL/SQL interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" > 
+
+<h1><font color=red><b>Using RECORD binds for SQL in PL/SQL programs</b></font></h1>
+
+
+<h2><font color=red><b>Backround</b></font></h2>
+
+A PL/SQL <tt>RECORD</tt> is the datatype that corresponds to a row in a schema-level 
+  table. It is the natural construct to use when manipulating table rows programatically, 
+
+  especially when a row is read (via <tt>SELECT</tt>,<tt> UPDATE...RETURNING</tt> 
+  or <tt>DELETE...RETURNING</tt>), manipulated programatically, and then recorded 
+  (via <tt>INSERT</tt> or <tt>UPDATE</tt>) in an another table with the same shape. 
+  It has these advantages over representing the column values in individual variables... 
+  <ul class="Ul_1">
+    <li>the declaration is compact, using <tt>mytable%rowtype</tt><br>
+
+      &nbsp;</li>
+    <li>by using <tt>%rowtype</tt>, the declaration is guaranteed to match the 
+      corresponding schema-level template and is immune to schema-level changes 
+      in definition of the shape of the table<br>
+      &nbsp;</li>
+<li>the record variable can be used as a formal and actual parameter to a procedure or function
+giving compact and guaranteed correct notation and allowing optimizations
+
+in the implementation of parameter passing.
+<br>&nbsp;</li>
+<li><i>and of particular relevance in this discussion</i>
+the SQL-PL/SQL interface allows a syntax which does not
+list the columns of the source/target table explicitly,
+again allowing for robust code which has a greater degree of
+schema-independence.
+</li>
+
+</ul>
+
+<h2><font color=red><b>Status at Oracle9<i>i</i> Version 9.0.1</b></font></h2>
+As the matrix below shows, the use of <tt>RECORD</tt>s in the SQL-PL/SQL interface 
+  was greatly restricted. The syntax was supported only for the the single row 
+  <tt>SELECT</tt> case (but for that in both static SQL and native dynamic SQL). 
+  Thus the advantages listed above were not yet capable of being realized. 
+  <h2><font color=red><b>Restrictions Removed in Version 9.2.0</b></font></h2>
+A large number of restrictions have been lifted at Version 9.2.0. Full support 
+
+  is now provided for all flavors of <tt>SELECT</tt>. 
+  <P> And support is provided (with some minor restrictions -see below) for all 
+    <i>static SQL</i> flavors of <tt>INSERT</tt>, <tt>DELETE</tt> and <tt>UPDATE</tt>. 
+  <h2><font color=red><b>Restrictions Remaining in Version 9.2.0</b></font></h2>
+<ul class="Ul_1">
+    <li>No use is supported of <tt>EXECUTE IMMEDIATE</tt> in connection with <tt>INSERT</tt>, 
+      <tt>UPDATE</tt> or <tt>DELETE</tt>. (It is supported for <tt>SELECT</tt>, 
+      as stated above.) In other words, RECORDs are not yet supported for DML 
+      using native dynamic SQL.&nbsp;</li>
+    <li>With <tt>DELETE</tt> and <tt>UPDATE...RETURNING</tt> the column-list must 
+
+      be written explicitly in the SQL statement.&nbsp;</li>
+<li>In the bulk syntax case,
+you cannot reference fields of the in-bind table of records
+elsewhere in the SQL statement (esp eg in the where clause).</li>
+</ul>
+<h2><font color=red><b>Guide to the Samples</b></font></h2>
+These samples rely on the <tt>employees</tt> table. This is in the <tt>hr</tt> 
+  schema which is installed in the seed database. The script to create this schema 
+  is <tt>demo/schema/human_resources/hr_cre.sql</tt> under the Oracle Home directory. 
+  <p> This file, <tt>start.htm</tt>, and all the files it refers to, <tt>rec*.htm</tt>, 
+    are on the <tt>plsql/demo</tt> directory under the Oracle Home directory. 
+
+    First run <a href="rectab.htm"><tt>rectab.sql</tt></a> and then <a href="recpkg.htm"><tt>recpkg.sql</tt></a> 
+    to set up the environment. Then you can copy the code samples straight from 
+    the browser to SQL*PLus. 
+  <p> There's a corresponding set of plain text files, <tt>rec*.sql</tt>, (only 
+    on the <tt>plsql/demo</tt> directory) which can be run with <tt>start</tt> 
+    or <tt>@</tt> at the SQL*Plus prompt. The file <a href="rec_all.htm"><tt>rec_all.sql</tt></a> 
+    runs them all and cleans up after itself. 
+  <h2><font color=red><b>Navigation Matrix for Samples</b></font></h2>
+
+<table border=1 cellpadding=5>
+
+<tr>
+
+<td>What</td>
+<td>static SQL</td>
+<td>native dynamic SQL</td>
+</tr>
+
+<tr><td class="Row_Separator" colspan=3><b>SELECT</b></td>
+</tr>
+
+<tr>
+<td>- single row</td>
+<td><a href="rec1.htm">ok</a></td>
+<td><a href="rec4.htm">ok</a></td>
+</tr>
+
+
+<tr>
+<td>- many rows, single row syntax</td>
+<td><a href="rec2.htm">ok</a></td>
+<td><a href="rec5.htm">ok</a></td>
+</tr>
+
+<tr>
+<td>- many rows, bulk syntax</td>
+      <td class="New_in_9iR2"><a href="rec3.htm"><tt>PLS-00597 @9.0.1</tt></a> <br>
+        <br><i>illustrates LIMIT clause</i></td>
+      <td class="New_in_9iR2"><a href="rec6.htm"><tt>PLS-00597 @9.0.1</tt></a> <br>
+        <br><i>illustrates LIMIT clause</i></td>
+</tr>
+
+
+<tr><td class="Row_Separator" colspan=3><b>INSERT</b></td>
+</tr>
+
+<tr>
+<td>- single row</td>
+      <td class="New_in_9iR2"><a href="rec7.htm"><tt>ORA-00906 @9.0.1</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec10.htm"><tt>PLS-00457 @9.2.0</tt></a></td>
+</tr>
+
+<tr>
+<td>- many rows, bulk syntax</td>
+      <td class="New_in_9iR2"><a href="rec9.htm"><tt>ORA-00906 @9.0.1</tt></a> <br>
+        <br><i>illustrates SAVE EXCEPTIONS</i></td>
+      <td class="Not_in_9iR2" valign=top><a href="rec12.htm"><tt>PLS-00457 @9.2.0</tt></a></td>
+
+</tr>
+
+<tr><td class="Row_Separator" colspan=3><b>DELETE with RETURNING</b></td>
+</tr>
+
+<tr>
+<td>- single row</td>
+      <td class="Partial_in_9iR2"><a href="rec13.htm"><tt>ORA-00600 @9.0.1</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec15.htm"><tt>PLS-00429 @9.2.0</tt></a></td>
+</tr>
+
+<tr>
+<td>- many rows, bulk syntax</td>
+      <td class="Partial_in_9iR2"><a href="rec14.htm"><tt>PLS-00597 @9.0.1</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec16.htm"><tt>PLS-00429 @9.2.0</tt></a></td>
+</tr>
+
+
+<tr><td class="Row_Separator" colspan=3><b>UPDATE with RETURNING</b></td>
+</tr>
+
+<tr>
+<td>- single row</td>
+      <td class="Partial_in_9iR2"><a href="rec17.htm"><tt>ORA-00600 @9.0.1</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec19.htm"><tt>PLS-00429 @9.2.0</tt></a></td>
+</tr>
+
+<tr>
+<td>- many rows, bulk syntax</td>
+      <td class="Partial_in_9iR2"><a href="rec18.htm"><tt>PLS-00597 @9.0.1</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec20.htm"><tt>PLS-00429 @9.2.0</tt></a></td>
+</tr>
+
+<tr><td class="Row_Separator" colspan=3><b>UPDATE ... SET ROW =</b><br>
+
+<i>no need for RETURNING since you already have the RECORD before you do the SQL</i></td>
+</tr>
+
+<tr>
+<td>- single row</td>
+      <td class="New_in_9iR2"><a href="rec21.htm"><tt>ORA-00904 @9.0.1</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec23.htm"><tt>PLS-00457 @9.2.0</tt></a></td>
+</tr>
+
+<tr>
+<td>- many rows, bulk syntax</td>
+      <td class="Partial_in_9iR2"><a href="rec22.htm"><tt>PLS-00436 @9.2.0</tt></a></td>
+      <td class="Not_in_9iR2"><a href="rec24.htm"><tt>PLS-00457 @9.2.0</tt></a></td>
+</tr>
+
+</table>
+
+<br><br>
+
+
+<table border=1 cellpadding=5>
+<tr><td class="Row_Separator" colspan=2><i><b>Key</b></i></td>
+</tr>
+<tr>
+<td><i>supported in 9.0.1</i></td>
+<td bgcolor="ffffff">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</tr>
+<tr>
+<td><i>new in 9.2.0</i></td>
+<td class="New_in_9iR2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</tr>
+<tr>
+<td><i>partial support in in 9.2.0</i></td>
+<td class="Partial_in_9iR2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</tr>
+<tr>
+<td><i>not supported, 9.2.0 or earlier</i></td>
+<td class="Not_in_9iR2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+</tr>
+</table>
+
+  <p><span class="Author">Bryn Llewellyn, PL/SQL Product Manager, Oracle Corp</span><br>
+    <span class="Updated">last updated 7-May-2002</span><br>&nbsp;
+
+</div></body></html>
+

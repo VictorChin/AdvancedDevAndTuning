@@ -1,0 +1,75 @@
+<html>
+
+<head>
+
+  <title>Fanout: Using Table Functions with side effects </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+<body>
+<div class="Content_Div" style="top: 13px; left: 22px" > 
+  <h1>Fanout: Using Table Functions with side effects </h1>
+
+
+  <p>Sometimes the specification for the transformation to be implemented as a 
+    table function explicitly excludes source data with certain characteristics. 
+    In such cases, it&#146;s useful to report on the excluded source data and 
+    often most convenient to direct the report to the database for further analysis. 
+    A table function may do DML, provided that this is within an autonomous transaction, 
+
+    thus&#133;</p>
+  <pre>create or replace package My_Types is
+  type lookup_row is record ( idx number, text varchar2(20) );
+  type lookups_tab is table of lookup_row;
+end My_Types;
+/
+
+create table exclusions ( n number );
+
+create or replace function Lookups_Fn_With_Side_Effect
+  return My_Types.lookups_tab
+  pipelined
+is
+  <span class="Code_Emphasize">pragma autonomous_transaction</span>;
+
+  v_row My_Types.lookup_row;
+begin
+  for j in 1..15
+  loop
+    case
+      when j &lt; 11 then
+        case j
+          when 1 then v_row.idx := 1; v_row.text := 'one';
+
+          when 2 then v_row.idx := 2; v_row.text := 'TWO';
+          when 3 then v_row.idx := 3; v_row.text := 'three';
+          when 4 then v_row.idx := 4; v_row.text := 'FOUR';
+          when 5 then v_row.idx := 5; v_row.text := 'five';
+          when 6 then v_row.idx := 6; v_row.text := 'SIX';
+          when 7 then v_row.idx := 7; v_row.text := 'seven';
+          else        v_row.idx := j; v_row.text := 'other';
+        end case;
+        pipe row ( v_row );
+
+      else
+        <span class="Code_Emphasize">insert into exclusions values ( j )</span>;
+    end case;
+  end loop;
+  <span class="Code_Emphasize">commit</span>;
+  return;
+end Lookups_Fn_With_Side_Effect;
+/
+Show Errors
+
+
+select * from table ( Lookups_Fn_With_Side_Effect );
+
+select * from exclusions;
+
+</pre>
+</div>
+</body></html>
+

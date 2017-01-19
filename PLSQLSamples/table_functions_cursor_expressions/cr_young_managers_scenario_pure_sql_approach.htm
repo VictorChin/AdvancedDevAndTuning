@@ -1,0 +1,60 @@
+<html>
+
+<head>
+
+  <title>YOUNG MANAGERS Scenario - Pure SQL Approach</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="../Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3>-- Sample To Illustrate Table Functions And Cursor Expressions</h3>
+
+  <h4><i>-- &#147;YOUNG MANAGERS&#148; SCENARIO</i></h4>
+  <p>-- Find those managers in the employees table, the majority of whose direct 
+    reports were hired <br>
+    -- before the manager</p>
+  <p> <span class="Updated">-- PURE SQL APPROACH</span></p>
+
+  <span class="Updated">-- This scenario needs the <b>hr</b> sample schema that 
+  comes along with Oracle9i database </span> 
+  <pre>-- Connect hr/hr@9i
+set serveroutput on
+
+drop view <span class="Code_Emphasize">report_hire_dates</span>;
+
+drop view <span class="Code_Emphasize">young_managers</span>;
+
+<span class="Code_Emphasize">create or replace view report_hire_dates</span> as
+  select managers.employee_id manager_employee_id,
+         managers.hire_date manager_hire_date,
+         reports.hire_date report_hire_date
+    from employees managers,
+
+         employees reports
+    where managers.employee_id = reports.manager_id;   </pre>
+  <pre><span class="Code_Emphasize">create or replace view young_managers</span> as
+  select manager_employee_id from ( 
+    select manager_employee_id,
+      sum (
+            Decode (
+                     sign ( report_hire_date - manager_hire_date ),
+
+                     <span class="Code_Comment">/* when */</span> -1, <span class="Code_Comment">/* then */</span> 1,
+                     <span class="Code_Comment">/* when */</span>  0, <span class="Code_Comment">/* then */</span> 1,
+                     <span class="Code_Comment">/* else */</span> -1
+                   )
+          ) s
+      from report_hire_dates
+      group by manager_employee_id )
+    where s &gt; 0;
+
+
+</pre>
+  </div>
+<p>&nbsp;</p></body></html>
+

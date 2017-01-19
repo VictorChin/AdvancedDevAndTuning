@@ -1,0 +1,126 @@
+<html>
+
+<head>
+
+  <title>Using UTL_HTTP Package</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  <meta name="Author" content="Bryn Llewellyn">
+  <link rel="stylesheet" href="file:///C|/filesOnline/OTN/PLSQL/Content.css" type="text/css">
+</head>
+
+
+<body>
+<div class="Content_Div" style="left: 24px; top: 26px">
+  <h3>-- Using UTL_HTTP Package</h3>
+
+  <p>-- The following block shows: how to send an HTTP request, setting the proxy 
+    information,<br>
+    -- setting the method to &quot;GET&quot;, providing username/password authentication 
+    information,<br>
+    -- and setting the request header; and how to get the response, retrieving 
+
+    the status code, <br>
+    -- the header information, and the response body.<br>
+    -- The &quot;GET&quot; method is suitable for non-parameterized URLs or for 
+    URLs with a manageable<br>
+    --volume of parameter name-value pairs. The maximum length of the URL string 
+    is<br>
+
+    -- limited by the capacity of the PL/SQL VARCHAR2 variable used to pass it.<br>
+    -- The &quot;POST&quot; method is suitable for parameterizing the request 
+    with an arbitrarily<br>
+    -- large volume of data, especially for example as might be the case when 
+    the request<br>
+    -- is expressed as an XML document. </p>
+  <pre>-- Connect programmer/p@9i
+
+SET SERVEROUTPUT ON SIZE 1000000<br></pre>
+  <pre>
+declare
+  req Utl_Http.Req;
+  resp Utl_Http.Resp;
+  name varchar2(255);
+  value varchar2(1023);
+  v_msg varchar2(80);
+
+  v_url varchar2(32767) := '/';
+begin
+  <span class="Updated">/* request that exceptions are raised for error Status Codes */</span>
+  Utl_Http.Set_Response_Error_Check ( enable =&gt; true );</pre>
+  <pre>  <span class="Updated">/* allow testing for exceptions like Utl_Http.Http_Server_Error */</span>
+  Utl_Http.Set_Detailed_Excp_Support ( enable =&gt; true );</pre>
+  <pre>  Utl_Http.Set_Proxy (
+    proxy =&gt; 'www-proxy.us.oracle.com',
+    no_proxy_domains =&gt; 'us.oracle.com' );</pre>
+
+  <pre>  req := Utl_Http.Begin_Request (
+    url =&gt; v_url,
+    method =&gt; 'GET' );
+  <span class="Updated">/*
+    Alternatively use method =&gt; 'POST' and Utl_Http.Write_Text to
+    build an arbitrarily long message
+  */</span></pre>
+  <pre>  Utl_Http.Set_Authentication (
+    r =&gt; req,
+    username =&gt; 'SomeUser',
+
+    password =&gt; 'SomePassword',
+    scheme =&gt; 'Basic',
+    for_proxy =&gt; false <span class="Updated">/* this info is for the target web server */</span> );</pre>
+  <pre>  Utl_Http.Set_Header (
+    r =&gt; req,
+    name =&gt; 'User-Agent',
+    value =&gt; 'Mozilla/4.0' );</pre>
+  <pre>  resp := Utl_Http.Get_Response ( r =&gt; req );</pre>
+  <pre>  Dbms_Output.Put_Line ( 'Status code: ' || resp.status_code );
+  Dbms_Output.Put_Line ( 'Reason phrase: ' || resp.reason_phrase );</pre>
+  <pre>  for i in 1..Utl_Http.Get_Header_Count ( r =&gt; resp )
+
+    loop
+      Utl_Http.Get_Header (
+      r =&gt; resp,
+      n =&gt; i,
+      name =&gt; name,
+      value =&gt; value );
+      Dbms_Output.Put_Line ( name || ': ' || value);
+    end loop;</pre>
+  <pre>  begin
+    loop
+      Utl_Http.Read_Text (
+      r =&gt; resp,
+
+      data =&gt; v_msg );
+      Dbms_Output.Put_Line ( v_msg );
+    end loop;
+    exception when Utl_Http.End_Of_Body then null;
+  end;</pre>
+  <pre>  Utl_Http.End_Response ( r =&gt; resp );
+exception
+  <span class="Updated">/*
+    The exception handling illustrates the use of &quot;pragma-ed&quot; exceptions
+    like Utl_Http.Http_Client_Error. In a realistic example, the program
+    would use these when it coded explicit recovery actions.</span></pre>
+  <pre><span class="Updated">    Request_Failed is raised for all exceptions after calling
+    Utl_Http.Set_Detailed_Excp_Support ( enable=&gt;false )
+
+    And it is NEVER raised after calling with enable=&gt;true
+  */</span>
+  when Utl_Http.Request_Failed then
+    Dbms_Output.Put_Line ( 'Request_Failed: ' || Utl_Http.Get_Detailed_Sqlerrm );</pre>
+  <pre>  <span class="Updated">/* raised by URL http://xxx.oracle.com/ */</span>
+  when Utl_Http.Http_Server_Error then
+    Dbms_Output.Put_Line ( 'Http_Server_Error: ' || Utl_Http.Get_Detailed_Sqlerrm );</pre>
+  <pre>  <span class="Updated">/* raised by URL /xxx */</span>
+  when Utl_Http.Http_Client_Error then
+    Dbms_Output.Put_Line ( 'Http_Client_Error: ' || Utl_Http.Get_Detailed_Sqlerrm );</pre>
+  <pre class="Updated">  /* code for all the other defined exceptions you can recover from */</pre>
+  <pre>  when others then
+    Dbms_Output.Put_Line (SQLERRM);
+end;
+
+/
+Show Errors</pre>
+</div>
+<p>&nbsp;</p></body></html>
+
