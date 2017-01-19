@@ -6,4 +6,4 @@ value as total_physical_reads
 from v$segment_statistics
  where statistic_name in ('physical reads')
  order by total_physical_reads desc)
- where rownum
+ where rownum <5;

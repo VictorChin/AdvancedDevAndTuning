@@ -12,4 +12,4 @@ AND    h.instance_number = x.instance_number
 AND    h.event in  ('db file sequential read','db file scattered read')
 GROUP BY h.sql_id
 ORDER BY ash_secs desc )
-where rownum
+where rownum < 5;
