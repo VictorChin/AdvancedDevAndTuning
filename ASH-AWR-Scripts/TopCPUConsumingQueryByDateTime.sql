@@ -12,7 +12,7 @@ active_session_history.event,
 from v$active_session_history active_session_history,
     dba_objects
  where 
-active_session_history.sample_time between sysdate - 1/24 and sysdate
+active_session_history.sample_time between sysdate - 1 and sysdate
 and active_session_history.current_obj# = dba_objects.object_id
  group by dba_objects.object_name, dba_objects.object_type, active_session_history.event
  order by 4 desc)
